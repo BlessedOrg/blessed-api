@@ -14,7 +14,7 @@ const contracts = [
     "description": "",
     "url": ""
   }
-]
+];
 
 async function getHandler() {
   return NextResponse.json(
