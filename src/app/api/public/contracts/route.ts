@@ -6,12 +6,12 @@ import { StatusCodes } from "http-status-codes";
 const contracts = [
   {
     "name": "ERC1155",
-    "description": "",
+    "description": "Multi-token standard for creating 'tickets on steroids'. Can be limited to whitelisted marketplaces, collect royalties on the secondary market, used for fan rewards & perks, kill bots  and offer endless  advanced functionality beyond traditional ticketing systems.",
     "url": ""
   },
   {
     "name": "ERC20",
-    "description": "",
+    "description": "Token standard for creating in-house, event-specific, or in-app currencies. Ideal for community building and native event payments, enhancing user engagement and providing a seamless transaction experience within our ecosystem.",
     "url": ""
   }
 ];
