@@ -1,10 +1,10 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { StatusCodes } from "http-status-codes";
 
 const apiToken = `wvNoszpnD3ENS6cXSHeRYVPj85suevbZ`; // hardcoded for now
 
-export function withAuth(handler) {
-  return async (request) => {
+export function withAuth(handler: (req: NextRequest) => Promise<NextResponse> | NextResponse) {
+  return async (request: NextRequest) => {
     const authHeader = request.headers.get('authorization');
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: StatusCodes.UNAUTHORIZED });
