@@ -2,8 +2,9 @@
 
 import {Account, Calldata, CallData, constants, Contract, ec, hash, num, RpcProvider, stark} from "starknet";
 import ethAbi from "@/contracts/abis/ethAbi.json";
+import {createVaultPrivateKeyItem} from "@/app/server/vaultApi";
 
-export async function createAndDeployAccount(){
+export async function createAndDeployAccount(email: string){
     const provider = new RpcProvider({
         nodeUrl: constants.NetworkName.SN_SEPOLIA,
     });
@@ -51,12 +52,13 @@ export async function createAndDeployAccount(){
     }
 
     console.log("💎 Sending initial funds to the ArgentX account...");
-
-    const amountToSend = num.toBigInt(0.00012 * 10 ** 18);
+    ethContract.connect(operatorAccount);
+    const amountToSend = num.toBigInt(0.0007 * 10 ** 18);
     const transferTx: any = await ethContract.transfer(
         AXcontractAddress,
         amountToSend,
     );
+
     console.log("🔄 Waiting for transaction confirmation...")
     const confirmation = await provider.waitForTransaction(
         transferTx.transaction_hash,
@@ -76,6 +78,7 @@ export async function createAndDeployAccount(){
         privateKeyAX,
         AXConstructorCallData,
         starkKeyPubAX,
+        email
     );
     return deployStatus
 }
@@ -87,6 +90,7 @@ const deploy = async (
     privateKeyAX: string,
     AXConstructorCallData: Calldata,
     starkKeyPubAX: string,
+    email: string,
 ) => {
     const accountAX = new Account(provider, AXcontractAddress, privateKeyAX);
 
@@ -106,18 +110,22 @@ const deploy = async (
         if (AXcontractFinalAddress) {
             console.log(`✅ ArgentX wallet created & deployed: \n  - Final contract address: ${AXcontractFinalAddress}`,);
         }
+        const vaultData = await createVaultPrivateKeyItem(privateKeyAX, starkKeyPubAX, email,true)
         return {
             message: "✅ ArgentX wallet created & deployed",
             contractAddress: AXcontractFinalAddress,
             privateKey: privateKeyAX,
-            publicKey: starkKeyPubAX
+            publicKey: starkKeyPubAX,
+            vaultKey: vaultData.id
         };
     } catch (e) {
         const error = e as any;
         console.log(error);
+        const vaultData = await createVaultPrivateKeyItem(privateKeyAX, starkKeyPubAX, email, false)
         return {
             message: "❌ ArgentX wallet deployment failed",
             error: error?.message,
+            vaultKey: vaultData.id
         };
     }
 }

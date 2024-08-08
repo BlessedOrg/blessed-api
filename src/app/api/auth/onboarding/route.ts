@@ -59,16 +59,26 @@ export async function POST(req: Request) {
       },
     });
 
-    const deployedUserAccount = await createAndDeployAccount();
+    const deployedUserAccount = await createAndDeployAccount(createdUser.email);
     console.log(`🚀 Deployed user account:`, deployedUserAccount);
     if (deployedUserAccount?.contractAddress) {
-      const updateUserWalletAddress = await userModel.update({
+     await userModel.update({
         where: {
           email,
         },
         data: {
           walletAddress: deployedUserAccount.contractAddress,
-          accountDeployed: true
+          accountDeployed: true,
+          vaultKey: deployedUserAccount.vaultKey,
+        },
+      });
+    } else {
+      await userModel.update({
+        where: {
+          email,
+        },
+        data: {
+          vaultKey: deployedUserAccount.vaultKey,
         },
       });
     }
@@ -81,6 +91,7 @@ export async function POST(req: Request) {
           email,
           isDeployed: !!deployedUserAccount?.contractAddress,
           walletAddress: deployedUserAccount?.contractAddress,
+          vaultKey: deployedUserAccount?.vaultKey,
         },
       },
       { status: StatusCodes.OK },

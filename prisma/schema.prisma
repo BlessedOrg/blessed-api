@@ -22,6 +22,7 @@ model User {
   otps            UserOtp[]
   session         Session?
   accountDeployed Boolean   @default(false)
+  vaultKey        String?
 }
 
 model UserOtp {
