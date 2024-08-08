@@ -1,9 +1,9 @@
 'use server'
 
-import {Account, Calldata, CallData, constants, Contract, ec, hash, num, RpcProvider, stark} from "starknet";
+import {Account, CallData, constants, Contract, ec, hash, num, RpcProvider, stark} from "starknet";
 import ethAbi from "@/contracts/abis/ethAbi.json";
 import {createVaultPrivateKeyItem} from "@/app/server/vaultApi";
-
+import {ethers} from 'ethers'
 export async function createAndDeployAccount(email: string){
     const provider = new RpcProvider({
         nodeUrl: constants.NetworkName.SN_SEPOLIA,
@@ -51,12 +51,27 @@ export async function createAndDeployAccount(email: string){
         );
     }
 
-    console.log("💎 Sending initial funds to the ArgentX account...");
+    const accountAX = new Account(provider, AXcontractAddress, privateKeyAX);
+    const deployAccountPayload = {
+        classHash: argentXaccountClassHash,
+        constructorCalldata: AXConstructorCallData,
+        contractAddress: AXcontractAddress,
+        addressSalt: starkKeyPubAX,
+    };
+    console.log(`🔄 Estimating deploy fee for ArgentX account...`);
+    const {suggestedMaxFee} = await accountAX.estimateAccountDeployFee({
+        classHash: argentXaccountClassHash,
+        constructorCalldata: AXConstructorCallData,
+        contractAddress: AXcontractAddress
+    })
+    console.log(`💰 Suggested max fee ETH: ${ethers.formatEther(suggestedMaxFee)}`);
+
+    console.log(`💎 Sending initial funds to the ArgentX account... (${ethers.formatEther(suggestedMaxFee)} ETH)`);
     ethContract.connect(operatorAccount);
-    const amountToSend = num.toBigInt(0.0007 * 10 ** 18);
+
     const transferTx: any = await ethContract.transfer(
         AXcontractAddress,
-        amountToSend,
+        suggestedMaxFee,
     );
 
     console.log("🔄 Waiting for transaction confirmation...")
@@ -72,11 +87,9 @@ export async function createAndDeployAccount(email: string){
 
     console.log("🔄 Deploying ArgentX account...");
     const deployStatus = await deploy(
-        provider,
-        argentXaccountClassHash,
-        AXcontractAddress,
+        accountAX,
         privateKeyAX,
-        AXConstructorCallData,
+        deployAccountPayload,
         starkKeyPubAX,
         email
     );
@@ -84,23 +97,12 @@ export async function createAndDeployAccount(email: string){
 }
 
 const deploy = async (
-    provider: RpcProvider,
-    argentXaccountClassHash: string,
-    AXcontractAddress: string,
+    accountAX: Account,
     privateKeyAX: string,
-    AXConstructorCallData: Calldata,
+    deployAccountPayload: any,
     starkKeyPubAX: string,
     email: string,
 ) => {
-    const accountAX = new Account(provider, AXcontractAddress, privateKeyAX);
-
-    const deployAccountPayload = {
-        classHash: argentXaccountClassHash,
-        constructorCalldata: AXConstructorCallData,
-        contractAddress: AXcontractAddress,
-        addressSalt: starkKeyPubAX,
-    };
-
     try {
         const {
             transaction_hash: AXdAth,
