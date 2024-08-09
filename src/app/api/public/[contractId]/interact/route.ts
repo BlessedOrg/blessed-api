@@ -5,7 +5,7 @@ import connectToContract from "@/services/connectToContract";
 import { getContractsFunctions } from "@/contracts/interfaces";
 import z from "zod";
 import parseContractResponse from "@/services/parseContractResponse";
-import parseRequestBody from "@/services/parseRequestBody";
+import validateRequestsBody from "@/services/validateRequestsBody";
 
 async function postHandler(req: NextRequest) {
   const contractId = req.nextUrl.pathname.split("/api/public/")[1].split("/interact")[0];
@@ -32,14 +32,14 @@ async function postHandler(req: NextRequest) {
     )
   });
 
-  const parsedBody = parseRequestBody(schema, body);
+  const validBody = validateRequestsBody(schema, body);
 
   const contract = connectToContract({ 
-    address: (parsedBody as any)?.data?.contractAddress,
+    address: (validBody as any)?.data?.contractAddress,
     id: contractId
   });
 
-  const result = await parseContractResponse(parsedBody, contract)
+  const result = await parseContractResponse(validBody, contract)
   
   return NextResponse.json(
     { result: result, type: typeof result },
