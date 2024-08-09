@@ -17,7 +17,7 @@ async function postHandler(req: NextRequest) {
   if (!func) {
     return NextResponse.json(
       { error: `Function ${body.functionName} for contract ${contractId} not found. Supported contracts and corresponding functions can be checked by calling endpoint /api/public/contracts` },
-      { status: StatusCodes.BAD_REQUEST },
+      { status: StatusCodes.BAD_REQUEST } as any,
     );
   }
 
@@ -43,7 +43,7 @@ async function postHandler(req: NextRequest) {
   
   return NextResponse.json(
     { result: result, type: typeof result },
-    { status: StatusCodes.OK },
+    { status: StatusCodes.OK } as any,
   );
 }
 

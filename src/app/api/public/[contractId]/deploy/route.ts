@@ -16,7 +16,7 @@ async function postHandler(req: NextRequest): Promise<NextResponse>  {
   if (!isEqual(sortBy(constructorArgs), Object.keys(body)) && !isEmpty(body)) {
     return NextResponse.json(
       { error: `Invalid constructor arguments for contract ${contractId}. The proper arguments are: ${constructorArgs}` },
-      { status: StatusCodes.BAD_REQUEST },
+      { status: StatusCodes.BAD_REQUEST } as any,
     );
   }
 
@@ -28,7 +28,7 @@ async function postHandler(req: NextRequest): Promise<NextResponse>  {
   
   return NextResponse.json(
     { ...deployResponse },
-    { status: StatusCodes.OK },
+    { status: StatusCodes.OK }  as any,
   );
 }
 

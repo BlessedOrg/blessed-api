@@ -7,13 +7,13 @@ export function withAuth(handler: (req: NextRequest) => Promise<NextResponse> | 
   return async (request: NextRequest) => {
     const authHeader = request.headers.get('authorization');
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: StatusCodes.UNAUTHORIZED });
+      return NextResponse.json({ error: 'Unauthorized' }, { status: StatusCodes.UNAUTHORIZED } as any);
     }
 
     const token = authHeader.split(' ')[1];
 
     if (token !== apiToken) {
-      return NextResponse.json({ error: 'Invalid token' }, { status: StatusCodes.UNAUTHORIZED });
+      return NextResponse.json({ error: 'Invalid token' }, { status: StatusCodes.UNAUTHORIZED } as any);
     }
 
     return handler(request);

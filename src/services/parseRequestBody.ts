@@ -8,7 +8,7 @@ const parseRequestBody = (schema: any, body: any) => {
 
     return NextResponse.json(
       { error: parsedBody.error },
-      { status: StatusCodes.BAD_REQUEST }
+      { status: StatusCodes.BAD_REQUEST } as any
     );
   }
 
