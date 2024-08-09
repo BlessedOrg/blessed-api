@@ -4,7 +4,7 @@ import { StatusCodes } from "http-status-codes";
 import connectToContract from "@/services/connectToContract";
 import { getContractsFunctions } from "@/contracts/interfaces";
 import z from "zod";
-import parseContractResponse from "@/services/parseContractResponse";
+import interactWithContract from "@/services/interactWithContract";
 import validateRequestsBody from "@/services/validateRequestsBody";
 
 async function postHandler(req: NextRequest, { params : { contractName }}) {
@@ -12,8 +12,8 @@ async function postHandler(req: NextRequest, { params : { contractName }}) {
 
   const body = await req.json();
 
-  const func = functions.find((f: any) => f.name === body.functionName);
-  if (!func) {
+  const targetFunction = functions.find((f: any) => f.name === body.functionName);
+  if (!targetFunction) {
     return NextResponse.json(
       { error: `Function ${body.functionName} for contract ${contractName} not found. Supported contracts and corresponding functions can be checked by calling endpoint /api/public/contracts` },
       { status: StatusCodes.BAD_REQUEST } as any,
@@ -25,7 +25,7 @@ async function postHandler(req: NextRequest, { params : { contractName }}) {
     functionName: z.enum(functions.map((f: any) => f.name)),
     inputs: z.array(
       z.object({
-        name: z.enum(func.inputs.map((i: any) => i.name)),
+        name: z.enum(targetFunction.inputs.map((i: any) => i.name)),
         value: z.union([z.string(), z.number()])
       })
     )
@@ -38,7 +38,7 @@ async function postHandler(req: NextRequest, { params : { contractName }}) {
     name: contractName
   });
 
-  const result = await parseContractResponse(validBody, contract)
+  const result = await interactWithContract(validBody, contract)
   
   return NextResponse.json(
     { result: result, type: typeof result },

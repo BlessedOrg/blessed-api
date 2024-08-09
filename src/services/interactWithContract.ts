@@ -1,11 +1,11 @@
 import { isEmpty } from "lodash-es";
 
-const parseContractResponse = async (parsedBody: any, contract: any) => {
+const interactWithContract = async (body: any, contract: any) => {
   let result;
-  if (isEmpty((parsedBody as any)?.data?.inputs)) {
-    result = await contract[parsedBody?.data?.functionName]();
+  if (isEmpty((body as any)?.data?.inputs)) {
+    result = await contract[body?.data?.functionName]();
   } else {
-    result = await contract[parsedBody?.data?.functionName](parsedBody?.data?.inputs);
+    result = await contract[body?.data?.functionName](body?.data?.inputs);
   }
   if (typeof result === "bigint") {
     result = result.toString();
@@ -13,4 +13,4 @@ const parseContractResponse = async (parsedBody: any, contract: any) => {
   return result;
 };
 
-export default parseContractResponse;
+export default interactWithContract;
