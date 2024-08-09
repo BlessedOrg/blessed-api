@@ -1,5 +1,6 @@
-import { Account, Calldata, CallData, Provider } from "starknet";
-import { contractsInterfaces } from "@/contracts/interfaces";
+import { Account, Calldata, CallData } from "starknet";
+import { contractsInterfaces, throwErrorForWrongContractId } from "@/contracts/interfaces";
+import provider from "@/contracts/provider";
 
 interface DeployContractParams {
   contractId: string;
@@ -8,10 +9,7 @@ interface DeployContractParams {
 }
 
 const deployContract = async ({ contractId, constructorArgs, classHash }: DeployContractParams) => {
-  if (!contractsInterfaces[contractId]) {
-    throw new Error(`Invalid contractId: ${contractId}. Supported contracts can be checked by calling endpoint /api/public/contracts`);
-  }
-  const provider = new Provider();
+  throwErrorForWrongContractId(contractId);
   const account = new Account(provider, process.env.WALLET_ADDR as string, process.env.PRIVATE_KEY as string);
   const contractCallData: CallData = new CallData(contractsInterfaces[contractId].abi as any);
   const contractConstructor: Calldata = contractCallData.compile("constructor", constructorArgs);

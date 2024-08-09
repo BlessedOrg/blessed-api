@@ -22,7 +22,8 @@
     "react-dom": "^18",
     "starknet": "^6.12.1",
     "starknetkit": "^2.2.7",
-    "uuid": "^10.0.0"
+    "uuid": "^10.0.0",
+    "zod": "^3.23.8"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
@@ -35,6 +36,7 @@
     "@types/uuid": "^10.0.0",
     "http-status-codes": "^2.3.0",
     "prisma": "5.17.0",
-    "typescript": "^5"
+    "typescript": "^5",
+    "zod-to-json-schema": "^3.23.2"
   }
 }
