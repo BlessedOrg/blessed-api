@@ -1,9 +1,9 @@
-'use server'
-
-import {Account, CallData, constants, Contract, ec, hash, RpcProvider, stark} from "starknet";
+"use server";
+import { Account, CallData, constants, Contract, ec, hash, RpcProvider, stark } from "starknet";
 import ethAbi from "@/contracts/abis/ethAbi.json";
-import {createVaultPrivateKeyItem} from "@/app/server/vaultApi";
-import {ethers} from 'ethers'
+import { createVaultPrivateKeyItem } from "@/app/server/vaultApi";
+import { ethers } from "ethers";
+
 export async function createAndDeployAccount(email: string){
     const provider = new RpcProvider({
         nodeUrl: constants.NetworkName.SN_SEPOLIA,

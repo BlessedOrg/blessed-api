@@ -4,11 +4,11 @@ import { Contract } from "starknet";
 
 interface ConnectToContractParams {
   address: string;
-  id: string;
+  name: string;
 }
 
-const connectToContract = ({ address, id }: ConnectToContractParams) => {
-  return new Contract(contractsInterfaces[id].abi, address, provider);
+const connectToContract = ({ address, name }: ConnectToContractParams) => {
+  return new Contract(contractsInterfaces[name].abi, address, provider);
 };
 
 export default connectToContract;

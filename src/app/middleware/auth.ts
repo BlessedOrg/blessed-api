@@ -3,8 +3,8 @@ import { StatusCodes } from "http-status-codes";
 
 const apiToken = `wvNoszpnD3ENS6cXSHeRYVPj85suevbZ`; // hardcoded for now
 
-export function withAuth(handler: (req: NextRequest) => Promise<NextResponse> | NextResponse) {
-  return async (request: NextRequest) => {
+export function withAuth(handler: (req: NextRequest, context: { params: any }) => Promise<NextResponse> | NextResponse) {
+  return async (request: NextRequest, context: { params: any }) => {
     const authHeader = request.headers.get('authorization');
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: StatusCodes.UNAUTHORIZED } as any);
@@ -16,6 +16,6 @@ export function withAuth(handler: (req: NextRequest) => Promise<NextResponse> | 
       return NextResponse.json({ error: 'Invalid token' }, { status: StatusCodes.UNAUTHORIZED } as any);
     }
 
-    return handler(request);
+    return handler(request, context);
   };
 }

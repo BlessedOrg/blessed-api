@@ -7,16 +7,15 @@ import z from "zod";
 import parseContractResponse from "@/services/parseContractResponse";
 import validateRequestsBody from "@/services/validateRequestsBody";
 
-async function postHandler(req: NextRequest) {
-  const contractId = req.nextUrl.pathname.split("/api/public/")[1].split("/interact")[0];
-  const functions = getContractsFunctions(contractId);
+async function postHandler(req: NextRequest, { params : { contractName }}) {
+  const functions = getContractsFunctions(contractName);
 
   const body = await req.json();
 
   const func = functions.find((f: any) => f.name === body.functionName);
   if (!func) {
     return NextResponse.json(
-      { error: `Function ${body.functionName} for contract ${contractId} not found. Supported contracts and corresponding functions can be checked by calling endpoint /api/public/contracts` },
+      { error: `Function ${body.functionName} for contract ${contractName} not found. Supported contracts and corresponding functions can be checked by calling endpoint /api/public/contracts` },
       { status: StatusCodes.BAD_REQUEST } as any,
     );
   }
@@ -36,7 +35,7 @@ async function postHandler(req: NextRequest) {
 
   const contract = connectToContract({ 
     address: (validBody as any)?.data?.contractAddress,
-    id: contractId
+    name: contractName
   });
 
   const result = await parseContractResponse(validBody, contract)

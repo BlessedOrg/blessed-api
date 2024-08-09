@@ -3,15 +3,15 @@ import { contractsInterfaces, throwErrorForWrongContractId } from "@/contracts/i
 import provider from "@/contracts/provider";
 
 interface DeployContractParams {
-  contractId: string;
+  contractName: string;
   constructorArgs: { [key: string]: any };
   classHash: string;
 }
 
-const deployContract = async ({ contractId, constructorArgs, classHash }: DeployContractParams) => {
-  throwErrorForWrongContractId(contractId);
+const deployContract = async ({ contractName, constructorArgs, classHash }: DeployContractParams) => {
+  throwErrorForWrongContractId(contractName);
   const account = new Account(provider, process.env.WALLET_ADDR as string, process.env.PRIVATE_KEY as string);
-  const contractCallData: CallData = new CallData(contractsInterfaces[contractId].abi as any);
+  const contractCallData: CallData = new CallData(contractsInterfaces[contractName].abi as any);
   const contractConstructor: Calldata = contractCallData.compile("constructor", constructorArgs);
   const deployResponse = await account.deployContract({
     classHash: classHash,
