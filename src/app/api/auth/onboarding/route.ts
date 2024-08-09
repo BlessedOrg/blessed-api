@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { StatusCodes } from "http-status-codes";
 import { userModel } from "@/prisma/models";
-import { verificationEmailCodeSend } from "@/app/server/verificationEmailCodeSend";
+import { verificationEmailCodeSend } from "@/server/verificationEmailCodeSend";
 
 export async function POST(req: Request) {
   const body = await req.json();
