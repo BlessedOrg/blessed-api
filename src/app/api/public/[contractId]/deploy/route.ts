@@ -5,7 +5,7 @@ import { StatusCodes } from "http-status-codes";
 import deployContract from "@/services/deployContract";
 import { getContractsConstructor } from "@/contracts/interfaces";
 
-async function postHandler(req: NextRequest) {
+async function postHandler(req: NextRequest): Promise<NextResponse>  {
   const contractId = req.nextUrl.pathname.split("/api/public/")[1].split("/deploy")[0];
   const constructorArgs = getContractsConstructor(contractId);
 
@@ -15,7 +15,7 @@ async function postHandler(req: NextRequest) {
   const body = await req.json();
   if (!isEqual(sortBy(constructorArgs), Object.keys(body)) && !isEmpty(body)) {
     return NextResponse.json(
-      { error: `Invalid constructor arguments for contract ${contractId}` },
+      { error: `Invalid constructor arguments for contract ${contractId}. The proper arguments are: ${constructorArgs}` },
       { status: StatusCodes.BAD_REQUEST },
     );
   }
@@ -25,9 +25,9 @@ async function postHandler(req: NextRequest) {
     constructorArgs: body,
     classHash
   });
-
+  
   return NextResponse.json(
-    { contractAddress: deployResponse.contract_address },
+    { ...deployResponse },
     { status: StatusCodes.OK },
   );
 }

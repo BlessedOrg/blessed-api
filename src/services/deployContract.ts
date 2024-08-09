@@ -17,9 +17,16 @@ const deployContract = async ({ contractId, constructorArgs, classHash }: Deploy
     classHash: classHash,
     constructorCalldata: contractConstructor,
   });
-  await provider.waitForTransaction(deployResponse.transaction_hash);
+  const txRes = await provider.waitForTransaction(deployResponse.transaction_hash);
+  let fee;
+  if (txRes.isSuccess()) {
+    fee = parseInt((txRes as any)?.actual_fee?.amount, 16);
+  }
   console.log("📜 Newly deployed contract address:", deployResponse.contract_address);
-  return deployResponse;
+  return {
+    ...deployResponse,
+    fee
+  };
 };
 
 export default deployContract;
