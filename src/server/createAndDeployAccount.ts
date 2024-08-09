@@ -2,7 +2,7 @@
 
 import {Account, CallData, constants, Contract, ec, hash, RpcProvider, stark} from "starknet";
 import ethAbi from "@/contracts/abis/ethAbi.json";
-import {createVaultPrivateKeyItem} from "@/app/server/vaultApi";
+import {createVaultPrivateKeyItem} from "@/server/vaultApi";
 import {ethers} from 'ethers'
 export async function createAndDeployAccount(email: string){
     const provider = new RpcProvider({
