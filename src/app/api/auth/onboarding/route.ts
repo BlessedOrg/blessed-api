@@ -15,7 +15,7 @@ export async function POST(req: Request) {
   if (!email || !isValidEmail(email)) {
     return NextResponse.json(
       { error: "Invalid email format" },
-      { status: StatusCodes.BAD_REQUEST },
+      { status: StatusCodes.BAD_REQUEST } as any,
     );
   }
 
@@ -23,7 +23,7 @@ export async function POST(req: Request) {
   if (isEmailTaken) {
     return NextResponse.json(
       { error: "Email already taken" },
-      { status: StatusCodes.BAD_REQUEST },
+      { status: StatusCodes.BAD_REQUEST } as any,
     );
   }
 
@@ -32,12 +32,12 @@ export async function POST(req: Request) {
   if (!!res?.accepted?.length) {
     return NextResponse.json(
       { message: "Verification code sent 📧" },
-      { status: StatusCodes.OK },
+      { status: StatusCodes.OK } as any,
     );
   }
 
   return NextResponse.json(
     { error: "Failed to send verification code email." },
-    { status: StatusCodes.INTERNAL_SERVER_ERROR },
+    { status: StatusCodes.INTERNAL_SERVER_ERROR } as any,
   );
 }

@@ -14,7 +14,7 @@ export async function POST(req: Request) {
     if (!code) {
         return NextResponse.json(
             { error: "Invalid code format" },
-            { status: StatusCodes.BAD_REQUEST },
+            { status: StatusCodes.BAD_REQUEST } as any,
         );
     }
 
@@ -23,14 +23,14 @@ export async function POST(req: Request) {
        if(!accepted || !email) {
         return NextResponse.json(
             { error: "Invalid code", verifyEmailResult },
-            { status: StatusCodes.BAD_REQUEST },
+            { status: StatusCodes.BAD_REQUEST } as any,
         );
        }
 
     if (isEmailTaken) {
         return NextResponse.json(
             { error: "Email already taken" },
-            { status: StatusCodes.BAD_REQUEST },
+            { status: StatusCodes.BAD_REQUEST } as any,
         );
     }
 
@@ -99,12 +99,12 @@ export async function POST(req: Request) {
                     verifyEmailResult
                 },
             },
-            { status: StatusCodes.OK },
+            { status: StatusCodes.OK } as any,
         );
     }
 
     return NextResponse.json(
         { error: "Failed to create user" },
-        { status: StatusCodes.INTERNAL_SERVER_ERROR },
+        { status: StatusCodes.INTERNAL_SERVER_ERROR } as any,
     );
 }

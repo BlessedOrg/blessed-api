@@ -30,15 +30,15 @@ type ContractsInterfacesType = {
   };
 };
 
-export const throwErrorForWrongContractId = (contractId: any) => {
-  if (!contractsInterfaces[contractId]) {
-    throw new Error(`Invalid contractId: ${contractId}. Supported contracts can be checked by calling endpoint /api/public/contracts`);
+export const throwErrorForWrongContractId = (contractName: any) => {
+  if (!contractsInterfaces[contractName]) {
+    throw new Error(`Invalid contractName: ${contractName}. Supported contracts can be checked by calling endpoint /api/public/contracts`);
   }
 };
 
-export const getContractsFunctions = (contractId: any) => {
-  throwErrorForWrongContractId(contractId);
-  const functionsInterface = contractsInterfaces[contractId].abi.find(i => i.type === "interface");
+export const getContractsFunctions = (contractName: any) => {
+  throwErrorForWrongContractId(contractName);
+  const functionsInterface = contractsInterfaces[contractName].abi.find(i => i.type === "interface");
   return functionsInterface.items
     .filter((i: any) => i.type === "function")
     .map((i: any) => ({
@@ -47,9 +47,9 @@ export const getContractsFunctions = (contractId: any) => {
     }));
 };
 
-export const getContractsConstructor = (contractId: any) => {
-  throwErrorForWrongContractId(contractId);
-  const constructorInterface = contractsInterfaces[contractId].abi.find((i: any) => i.type === "constructor");
+export const getContractsConstructor = (contractName: any) => {
+  throwErrorForWrongContractId(contractName);
+  const constructorInterface = contractsInterfaces[contractName].abi.find((i: any) => i.type === "constructor");
   return constructorInterface.inputs.map((i: any) => i.name);
 }
 
