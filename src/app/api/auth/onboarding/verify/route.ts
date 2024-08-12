@@ -3,7 +3,7 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { NextResponse } from "next/server";
 import { StatusCodes } from "http-status-codes";
-import {sessionModel, userModel} from "@/prisma/models";
+import {sessionModel, developerAccountModel} from "@/prisma/models";
 import { createAndDeployAccount } from "@/server/createAndDeployAccount";
 import {verifyEmail} from "@/server/verifyEmail";
 
@@ -34,7 +34,7 @@ export async function POST(req: Request) {
         );
     }
 
-    const createdUser = await userModel.create({
+    const createdUser = await developerAccountModel.create({
         data: {
             email,
         },
@@ -54,7 +54,7 @@ export async function POST(req: Request) {
             data: {
                 accessToken: hashedAccessToken,
                 refreshToken: hashedRefreshToken,
-                user: {
+                DeveloperAccount: {
                     connect: {
                         id: createdUser.id,
                     },
@@ -66,7 +66,7 @@ export async function POST(req: Request) {
         const deployedUserAccount = await createAndDeployAccount(createdUser.email);
         console.log(`🚀 Deployed user account:`, deployedUserAccount);
         if (deployedUserAccount?.contractAddress) {
-            await userModel.update({
+            await developerAccountModel.update({
                 where: {
                     email,
                 },
@@ -77,7 +77,7 @@ export async function POST(req: Request) {
                 },
             });
         } else {
-            await userModel.update({
+            await developerAccountModel.update({
                 where: {
                     email,
                 },

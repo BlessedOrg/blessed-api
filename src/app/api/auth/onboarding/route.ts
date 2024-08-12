@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { StatusCodes } from "http-status-codes";
-import { userModel } from "@/prisma/models";
+import { developerAccountModel } from "@/prisma/models";
 import { verificationEmailCodeSend } from "@/server/verificationEmailCodeSend";
 
 export async function POST(req: Request) {
@@ -19,7 +19,7 @@ export async function POST(req: Request) {
     );
   }
 
-  const isEmailTaken = await userModel.findFirst({ where: { email } });
+  const isEmailTaken = await developerAccountModel.findFirst({ where: { email } });
   if (isEmailTaken) {
     return NextResponse.json(
       { error: "Email already taken" },

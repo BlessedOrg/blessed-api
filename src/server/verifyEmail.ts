@@ -1,6 +1,6 @@
 "use server";
 
-import { emailVerificationCodeModel, userModel } from "@/prisma/models";
+import { emailVerificationCodeModel, developerAccountModel } from "@/prisma/models";
 
 export async function verifyEmail(code: string) {
   const existingCodeData = await emailVerificationCodeModel.findFirst({
@@ -15,7 +15,7 @@ export async function verifyEmail(code: string) {
     };
   }
 
-  const isEmailTaken = await userModel.findFirst({
+  const isEmailTaken = await developerAccountModel.findFirst({
     where: { email: existingCodeData.email },
   });
 

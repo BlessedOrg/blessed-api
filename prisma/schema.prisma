@@ -13,36 +13,56 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
-  id              String    @id @default(cuid())
-  email           String    @unique
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-  walletAddress   String?   @unique
-  otps            UserOtp[]
+model DeveloperAccount {
+  id              String                  @id @default(cuid())
+  email           String                  @unique
+  walletAddress   String?                 @unique
+  otps            AccountOtp[]
   session         Session?
-  accountDeployed Boolean   @default(false)
+  accountDeployed Boolean                 @default(false)
   vaultKey        String?
+  users           DevelopersUserAccount[]
+  createdAt       DateTime                @default(now())
+  updatedAt       DateTime                @updatedAt
 }
 
-model UserOtp {
-  id        String   @id @default(cuid())
-  userId    String
-  otp       String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  User      User     @relation(fields: [userId], references: [id])
+model DevelopersUserAccount {
+  id               String           @id @default(cuid())
+  email            String           @unique
+  walletAddress    String?          @unique
+  otps             AccountOtp[]
+  session          Session?
+  developerAccount DeveloperAccount @relation(fields: [developerId], references: [id])
+  developerId      String
+  accountDeployed  Boolean          @default(false)
+  vaultKey         String?
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+  sessionId        String?
+}
+
+model AccountOtp {
+  id                    String                 @id @default(cuid())
+  otp                   String
+  DeveloperAccount      DeveloperAccount?      @relation(fields: [developerId], references: [id])
+  developerId           String?
+  DevelopersUserAccount DevelopersUserAccount? @relation(fields: [developerUserId], references: [id])
+  developerUserId       String?
+  createdAt             DateTime               @default(now())
+  updatedAt             DateTime               @updatedAt
 }
 
 model Session {
-  id           String   @id @default(cuid())
-  accessToken  String   @unique
-  refreshToken String   @unique
-  expiresAt    DateTime
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId       String   @unique
+  id                    String                 @id @default(cuid())
+  accessToken           String                 @unique
+  refreshToken          String                 @unique
+  DeveloperAccount      DeveloperAccount?      @relation(fields: [developerId], references: [id])
+  developerId           String?                @unique
+  DevelopesrUserAccount DevelopersUserAccount? @relation(fields: [developerUserId], references: [id])
+  developerUserId       String?                @unique
+  expiresAt             DateTime
+  createdAt             DateTime               @default(now())
+  updatedAt             DateTime               @updatedAt
 }
 
 model EmailVerificationCode {
