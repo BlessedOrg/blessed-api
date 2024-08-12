@@ -7,6 +7,11 @@
   resolved "https://registry.npmjs.org/@adraffy/ens-normalize/-/ens-normalize-1.10.1.tgz"
   integrity sha512-96Z2IP3mYmF1Xg2cDm8f1gWGf/HUVedQ3FMifV4kG/PQ4yEP51xDtRAEfhVNt5f/uzpNkZHwWQuUcu6D6K+Ekw==
 
+"@avnu/gasless-sdk@^0.1.3":
+  version "0.1.3"
+  resolved "https://registry.yarnpkg.com/@avnu/gasless-sdk/-/gasless-sdk-0.1.3.tgz#948295caab95a9745e786e570acef8297919c0b9"
+  integrity sha512-Jq9O5vbaSKt4oarB5Mg7f2N57PvB+/HSS09uLQ2vlOLbxsMbfsdcKhOOwbtdC9OZnj4B3haBBWb6Z2J2KFz7rg==
+
 "@module-federation/runtime@^0.1.2":
   version "0.1.21"
   resolved "https://registry.npmjs.org/@module-federation/runtime/-/runtime-0.1.21.tgz"

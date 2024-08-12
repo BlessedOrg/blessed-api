@@ -4,8 +4,8 @@ import jwt from "jsonwebtoken";
 import { NextResponse } from "next/server";
 import { StatusCodes } from "http-status-codes";
 import {sessionModel, userModel} from "@/prisma/models";
-import { createAndDeployAccount } from "@/app/server/createAndDeployAccount";
-import {verifyEmail} from "@/app/server/verifyEmail";
+import { createAndDeployAccount } from "@/server/createAndDeployAccount";
+import {verifyEmail} from "@/server/verifyEmail";
 
 export async function POST(req: Request) {
     const body = await req.json();
