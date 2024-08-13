@@ -76,7 +76,7 @@ export async function createVaultApiTokenItem(userId: string, deployed: boolean)
             id: "userId",
             type: "STRING",
             label: "User ID",
-            value" userId,
+            value: userId,
           },
           {
             id: "apiToken",

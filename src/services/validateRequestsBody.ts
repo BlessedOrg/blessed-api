@@ -3,6 +3,8 @@ import { StatusCodes } from "http-status-codes";
 
 const validateRequestsBody = (schema: any, body: any) => {
   const validBody = schema.safeParse(body);
+  
+  console.log("🌳 validBody.data: ", validBody.data)
 
   if (!validBody.success) {
 

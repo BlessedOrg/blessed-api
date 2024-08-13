@@ -5,13 +5,15 @@ import { createVaultApiTokenItem } from "@/server/vaultApi";
 import { apiTokenModel } from "@/prisma/models";
 
 async function postHandler(req: NextRequest) {
+  // 🚨 TODO: use real userId
+  const userId = "clzre71d200006p8wgqt0wmph";
+
   const vaultItem = await createVaultApiTokenItem(userId, false);
 
   await apiTokenModel.create({
     data: {
-      // 🚨 TODO: use real userId
-      userId: "clzre71d200006p8wgqt0wmph",
-      vaultKey: vaultItem?.id
+      developerId: userId,
+      vaultKey: vaultItem?.id as string
     }
   });
 

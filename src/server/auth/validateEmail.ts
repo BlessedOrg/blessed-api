@@ -14,12 +14,14 @@ export async function validateEmail(email: string, accountType?: "dev" | "user")
         return { message: "Invalid email format", status: StatusCodes.BAD_REQUEST  }
     }
 
-    const isEmailTaken = accountType === "dev" ?  await developerAccountModel.findFirst({ where: { email } }) : await developersUserAccountModel.findFirst({ where: { email } });
+    const isEmailTaken = accountType === "dev"
+      ? await developerAccountModel.findFirst({ where: { email } })
+      : await developersUserAccountModel.findFirst({ where: { email } });
+
     if (isEmailTaken) {
         return { message: "Email already taken", status: StatusCodes.BAD_REQUEST  }
     }
 
-    //send verification email
     const res = await verificationEmailCodeSend(email);
     if (!!res?.accepted?.length) {
         return { message: "Verification code sent 📧", status: StatusCodes.OK  }

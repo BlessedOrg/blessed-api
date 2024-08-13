@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import { StatusCodes } from "http-status-codes";
 import {validateEmail} from "@/server/auth/validateEmail";
 import z from "zod";
-import validateRequestsBody from "@/services/validateRequestsBody";
 
 const schema = z.object({
   email: z.string().email(),
@@ -10,8 +9,7 @@ const schema = z.object({
 
 export async function POST(req: Request) {
   const body = await req.json();
-  const validBody = validateRequestsBody(schema, body);
-  const { email } = validBody;
+  const { email } = body;
 
   const emailValidation: any = await validateEmail(email, "dev");
   if(emailValidation) {

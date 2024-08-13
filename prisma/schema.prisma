@@ -21,7 +21,7 @@ model DeveloperAccount {
   session         Session?
   accountDeployed Boolean                 @default(false)
   vaultKey        String?
-  users           DevelopersUserAccount[]
+  Users           DevelopersUserAccount[]
   createdAt       DateTime                @default(now())
   updatedAt       DateTime                @updatedAt
   ApiTokens       ApiToken[]
@@ -79,7 +79,8 @@ model ApiToken {
   id               String            @id @default(cuid())
   vaultKey         String
   DeveloperAccount DeveloperAccount? @relation(fields: [developerId], references: [id])
-  developerId      String?           @unique
+  developerId      String?
+  expiresAt        DateTime?
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @updatedAt
 }
