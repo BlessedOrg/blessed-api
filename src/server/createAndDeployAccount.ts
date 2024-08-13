@@ -118,7 +118,7 @@ const deploy = async (
       contractAddress: AXcontractFinalAddress,
       privateKey: privateKeyAX,
       publicKey: starkKeyPubAX,
-      vaultKey: vaultData.id
+      vaultKey: vaultData?.id
     };
   } catch (e) {
     const error = e as any;
@@ -127,7 +127,7 @@ const deploy = async (
     return {
       message: "❌ ArgentX wallet deployment failed",
       error: error?.message,
-      vaultKey: vaultData.id
+      vaultKey: vaultData?.id
     };
   }
 }

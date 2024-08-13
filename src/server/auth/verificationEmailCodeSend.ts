@@ -3,10 +3,13 @@ import nodemailer from "nodemailer";
 import { generateOTP } from "@/utils/generateOtp";
 import { emailVerificationCodeModel } from "@/prisma/models";
 
-export async function verificationEmailCodeSend(to: string) {
+export async function verificationEmailCodeSend(
+  to: string,
+  expirationTimeMinutes?: number,
+) {
   const { SMTP_PASSWORD, SMTP_EMAIL } = process.env;
 
-  if(!SMTP_PASSWORD || !SMTP_EMAIL) {
+  if (!SMTP_PASSWORD || !SMTP_EMAIL) {
     throw new Error("SMTP_PASSWORD or SMTP_EMAIL is not set");
   }
   const trasport = nodemailer.createTransport({
@@ -19,7 +22,10 @@ export async function verificationEmailCodeSend(to: string) {
 
   try {
     const testResult = await trasport.verify();
-    console.log(testResult);
+    console.log(`📧 Email service is ready: ${testResult}`);
+    if (!testResult) {
+      throw new Error("Email service is not ready");
+    }
   } catch (err) {
     console.log(err);
     return;
@@ -30,7 +36,9 @@ export async function verificationEmailCodeSend(to: string) {
     data: {
       code,
       email: to,
-      expiresAt: new Date(Date.now() + 15 * 60 * 1000), // 15 minutes
+      expiresAt: !!expirationTimeMinutes
+        ? new Date(Date.now() + expirationTimeMinutes * 60 * 1000)
+        : new Date(Date.now() + 15 * 60 * 1000), // 15 minutes
     },
   });
   if (createCodeRecord) {

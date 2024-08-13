@@ -1,44 +1,50 @@
 import { NextResponse } from "next/server";
 import { StatusCodes } from "http-status-codes";
-import { developerAccountModel } from "@/prisma/models";
+import {
+  developersUserAccountModel,
+} from "@/prisma/models";
 import { createAndDeployAccount } from "@/server/createAndDeployAccount";
 import { verifyEmail } from "@/server/auth/verifyEmail";
 import { createSessionTokens } from "@/server/auth/createSessionTokens";
-import { createOrUpdateSession } from "@/server/auth/session";
+import {createOrUpdateSession} from "@/server/auth/session";
+import {withExistingDevAccount} from "@/app/middleware/withExistingDevAccount";
 
-export async function POST(req: Request) {
+async function handler(req: Request, { params: { developerId } }) {
   const body = await req.json();
   const { code } = body;
 
   if (!code) {
-    return NextResponse.json({ error: "Invalid code format" }, {
-      status: StatusCodes.BAD_REQUEST,
-    } as any);
+    return NextResponse.json(
+      { error: "Invalid code format" },
+      { status: StatusCodes.BAD_REQUEST },
+    );
   }
 
-  const verifyEmailResult = await verifyEmail(code, "dev");
-  const { accepted, email} = verifyEmailResult;
+  const verifyEmailResult = await verifyEmail(code, "user");
+  const { accepted, email } = verifyEmailResult;
   if (!accepted || !email) {
-    return NextResponse.json({ error: "Invalid code", verifyEmailResult }, {
-      status: StatusCodes.BAD_REQUEST,
-    } as any);
+    return NextResponse.json(
+      { error: "Invalid code", verifyEmailResult },
+      { status: StatusCodes.BAD_REQUEST },
+    );
   }
 
-  const createdUser: any = await developerAccountModel.create({
+  const createdUser = await developersUserAccountModel.create({
     data: {
       email,
+      developerAccount: { connect: { id: developerId } },
     },
   });
   if (createdUser) {
     const { hashedRefreshToken, hashedAccessToken, accessToken, refreshToken } =
-      await createSessionTokens({ id: createdUser?.id });
+      await createSessionTokens({ id: createdUser.id });
 
-    const createdUserSession = await createOrUpdateSession(email, 'dev')
+      const createdUserSession = await createOrUpdateSession(email, 'dev')
 
-    const deployedUserAccount: any = await createAndDeployAccount(createdUser.email);
+    const deployedUserAccount = await createAndDeployAccount(createdUser.email);
     console.log(`🚀 Deployed user account:`, deployedUserAccount);
     if (deployedUserAccount?.contractAddress) {
-      await developerAccountModel.update({
+      await developersUserAccountModel.update({
         where: {
           email,
         },
@@ -49,7 +55,7 @@ export async function POST(req: Request) {
         },
       });
     } else {
-      await developerAccountModel.update({
+      await developersUserAccountModel.update({
         where: {
           email,
         },
@@ -65,17 +71,20 @@ export async function POST(req: Request) {
         refreshToken,
         user: {
           email,
+          developerId,
           isDeployed: !!deployedUserAccount?.contractAddress,
           walletAddress: deployedUserAccount?.contractAddress,
           vaultKey: deployedUserAccount?.vaultKey,
           verifyEmailResult,
         },
       },
-      { status: StatusCodes.OK } as any,
+      { status: StatusCodes.OK },
     );
   }
 
-  return NextResponse.json({ error: "Failed to create user" }, {
-    status: StatusCodes.INTERNAL_SERVER_ERROR,
-  } as any);
+  return NextResponse.json(
+    { error: "Failed to create user" },
+    { status: StatusCodes.INTERNAL_SERVER_ERROR },
+  );
 }
+export const POST = withExistingDevAccount(handler);
