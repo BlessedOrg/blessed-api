@@ -47,9 +47,8 @@ export async function createVaultPrivateKeyItem(
         ],
       }),
     });
-    const data = await createdItem.json();
-    if (data) console.log(`🔑 Created Key Pair in Vault for: ${email}`);
-    return data;
+    console.log(`🔑 Created Key Pair in Vault for: ${email}`);
+    return createdItem.json();
   } catch (error: any) {
     console.log(`⛑️🔑 Failed to create Key Pair in Vault for: ${email} \n ${error?.message}`);
   }
@@ -92,9 +91,8 @@ export async function createVaultApiTokenItem(userId: string, deployed: boolean)
         ],
       }),
     });
-    const data = await createdItem.json();
-    if (data) console.log(`🔑 Created API Token in Vault for User: ${userId}`);
-    return data;
+    console.log(`🔑 Created API Token in Vault for User: ${userId}`);
+    return await createdItem.json();
   } catch (error: any) {
     console.log(`⛑️🔑 Failed to create API Token in Vault for User: ${userId} \n ${error?.message}`);
   }
