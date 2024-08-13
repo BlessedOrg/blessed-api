@@ -15,7 +15,7 @@ async function postHandler(req: NextRequest, { params: { contractName } }): Prom
   if (!isEqual(sortBy(constructorArgs), Object.keys(body)) && !isEmpty(body)) {
     return NextResponse.json(
       { error: `Invalid constructor arguments for contract ${contractName}. The proper arguments are: ${constructorArgs}` },
-      { status: StatusCodes.BAD_REQUEST } as any,
+      { status: StatusCodes.BAD_REQUEST },
     );
   }
 
@@ -27,7 +27,7 @@ async function postHandler(req: NextRequest, { params: { contractName } }): Prom
   
   return NextResponse.json(
     { ...deployResponse },
-    { status: StatusCodes.OK }  as any,
+    { status: StatusCodes.OK } ,
   );
 }
 

@@ -8,7 +8,7 @@ const validateRequestsBody = (schema: any, body: any) => {
 
     return NextResponse.json(
       { error: validBody.error },
-      { status: StatusCodes.BAD_REQUEST } as any
+      { status: StatusCodes.BAD_REQUEST }
     );
   }
 

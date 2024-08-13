@@ -28,7 +28,7 @@ async function getHandler() {
   ];
   return NextResponse.json(
     { contracts },
-    { status: StatusCodes.OK } as any,
+    { status: StatusCodes.OK },
   );
 }
 

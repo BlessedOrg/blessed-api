@@ -20,7 +20,7 @@ async function postHandler(req: NextRequest) {
       apiToken: vaultItem?.fields?.find(f => f.id === "apiToken")?.value,
       vaultKey: vaultItem?.id
     },
-    { status: StatusCodes.OK } as any,
+    { status: StatusCodes.OK },
   );
 }
 
