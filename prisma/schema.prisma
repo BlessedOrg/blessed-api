@@ -58,7 +58,7 @@ model Session {
   refreshToken          String                 @unique
   DeveloperAccount      DeveloperAccount?      @relation(fields: [developerId], references: [id])
   developerId           String?                @unique
-  DevelopesrUserAccount DevelopersUserAccount? @relation(fields: [developerUserId], references: [id])
+  DevelopersUserAccount DevelopersUserAccount? @relation(fields: [developerUserId], references: [id])
   developerUserId       String?                @unique
   expiresAt             DateTime
   createdAt             DateTime               @default(now())

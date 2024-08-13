@@ -68,6 +68,15 @@ CREATE TABLE "AccountOtp" (
     CONSTRAINT "AccountOtp_pkey" PRIMARY KEY ("id")
 );
 
+-- CreateTable
+CREATE TABLE "ApiToken" (
+    "id" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "ApiToken_pkey" PRIMARY KEY ("id")
+);
+
 -- CreateIndex
 CREATE UNIQUE INDEX "DeveloperAccount_email_key" ON "DeveloperAccount"("email");
 

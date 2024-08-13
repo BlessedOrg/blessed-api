@@ -1,12 +1,13 @@
 import { NextResponse } from "next/server";
 import { StatusCodes } from "http-status-codes";
 import {validateEmail} from "@/server/auth/validateEmail";
+import {withExistingDevAccount} from "@/app/middleware/withExistingDevAccount";
 
-export async function POST(req: Request) {
+ async function handler(req: Request) {
   const body = await req.json();
   const { email } = body;
 
-  const emailValidation = await validateEmail(email, 'dev');
+  const emailValidation = await validateEmail(email, 'user');
   if(emailValidation) {
     return NextResponse.json(
         { message: emailValidation.message},
@@ -19,3 +20,4 @@ export async function POST(req: Request) {
     { status: StatusCodes.INTERNAL_SERVER_ERROR } as any,
   );
 }
+export const POST = withExistingDevAccount(handler);

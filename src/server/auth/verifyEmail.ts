@@ -1,8 +1,8 @@
 "use server";
 
-import { emailVerificationCodeModel, developerAccountModel } from "@/prisma/models";
+import { emailVerificationCodeModel} from "@/prisma/models";
 
-export async function verifyEmail(code: string) {
+export async function verifyEmail(code: string, accountType: "dev" | "user") {
   const existingCodeData = await emailVerificationCodeModel.findFirst({
     where: {
       code,
@@ -12,19 +12,6 @@ export async function verifyEmail(code: string) {
     return {
       accepted: false,
       email: undefined,
-    };
-  }
-
-  const isEmailTaken = await developerAccountModel.findFirst({
-    where: { email: existingCodeData.email },
-  });
-
-  if (isEmailTaken) {
-    return {
-      accepted: false,
-      email: undefined,
-      message: "Email already taken",
-      isEmailTaken: true,
     };
   }
 
