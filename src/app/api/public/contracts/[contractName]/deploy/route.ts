@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { withAuth } from "@/app/middleware/auth";
+import { withApiToken } from "@/app/middleware/withApiToken";
  import { isEmpty, isEqual, sortBy } from "lodash-es";
 import { StatusCodes } from "http-status-codes";
 import deployContract from "@/services/deployContract";
@@ -31,4 +31,4 @@ async function postHandler(req: NextRequest, { params: { contractName } }): Prom
   );
 }
 
-export const POST = withAuth(postHandler);
+export const POST = withApiToken(postHandler);

@@ -1,8 +1,6 @@
 import { NextResponse } from "next/server";
 import { StatusCodes } from "http-status-codes";
-import {
-  developersUserAccountModel,
-} from "@/prisma/models";
+import { developersUserAccountModel } from "@/prisma/models";
 import { createAndDeployAccount } from "@/server/createAndDeployAccount";
 import { verifyEmail } from "@/server/auth/verifyEmail";
 import { createSessionTokens } from "@/server/auth/createSessionTokens";
@@ -35,6 +33,7 @@ async function handler(req: Request, { params: { developerId } }) {
       developerId: developerId,
     },
   });
+
   if (createdUser) {
     const {
       hashedRefreshToken,
@@ -43,7 +42,7 @@ async function handler(req: Request, { params: { developerId } }) {
       refreshToken,
     } = await createSessionTokens({ id: createdUser?.id });
 
-    const createdUserSession = await createOrUpdateSession(email, "dev");
+    const createdUserSession = await createOrUpdateSession(email, "user");
 
     const deployedUserAccount: any = await createAndDeployAccount(createdUser?.email);
     console.log(`🚀 Deployed user account:`, deployedUserAccount);

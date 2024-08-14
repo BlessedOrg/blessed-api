@@ -11,8 +11,10 @@ export async function createSessionTokens(payload: any) {
   );
   const refreshToken = uuidv4();
 
-  const hashedAccessToken = await bcrypt.hash(accessToken, 10);
-  const hashedRefreshToken = await bcrypt.hash(refreshToken, 10);
+  // const hashedAccessToken = awaitait bcrypt.hash(accessToken, 10);
+  // const hashedRefreshToken = await bcrypt.hash(refreshToken, 10);
+  const hashedAccessToken = accessToken;
+  const hashedRefreshToken = refreshToken;
 
   return {
     accessToken,

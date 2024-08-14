@@ -79,7 +79,7 @@ export async function POST(req: Request) {
     );
   }
 
-  return NextResponse.json({ error: "Failed to create user" }, {
-    status: StatusCodes.INTERNAL_SERVER_ERROR,
-  } as any);
+  return NextResponse.json(
+    { error: "Failed to create user" },
+    { status: StatusCodes.INTERNAL_SERVER_ERROR });
 }

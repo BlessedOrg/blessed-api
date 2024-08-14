@@ -12,7 +12,7 @@ export async function createVaultPrivateKeyItem(
 ) {
   const vaultId = process.env.OP_PRIVATE_KEY_VAULT_ID!;
   try {
-    const createdItem = await fetch(`${vaultApiUrl}/vaults/${vaultId}/items`, {
+    const createdItem = await fetch(`${vaultApiUrl}/v1/vaults/${vaultId}/items`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${vaultToken}`,
@@ -48,13 +48,13 @@ export async function createVaultPrivateKeyItem(
       }),
     });
     console.log(`🔑 Created Key Pair in Vault for: ${email}`);
-    return createdItem.json();
+    return await createdItem.json();
   } catch (error: any) {
     console.log(`⛑️🔑 Failed to create Key Pair in Vault for: ${email} \n ${error?.message}`);
   }
 }
 
-export async function createVaultApiTokenItem(userId: string, deployed: boolean) {
+export async function createVaultApiTokenItem(apiToken: string, userId: string, deployed: boolean) {
   const vaultId = process.env.OP_API_TOKEN_VAULT_ID!;
   try {
     const createdItem = await fetch(`${vaultApiUrl}/v1/vaults/${vaultId}/items`, {
@@ -82,11 +82,12 @@ export async function createVaultApiTokenItem(userId: string, deployed: boolean)
             id: "apiToken",
             label: "API Token",
             type: "CONCEALED",
-            generate: true,
-            recipe: {
-              length: 64,
-              characterSets: ["LETTERS", "DIGITS"],
-            },
+            value: apiToken
+            // generate: true,
+            // recipe: {
+            //   length: 64,
+            //   characterSets: ["LETTERS", "DIGITS"],
+            // },
           },
         ],
       }),
@@ -97,3 +98,20 @@ export async function createVaultApiTokenItem(userId: string, deployed: boolean)
     console.log(`⛑️🔑 Failed to create API Token in Vault for User: ${userId} \n ${error?.message}`);
   }
 }
+
+export async function getVaultApiTokenItem(id: string) {
+  const vaultId = process.env.OP_API_TOKEN_VAULT_ID!;
+  try {
+    const createdItem = await fetch(`${vaultApiUrl}/v1/vaults/${vaultId}/items/${id}`, {
+      headers: {
+        Authorization: `Bearer ${vaultToken}`,
+        "Content-Type": "application/json",
+      },
+    });
+    console.log(`🔑 Retrieved API Token from Vault`);
+    return await createdItem.json();
+  } catch (error: any) {
+    console.log(`⛑️🔑 Failed to retrieve API Token from Vault \n ${error?.message}`);
+  }
+}
+
