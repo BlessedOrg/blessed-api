@@ -8,8 +8,7 @@ export function withApiToken(handler: (req: NextRequest, context: { params: any 
   return async (request: NextRequest, context: { params: any }) => {
     try {
       const authHeader = request.headers.get("authorization");
-      const vaultKey = request.headers.get("vaultKey")
-      if (!authHeader || !authHeader.startsWith("Bearer ") ||!vaultKey) {
+      if (!authHeader || !authHeader.startsWith("Bearer ")) {
         return NextResponse.json({ error: "Unauthorized" }, { status: StatusCodes.UNAUTHORIZED });
       }
 

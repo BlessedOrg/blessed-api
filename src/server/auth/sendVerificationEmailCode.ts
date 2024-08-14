@@ -11,8 +11,8 @@ type VerificationEmailParams = {
 
 export async function sendVerificationEmailCode({ to, expirationTimeMinutes, isLocalhost }: VerificationEmailParams) {
   const { SMTP_PASSWORD, SMTP_EMAIL } = process.env;
-
-  if (!isLocalhost && !SMTP_PASSWORD || !SMTP_EMAIL) {
+  
+  if (!isLocalhost && (!SMTP_PASSWORD || !SMTP_EMAIL)) {
     throw new Error("SMTP_PASSWORD or SMTP_EMAIL is not set");
   }
 
