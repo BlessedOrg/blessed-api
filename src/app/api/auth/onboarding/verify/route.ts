@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
 import { StatusCodes } from "http-status-codes";
-import { sessionModel, developerAccountModel } from "@/prisma/models";
+import { developerAccountModel } from "@/prisma/models";
 import { createAndDeployAccount } from "@/server/createAndDeployAccount";
 import { verifyEmail } from "@/server/auth/verifyEmail";
 import { createSessionTokens } from "@/server/auth/createSessionTokens";
-import {createOrUpdateSession} from "@/server/auth/session";
+import { createOrUpdateSession } from "@/server/auth/session";
 
 export async function POST(req: Request) {
   const body = await req.json();
@@ -17,25 +17,29 @@ export async function POST(req: Request) {
   }
 
   const verifyEmailResult = await verifyEmail(code, "dev");
-  const { accepted, email} = verifyEmailResult;
+  const { accepted, email } = verifyEmailResult;
   if (!accepted || !email) {
     return NextResponse.json({ error: "Invalid code", verifyEmailResult }, {
       status: StatusCodes.BAD_REQUEST,
     } as any);
   }
 
-  const createdUser = await developerAccountModel.create({
+  const createdUser: any = await developerAccountModel.create({
     data: {
       email,
     },
   });
   if (createdUser) {
-    const { hashedRefreshToken, hashedAccessToken, accessToken, refreshToken } =
-      await createSessionTokens({ id: createdUser.id });
+    const {
+      hashedRefreshToken,
+      hashedAccessToken,
+      accessToken,
+      refreshToken
+    } = await createSessionTokens({ id: createdUser?.id });
 
-    const createdUserSession = await createOrUpdateSession(email, 'dev')
+    const createdUserSession = await createOrUpdateSession(email, "dev");
 
-    const deployedUserAccount = await createAndDeployAccount(createdUser.email);
+    const deployedUserAccount: any = await createAndDeployAccount(createdUser.email);
     console.log(`🚀 Deployed user account:`, deployedUserAccount);
     if (deployedUserAccount?.contractAddress) {
       await developerAccountModel.update({
@@ -75,7 +79,7 @@ export async function POST(req: Request) {
     );
   }
 
-  return NextResponse.json({ error: "Failed to create user" }, {
-    status: StatusCodes.INTERNAL_SERVER_ERROR,
-  } as any);
+  return NextResponse.json(
+    { error: "Failed to create user" },
+    { status: StatusCodes.INTERNAL_SERVER_ERROR });
 }

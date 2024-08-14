@@ -1,33 +1,37 @@
-import {developerAccountModel} from "@/prisma/models";
-import {NextResponse} from "next/server";
-import {StatusCodes} from "http-status-codes";
-import {verificationEmailCodeSend} from "@/server/auth/verificationEmailCodeSend";
+import { developerAccountModel } from "@/prisma/models";
+import { NextRequest, NextResponse } from "next/server";
+import { StatusCodes } from "http-status-codes";
+import { sendVerificationEmailCode } from "@/server/auth/sendVerificationEmailCode";
 
-export async function POST(req: Request) {
-    const body = await req.json();
-    const { email } = body;
+export async function POST(req: NextRequest) {
+  const body = await req.json();
+  const { email } = body;
 
+  const userData = await developerAccountModel.findUnique({
+    where: {
+      email,
+    },
+  });
 
-    const userData = await developerAccountModel.findUnique({
-        where: {
-            email
-        }
+  if (!userData) {
+    return NextResponse.json({ error: "User not found" }, {
+      status: StatusCodes.NOT_FOUND,
     });
+  }
 
-    if(!userData){
-        return NextResponse.json({error: "User not found"}, {
-            status: StatusCodes.NOT_FOUND
-        });
-    }
+  const otpCodeSent = await sendVerificationEmailCode({
+    to: email,
+    expirationTimeMinutes: 2,
+    isLocalhost: req.nextUrl.hostname === "localhost",
+  });
 
-    const otpCodeSent = await verificationEmailCodeSend(email, 2)
-    if(otpCodeSent){
-        return NextResponse.json({message: "Verification code sent successfully"}, {
-            status: StatusCodes.OK
-        });
-    } else {
-        return NextResponse.json({error: "Failed to send verification code email."}, {
-            status: StatusCodes.INTERNAL_SERVER_ERROR
-        });
-    }
+  if (otpCodeSent) {
+    return NextResponse.json({ message: "Verification code sent successfully" }, {
+      status: StatusCodes.OK,
+    });
+  } else {
+    return NextResponse.json({ error: "Failed to send verification code email." }, {
+      status: StatusCodes.INTERNAL_SERVER_ERROR,
+    });
+  }
 }

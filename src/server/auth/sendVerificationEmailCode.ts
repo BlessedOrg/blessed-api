@@ -1,27 +1,45 @@
 "use server";
-import nodemailer from "nodemailer";
+import nodeMailer from "nodemailer";
 import { generateOTP } from "@/utils/generateOtp";
 import { emailVerificationCodeModel } from "@/prisma/models";
 
-export async function verificationEmailCodeSend(
-  to: string,
-  expirationTimeMinutes?: number,
-) {
+type VerificationEmailParams = {
+  to: string;
+  expirationTimeMinutes?: number;
+  isLocalhost: boolean;
+};
+
+export async function sendVerificationEmailCode({ to, expirationTimeMinutes, isLocalhost }: VerificationEmailParams) {
   const { SMTP_PASSWORD, SMTP_EMAIL } = process.env;
 
-  if (!SMTP_PASSWORD || !SMTP_EMAIL) {
+  if (!isLocalhost && !SMTP_PASSWORD || !SMTP_EMAIL) {
     throw new Error("SMTP_PASSWORD or SMTP_EMAIL is not set");
   }
-  const trasport = nodemailer.createTransport({
-    service: "gmail",
-    auth: {
-      user: SMTP_EMAIL,
-      pass: SMTP_PASSWORD,
-    },
-  });
+
+  let transport;
+  if (isLocalhost) {
+    const testAccount = await nodeMailer.createTestAccount();
+    transport = nodeMailer.createTransport({
+      host: "smtp.ethereal.email",
+      port: 587,
+      secure: false,
+      auth: {
+        user: testAccount.user,
+        pass:  testAccount.pass,
+      },
+    });
+  } else {
+    const transport = nodeMailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: SMTP_EMAIL,
+        pass: SMTP_PASSWORD,
+      },
+    });
+  }
 
   try {
-    const testResult = await trasport.verify();
+    const testResult = await transport.verify();
     console.log(`📧 Email service is ready: ${testResult}`);
     if (!testResult) {
       throw new Error("Email service is not ready");
@@ -45,12 +63,17 @@ export async function verificationEmailCodeSend(
     console.log(`📧 Created verification code record:`, createCodeRecord.code);
   }
   try {
-    const sendResult = await trasport.sendMail({
-      from: SMTP_EMAIL,
+    const sendResult = await transport.sendMail({
+      from: SMTP_EMAIL || "test@blessed.fan",
       to,
       subject: "Verification code",
       html: verificationCodeTemplate(`${code}`),
     });
+
+    if (isLocalhost) {
+      console.log(`📨 Email sent. Preview URL: ${nodeMailer.getTestMessageUrl(sendResult)}`);
+    }
+
     return sendResult;
   } catch (e) {
     console.log(e);

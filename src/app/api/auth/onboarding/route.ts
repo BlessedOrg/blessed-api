@@ -1,21 +1,31 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { StatusCodes } from "http-status-codes";
-import {validateEmail} from "@/server/auth/validateEmail";
+import { validateEmail } from "@/server/auth/validateEmail";
+import z from "zod";
 
-export async function POST(req: Request) {
+const schema = z.object({
+  email: z.string().email(),
+});
+
+export async function POST(req: NextRequest) {
   const body = await req.json();
   const { email } = body;
 
-  const emailValidation = await validateEmail(email, 'dev');
-  if(emailValidation) {
+  const emailValidation: any = await validateEmail(
+    email,
+    req.nextUrl.hostname === "localhost",
+    "dev"
+  );
+
+  if (emailValidation) {
     return NextResponse.json(
-        { message: emailValidation.message},
-        { status: emailValidation.status } as any,
+      { message: emailValidation?.message },
+      { status: emailValidation?.status },
     );
   }
 
   return NextResponse.json(
     { error: "Failed to send verification code email." },
-    { status: StatusCodes.INTERNAL_SERVER_ERROR } as any,
+    { status: StatusCodes.INTERNAL_SERVER_ERROR },
   );
 }

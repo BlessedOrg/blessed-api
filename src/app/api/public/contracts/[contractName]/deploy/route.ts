@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { withAuth } from "@/app/middleware/auth";
+import { withApiToken } from "@/app/middleware/withApiToken";
  import { isEmpty, isEqual, sortBy } from "lodash-es";
 import { StatusCodes } from "http-status-codes";
 import deployContract from "@/services/deployContract";
@@ -15,7 +15,7 @@ async function postHandler(req: NextRequest, { params: { contractName } }): Prom
   if (!isEqual(sortBy(constructorArgs), Object.keys(body)) && !isEmpty(body)) {
     return NextResponse.json(
       { error: `Invalid constructor arguments for contract ${contractName}. The proper arguments are: ${constructorArgs}` },
-      { status: StatusCodes.BAD_REQUEST } as any,
+      { status: StatusCodes.BAD_REQUEST },
     );
   }
 
@@ -27,8 +27,8 @@ async function postHandler(req: NextRequest, { params: { contractName } }): Prom
   
   return NextResponse.json(
     { ...deployResponse },
-    { status: StatusCodes.OK }  as any,
+    { status: StatusCodes.OK } ,
   );
 }
 
-export const POST = withAuth(postHandler);
+export const POST = withApiToken(postHandler);

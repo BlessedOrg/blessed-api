@@ -1,19 +1,18 @@
 "use server";
-
-import {shortenWalletAddress} from "@/utils/shortenWalletAddress";
+import { shortenWalletAddress } from "@/utils/shortenWalletAddress";
 
 const vaultApiUrl = process.env.OP_VAULT_SERVER_HOST!;
 const vaultToken = process.env.OP_API_TOKEN!;
-const vaultId = process.env.OP_PRIVATE_KEY_VAULT_ID!;
 
 export async function createVaultPrivateKeyItem(
   value: string,
   address: string,
   email: string,
-  deployed: boolean
+  deployed: boolean,
 ) {
+  const vaultId = process.env.OP_PRIVATE_KEY_VAULT_ID!;
   try {
-    const createdItem = await fetch(`${vaultApiUrl}/vaults/${vaultId}/items`, {
+    const createdItem = await fetch(`${vaultApiUrl}/v1/vaults/${vaultId}/items`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${vaultToken}`,
@@ -31,28 +30,88 @@ export async function createVaultPrivateKeyItem(
             id: "email",
             type: "STRING",
             label: "Email",
-            value: email
+            value: email,
           },
           {
             id: "publicKey",
             type: "STRING",
             label: "Public key",
-            value: address
+            value: address,
           },
           {
             id: "privateKey",
             type: "CONCEALED",
             label: "Private key",
-            value
+            value,
           },
         ],
       }),
     });
-    console.log(`🔑 Created vault item for: ${email}`);
-    const createdVaultItem = await createdItem.json();
-    return createdVaultItem;
-  }catch(e){
-    const error = e as any;
-    console.log(`⛑️🔑 Failed to create vault item for: ${email} \n ${error?.message}`);
+    console.log(`🔑 Created Key Pair in Vault for: ${email}`);
+    return await createdItem.json();
+  } catch (error: any) {
+    console.log(`⛑️🔑 Failed to create Key Pair in Vault for: ${email} \n ${error?.message}`);
   }
 }
+
+export async function createVaultApiTokenItem(apiToken: string, userId: string, deployed: boolean) {
+  const vaultId = process.env.OP_API_TOKEN_VAULT_ID!;
+  try {
+    const createdItem = await fetch(`${vaultApiUrl}/v1/vaults/${vaultId}/items`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${vaultToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        vault: {
+          id: vaultId,
+        },
+        // 🚨 TODO: use title with real user's wallet/id
+        title: "Vault API Token Item from blessed-dashboard 🤡",
+        category: "API_CREDENTIAL",
+        tags: [deployed ? "deployed" : "undeployed"],
+        fields: [
+          {
+            id: "userId",
+            type: "STRING",
+            label: "User ID",
+            value: userId,
+          },
+          {
+            id: "apiToken",
+            label: "API Token",
+            type: "CONCEALED",
+            value: apiToken
+            // generate: true,
+            // recipe: {
+            //   length: 64,
+            //   characterSets: ["LETTERS", "DIGITS"],
+            // },
+          },
+        ],
+      }),
+    });
+    console.log(`🔑 Created API Token in Vault for User: ${userId}`);
+    return await createdItem.json();
+  } catch (error: any) {
+    console.log(`⛑️🔑 Failed to create API Token in Vault for User: ${userId} \n ${error?.message}`);
+  }
+}
+
+export async function getVaultApiTokenItem(id: string) {
+  const vaultId = process.env.OP_API_TOKEN_VAULT_ID!;
+  try {
+    const createdItem = await fetch(`${vaultApiUrl}/v1/vaults/${vaultId}/items/${id}`, {
+      headers: {
+        Authorization: `Bearer ${vaultToken}`,
+        "Content-Type": "application/json",
+      },
+    });
+    console.log(`🔑 Retrieved API Token from Vault`);
+    return await createdItem.json();
+  } catch (error: any) {
+    console.log(`⛑️🔑 Failed to retrieve API Token from Vault \n ${error?.message}`);
+  }
+}
+

@@ -17,22 +17,23 @@ model DeveloperAccount {
   id              String                  @id @default(cuid())
   email           String                  @unique
   walletAddress   String?                 @unique
-  otps            AccountOtp[]
+  Otps            AccountOtp[]
   session         Session?
   accountDeployed Boolean                 @default(false)
   vaultKey        String?
-  users           DevelopersUserAccount[]
+  Users           DevelopersUserAccount[]
   createdAt       DateTime                @default(now())
   updatedAt       DateTime                @updatedAt
+  ApiTokens       ApiToken[]
 }
 
 model DevelopersUserAccount {
   id               String           @id @default(cuid())
   email            String           @unique
   walletAddress    String?          @unique
-  otps             AccountOtp[]
+  Otps             AccountOtp[]
   session          Session?
-  developerAccount DeveloperAccount @relation(fields: [developerId], references: [id])
+  DeveloperAccount DeveloperAccount @relation(fields: [developerId], references: [id])
   developerId      String
   accountDeployed  Boolean          @default(false)
   vaultKey         String?
@@ -75,7 +76,11 @@ model EmailVerificationCode {
 }
 
 model ApiToken {
-  id        String   @id @default(cuid())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id               String            @id @default(cuid())
+  vaultKey         String
+  DeveloperAccount DeveloperAccount? @relation(fields: [developerId], references: [id])
+  developerId      String?
+  expiresAt        DateTime?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
 }

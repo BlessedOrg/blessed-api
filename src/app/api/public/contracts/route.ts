@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { withAuth } from "@/app/middleware/auth";
+import { withApiToken } from "@/app/middleware/withApiToken";
 import { StatusCodes } from "http-status-codes";
 import { getContractsFunctions } from "@/contracts/interfaces";
 
@@ -28,8 +28,8 @@ async function getHandler() {
   ];
   return NextResponse.json(
     { contracts },
-    { status: StatusCodes.OK } as any,
+    { status: StatusCodes.OK },
   );
 }
 
-export const GET = withAuth(getHandler);
+export const GET = withApiToken(getHandler);

@@ -1,13 +1,11 @@
 import { NextResponse } from "next/server";
 import { StatusCodes } from "http-status-codes";
-import {
-  developersUserAccountModel,
-} from "@/prisma/models";
+import { developersUserAccountModel } from "@/prisma/models";
 import { createAndDeployAccount } from "@/server/createAndDeployAccount";
 import { verifyEmail } from "@/server/auth/verifyEmail";
 import { createSessionTokens } from "@/server/auth/createSessionTokens";
-import {createOrUpdateSession} from "@/server/auth/session";
-import {withExistingDevAccount} from "@/app/middleware/withExistingDevAccount";
+import { createOrUpdateSession } from "@/server/auth/session";
+import { withExistingDevAccount } from "@/app/middleware/withExistingDevAccount";
 
 async function handler(req: Request, { params: { developerId } }) {
   const body = await req.json();
@@ -29,19 +27,24 @@ async function handler(req: Request, { params: { developerId } }) {
     );
   }
 
-  const createdUser = await developersUserAccountModel.create({
+  const createdUser: any = await developersUserAccountModel.create({
     data: {
       email,
-      developerAccount: { connect: { id: developerId } },
+      developerId: developerId,
     },
   });
+
   if (createdUser) {
-    const { hashedRefreshToken, hashedAccessToken, accessToken, refreshToken } =
-      await createSessionTokens({ id: createdUser.id });
+    const {
+      hashedRefreshToken,
+      hashedAccessToken,
+      accessToken,
+      refreshToken,
+    } = await createSessionTokens({ id: createdUser?.id });
 
-      const createdUserSession = await createOrUpdateSession(email, 'dev')
+    const createdUserSession = await createOrUpdateSession(email, "user");
 
-    const deployedUserAccount = await createAndDeployAccount(createdUser.email);
+    const deployedUserAccount: any = await createAndDeployAccount(createdUser?.email);
     console.log(`🚀 Deployed user account:`, deployedUserAccount);
     if (deployedUserAccount?.contractAddress) {
       await developersUserAccountModel.update({

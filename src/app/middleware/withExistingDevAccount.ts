@@ -9,9 +9,7 @@ export function withExistingDevAccount(
   ) => Promise<NextResponse> | NextResponse,
 ) {
   return async (request: NextRequest, context: { params: { developerId: string } }) => {
-    const developerAccount = await checkIsDeveloperExist(
-      context.params.developerId,
-    );
+    const developerAccount = await checkIsDeveloperExist(context.params.developerId);
 
     if (developerAccount.error) {
       return NextResponse.json(
