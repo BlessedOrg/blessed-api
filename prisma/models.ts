@@ -9,4 +9,5 @@ export const {
   accountOtp: accountOtpModel,
   session: sessionModel,
   emailVerificationCode: emailVerificationCodeModel,
+  smartContract: smartContractModel
 } = prisma;

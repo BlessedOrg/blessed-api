@@ -16,19 +16,24 @@ export function withApiToken(handler: (req: NextRequest, context: { params: any 
 
       const decoded: any = jwt.verify(token, process.env.JWT_SECRET);
 
-      const apiTokenRecord: any = await apiTokenModel.findUnique({
+      const apiToken = await apiTokenModel.findUnique({
         where: {
           id: decoded?.id
         }
-      })
+      });
 
-      const itemFromVault = await getVaultApiTokenItem(apiTokenRecord?.vaultKey);
+      const itemFromVault = await getVaultApiTokenItem(apiToken?.vaultKey);
 
       const actualApiToken = itemFromVault.fields.find(f => f.id === "apiToken").value;
 
       if (token !== actualApiToken) {
         return NextResponse.json({ error: "Invalid token" }, { status: StatusCodes.UNAUTHORIZED });
       }
+
+      Object.assign(request, {
+        developerId: apiToken.developerId,
+        userId: itemFromVault?.fields?.find(f => f.id === "userId")?.value
+      });
 
       return handler(request, context);
     } catch (error: any) {
