@@ -10,4 +10,5 @@ export const {
   session: sessionModel,
   emailVerificationCode: emailVerificationCodeModel,
   erc20Token: erc20TokenModel,
+  smartContract: smartContractModel
 } = prisma;

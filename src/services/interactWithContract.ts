@@ -1,11 +1,11 @@
 import { isEmpty } from "lodash-es";
 
-const interactWithContract = async (body: any, contract: any) => {
+const interactWithContract = async (functionName: string, inputs: [], contract: any) => {
   let result;
-  if (isEmpty((body as any)?.data?.inputs)) {
-    result = await contract[body?.data?.functionName]();
+  if (isEmpty(inputs)) {
+    result = await contract[functionName]();
   } else {
-    result = await contract[body?.data?.functionName](body?.data?.inputs);
+    result = await contract[functionName](inputs);
   }
   if (typeof result === "bigint") {
     result = result.toString();

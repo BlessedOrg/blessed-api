@@ -41,6 +41,7 @@ model DevelopersUserAccount {
   createdAt        DateTime         @default(now())
   updatedAt        DateTime         @updatedAt
   sessionId        String?
+  SmartContract    SmartContract[]
 }
 
 model AccountOtp {
@@ -97,4 +98,13 @@ model Erc20Token {
   contractAddress  String
   createdAt        DateTime         @default(now())
   updatedAt        DateTime         @updatedAt
+}
+
+model SmartContract {
+  id                    String                 @id @default(cuid())
+  address               String
+  name                  String
+  DevelopersUserAccount DevelopersUserAccount? @relation(fields: [developerUserId], references: [id])
+  developerUserId       String?
+  userVersion           Int
 }

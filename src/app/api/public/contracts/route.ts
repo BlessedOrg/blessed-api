@@ -1,12 +1,33 @@
 import { NextResponse } from "next/server";
 import { withApiToken } from "@/app/middleware/withApiToken";
 import { StatusCodes } from "http-status-codes";
-import { getContractsFunctions } from "@/contracts/interfaces";
+import { contractsInterfaces, getContractsFunctions } from "@/contracts/interfaces";
+import { NextRequestWithAuth } from "@/app/types/NextRequestWithAuth";
+import { smartContractModel } from "@/prisma/models";
 
 // TODO: update the array of contracts with actual data
 
-async function getHandler() {
-  const contracts = [
+async function getHandler(req: NextRequestWithAuth) {
+  // TODO: decide if we want to get files automatically from artifacts folder, but loose description and url, or do it manually
+  // let contractsFromFiles: any[] = [];
+  // for (const obj of [contractsInterfaces]) {
+  //   for (const [key, value] of Object.entries(obj)) {
+  //     contractsFromFiles.push({
+  //       name: key,
+  //       functions: getContractsFunctions(key),
+  //       artifacts: value
+  //     })
+  //   }
+  // }
+  // console.log("🔥 contractsFromFiles: ", contractsFromFiles)
+
+  const myContracts = await smartContractModel.findMany({
+    where: {
+      developerUserId: req.userId
+    }
+  });
+
+  const availableContracts = [
     {
       "name": "SampleContract",
       "description": "Sample contract to test whole flow",
@@ -27,7 +48,7 @@ async function getHandler() {
     }
   ];
   return NextResponse.json(
-    { contracts },
+    { availableContracts, myContracts },
     { status: StatusCodes.OK },
   );
 }

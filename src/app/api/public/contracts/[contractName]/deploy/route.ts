@@ -1,11 +1,13 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { withApiToken } from "@/app/middleware/withApiToken";
  import { isEmpty, isEqual, sortBy } from "lodash-es";
 import { StatusCodes } from "http-status-codes";
 import deployContract from "@/services/deployContract";
 import { getContractsConstructor } from "@/contracts/interfaces";
+import { smartContractModel } from "@/prisma/models";
+import { NextRequestWithAuth } from "@/app/types/NextRequestWithAuth";
 
-async function postHandler(req: NextRequest, { params: { contractName } }): Promise<NextResponse>  {
+async function postHandler(req: NextRequestWithAuth, { params: { contractName } }): Promise<NextResponse>  {
   const constructorArgs = getContractsConstructor(contractName);
 
   // TODO: query the contract class hash based on the contractName from the URL
@@ -24,7 +26,25 @@ async function postHandler(req: NextRequest, { params: { contractName } }): Prom
     constructorArgs: body,
     classHash
   });
+
+  const maxId = await smartContractModel.aggregate({
+    where: { developerUserId: req.userId },
+    _max: {
+      userVersion: true,
+    },
+  });
+
+  const nextId = (maxId._max.userVersion || 0) + 1;
   
+  await smartContractModel.create({
+    data: {
+      address: deployResponse.contract_address,
+      name: contractName,
+      developerUserId: req.userId,
+      userVersion: nextId,
+    },
+  });
+
   return NextResponse.json(
     { ...deployResponse },
     { status: StatusCodes.OK } ,
