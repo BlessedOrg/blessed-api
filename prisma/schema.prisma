@@ -22,9 +22,10 @@ model DeveloperAccount {
   accountDeployed Boolean                 @default(false)
   vaultKey        String?
   Users           DevelopersUserAccount[]
+  ApiTokens       ApiToken[]
+  Erc20Tokens     Erc20Token[]
   createdAt       DateTime                @default(now())
   updatedAt       DateTime                @updatedAt
-  ApiTokens       ApiToken[]
 }
 
 model DevelopersUserAccount {
@@ -83,4 +84,17 @@ model ApiToken {
   expiresAt        DateTime?
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @updatedAt
+}
+
+model Erc20Token {
+  id               String           @id @default(cuid())
+  DeveloperAccount DeveloperAccount @relation(fields: [developerId], references: [id])
+  developerId      String
+  name             String
+  symbol           String
+  decimals         Int
+  supply           Int
+  contractAddress  String
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
 }

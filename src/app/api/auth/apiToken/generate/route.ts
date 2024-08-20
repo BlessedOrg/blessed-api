@@ -1,9 +1,8 @@
 import { NextResponse } from "next/server";
 import { StatusCodes } from "http-status-codes";
-import { createVaultApiTokenItem, getVaultApiTokenItem } from "@/server/vaultApi";
+import { createVaultApiTokenItem } from "@/server/vaultApi";
 import { apiTokenModel } from "@/prisma/models";
 import { withAuth } from "@/app/middleware/withAuth";
-import { NextRequestWithAuth } from "@/app/types/NextRequestWithAuth";
 import jwt from "jsonwebtoken";
 
 async function postHandler(req: NextRequestWithAuth) {
