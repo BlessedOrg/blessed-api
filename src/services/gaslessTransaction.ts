@@ -23,9 +23,12 @@ import {
  *     },
  * ]
  * ```
- * * @returns {Promise<string | {error: any}>}
+ * * @returns {Promise<{transactionHash?: string, error?:any}>}
  *  */
-export async function gaslessTransaction(account: Account, calls: Call[]) {
+export async function gaslessTransaction(
+  account: Account,
+  calls: Call[],
+): Promise<{ transactionHash?: string; error?: any }> {
   try {
     const typedData = await fetchBuildTypedData(
       account.address,
@@ -56,8 +59,9 @@ export async function gaslessTransaction(account: Account, calls: Call[]) {
       },
     );
 
-    return executeData.transactionHash;
+    return { transactionHash: executeData.transactionHash };
   } catch (e) {
+    console.log("Gasless ERROR: ", e);
     return { error: e };
   }
 }
