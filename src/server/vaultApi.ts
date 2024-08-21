@@ -115,3 +115,18 @@ export async function getVaultApiTokenItem(id: string) {
   }
 }
 
+export async function getVaultPrivateKeyItem(id: string) {
+  const vaultId = process.env.OP_PRIVATE_KEY_VAULT_ID!;
+  try {
+    const createdItem = await fetch(`${vaultApiUrl}/v1/vaults/${vaultId}/items/${id}`, {
+      headers: {
+        Authorization: `Bearer ${vaultToken}`,
+        "Content-Type": "application/json",
+      },
+    });
+    console.log(`🔑 Retrieved Private Key from Vault`);
+    return await createdItem.json();
+  } catch (error: any) {
+    console.log(`⛑️🔑 Failed to retrieve Private Key from Vault \n ${error?.message}`);
+  }
+}
