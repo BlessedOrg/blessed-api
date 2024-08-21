@@ -5,7 +5,6 @@ import { StatusCodes } from "http-status-codes";
 import deployContract from "@/services/deployContract";
 import { getContractsConstructor } from "@/contracts/interfaces";
 import { smartContractModel } from "@/prisma/models";
-import { NextRequestWithAuth } from "@/app/types/NextRequestWithAuth";
 
 async function postHandler(req: NextRequestWithAuth, { params: { contractName } }): Promise<NextResponse>  {
   const constructorArgs = getContractsConstructor(contractName);
