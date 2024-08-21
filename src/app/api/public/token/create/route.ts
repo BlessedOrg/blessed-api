@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
 import { StatusCodes } from "http-status-codes";
-import { Account, Calldata, CallData, constants, RpcProvider } from "starknet";
-import erc20Abi from "@/contracts/abis/erc20CustomAbi.json";
+import { Account, constants, RpcProvider } from "starknet";
 import { withDevAuth } from "@/app/middleware/withDevAuth";
 import { erc20TokenModel } from "@/prisma/models";
+import deployContract from "@/services/deployContract";
 
 async function handler(req: NextRequestWithDevAuth) {
   const body = await req.json();
@@ -21,7 +21,7 @@ async function handler(req: NextRequestWithDevAuth) {
 
   //Operator account
   const operatorPrivateKey = process.env.OPERATOR_PRIVATE_KEY!;
-  const operatorPublicKey = process.env.OPERATOR_PUBLIC_KEY!;
+  const operatorPublicKey = process.env.OPERATOR_WALLET_ADDR!;
   if (!operatorPrivateKey || !operatorPublicKey) {
     throw new Error("Missing operator environment variables");
   }
@@ -33,57 +33,45 @@ async function handler(req: NextRequestWithDevAuth) {
 
   const contractClassHash =
     "0x05eecb88cfbe969745a1e1e886010bcd4177164e5e131f71b69176ca6960eda0";
-  const contractCallData: CallData = new CallData(erc20Abi);
 
   const supply = BigInt(supplyAmount) * BigInt(10 ** 18);
 
   const ownerAddress = req.developerWalletAddress;
-  const contractConstructor: Calldata = contractCallData.compile(
-    "constructor",
-    {
-      owner: ownerAddress,
-      name,
-      symbol,
-      supply,
-    },
-  );
 
   try {
-    const deployResponse = await operatorAccount.deployContract({
+    const deployResponse = await deployContract({
       classHash: contractClassHash,
-      constructorCalldata: contractConstructor,
+      contractName: "CustomToken",
+      constructorArgs: {
+        owner: ownerAddress,
+        name,
+        symbol,
+        supply,
+      },
     });
+    const { status } = deployResponse;
+    if (status === "success") {
+      const createdErc20Record = await erc20TokenModel.create({
+        data: {
+          developerId: req.developerId,
+          contractAddress: deployResponse.contract_address,
+          name,
+          symbol,
+          supply: Number(supplyAmount),
+          decimals: 18,
+        },
+      });
 
-    if (deployResponse?.transaction_hash) {
-      const txResult = await provider.waitForTransaction(
-        deployResponse.transaction_hash,
+      return NextResponse.json(
+        {
+          contractAddress: deployResponse.contract_address,
+          status,
+          createdErc20Record,
+        },
+        {
+          status: StatusCodes.OK,
+        },
       );
-
-      const status = txResult.statusReceipt;
-
-      if (status === "success") {
-        const createdErc20Record = await erc20TokenModel.create({
-          data: {
-            developerId: req.developerId,
-            contractAddress: deployResponse.contract_address,
-            name,
-            symbol,
-            supply: Number(supplyAmount),
-            decimals: 18,
-          },
-        });
-
-        return NextResponse.json(
-          {
-            contractAddress: deployResponse.contract_address,
-            status,
-            createdErc20Record,
-          },
-          {
-            status: StatusCodes.OK,
-          },
-        );
-      }
     }
   } catch (e) {
     const error = e.message as any;

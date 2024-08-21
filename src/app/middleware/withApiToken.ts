@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { StatusCodes } from "http-status-codes";
-import { getVaultApiTokenItem } from "@/server/vaultApi";
+import { getVaultItem } from "@/server/vaultApi";
 import jwt from "jsonwebtoken";
 import { apiTokenModel } from "@/prisma/models";
 
@@ -22,7 +22,7 @@ export function withApiToken(handler: (req: NextRequest, context: { params: any 
         }
       });
 
-      const itemFromVault = await getVaultApiTokenItem(apiToken?.vaultKey);
+      const itemFromVault = await getVaultItem(apiToken?.vaultKey, "apiKey");
 
       const actualApiToken = itemFromVault.fields.find(f => f.id === "apiToken").value;
 

@@ -61,7 +61,6 @@ export async function gaslessTransaction(
 
     return { transactionHash: executeData.transactionHash };
   } catch (e) {
-    console.log("Gasless ERROR: ", e);
-    return { error: e };
+    return { error: e?.message || "Unknown error" };
   }
 }

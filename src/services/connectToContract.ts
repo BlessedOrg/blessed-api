@@ -7,7 +7,7 @@ interface ConnectToContractParams {
   name: string;
 }
 
-const connectToContract = ({ address, name }: ConnectToContractParams) => {
+const connectToContract = ({ address, name }: ConnectToContractParams): Contract => {
   return new Contract(contractsInterfaces[name].abi, address, provider);
 };
 

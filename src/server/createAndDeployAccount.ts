@@ -13,6 +13,7 @@ import ethAbi from "@/contracts/abis/ethAbi.json";
 import { ethers } from "ethers";
 import { createVaultPrivateKeyItem } from "@/server/vaultApi";
 import { gaslessTransaction } from "@/services/gaslessTransaction";
+import {bigIntToHex } from "@/utils/numberConverts";
 
 export async function createAndDeployAccount(email: string) {
   const provider = new RpcProvider({
@@ -25,7 +26,7 @@ export async function createAndDeployAccount(email: string) {
 
   //Operator account
   const operatorPrivateKey = process.env.OPERATOR_PRIVATE_KEY!;
-  const operatorPublicKey = process.env.OPERATOR_PUBLIC_KEY!;
+  const operatorPublicKey = process.env.OPERATOR_WALLET_ADDR!;
   if (!operatorPrivateKey || !operatorPublicKey || !argentXaccountClassHash) {
     throw new Error("Missing operator/argent environment variables");
   }
@@ -87,8 +88,8 @@ export async function createAndDeployAccount(email: string) {
     console.log(
       `💎🆓 Sending initial funds to the ArgentX account by gasless... (${ethers.formatEther(suggestedMaxFee)} ETH)`,
     );
-    const decimalNumber = Number(suggestedMaxFee);
-    const hexNumber = "0x" + decimalNumber.toString(16);
+
+    const hexNumber = bigIntToHex(suggestedMaxFee)
     const gaslessTransferTx = await gaslessTransaction(operatorAccount, [
       {
         entrypoint: "transfer",

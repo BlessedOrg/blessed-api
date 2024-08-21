@@ -1,5 +1,7 @@
-import { Provider } from "starknet";
+import {constants, Provider} from "starknet";
 
-const provider = new Provider();
+const provider = new Provider({
+    nodeUrl: constants.NetworkName.SN_SEPOLIA,
+});
 
 export default provider;

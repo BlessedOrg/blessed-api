@@ -1,7 +1,7 @@
 "use server";
 
 import { developerAccountModel } from "@/prisma/models";
-import { getVaultPrivateKeyItem } from "@/server/vaultApi";
+import { getVaultItem } from "@/server/vaultApi";
 import {
   Account,
   CallData,
@@ -25,7 +25,7 @@ export async function redeployDevAccount(id: string) {
 
   //Operator account
   const operatorPrivateKey = process.env.OPERATOR_PRIVATE_KEY!;
-  const operatorPublicKey = process.env.OPERATOR_PUBLIC_KEY!;
+  const operatorPublicKey = process.env.OPERATOR_WALLET_ADDR!;
   if (!operatorPrivateKey || !operatorPublicKey || !argentXaccountClassHash) {
     throw new Error("Missing operator/argent environment variables");
   }
@@ -52,7 +52,7 @@ export async function redeployDevAccount(id: string) {
     throw new Error("Developer account not found");
   }
 
-  const keys = await getVaultPrivateKeyItem(devAccount.vaultKey);
+  const keys = await getVaultItem(devAccount.vaultKey, 'privateKey');
 
   if (!keys) {
     throw new Error("Keys not found");

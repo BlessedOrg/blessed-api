@@ -14,7 +14,7 @@ async function handler(req: NextRequestWithDevAuth) {
 
   //Operator account
   const operatorPrivateKey = process.env.OPERATOR_PRIVATE_KEY!;
-  const operatorPublicKey = process.env.OPERATOR_PUBLIC_KEY!;
+  const operatorPublicKey = process.env.OPERATOR_WALLET_ADDR!;
   if (!operatorPrivateKey || !operatorPublicKey || !argentXaccountClassHash) {
     throw new Error("Missing operator/argent environment variables");
   }

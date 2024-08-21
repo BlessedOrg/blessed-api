@@ -33,9 +33,9 @@ export async function createVaultPrivateKeyItem(
             value: email,
           },
           {
-            id: "publicKey",
+            id: "walletAddress",
             type: "STRING",
-            label: "Public key",
+            label: "Wallet address",
             value: address,
           },
           {
@@ -99,8 +99,8 @@ export async function createVaultApiTokenItem(apiToken: string, userId: string, 
   }
 }
 
-export async function getVaultApiTokenItem(id: string) {
-  const vaultId = process.env.OP_API_TOKEN_VAULT_ID!;
+export async function getVaultItem(id: string, type?: "apiKey" | "privateKey") {
+  const vaultId = type === 'privateKey' ? process.env.OP_PRIVATE_KEY_VAULT_ID! : process.env.OP_API_TOKEN_VAULT_ID!;
   try {
     const createdItem = await fetch(`${vaultApiUrl}/v1/vaults/${vaultId}/items/${id}`, {
       headers: {
@@ -112,21 +112,5 @@ export async function getVaultApiTokenItem(id: string) {
     return await createdItem.json();
   } catch (error: any) {
     console.log(`⛑️🔑 Failed to retrieve API Token from Vault \n ${error?.message}`);
-  }
-}
-
-export async function getVaultPrivateKeyItem(id: string) {
-  const vaultId = process.env.OP_PRIVATE_KEY_VAULT_ID!;
-  try {
-    const createdItem = await fetch(`${vaultApiUrl}/v1/vaults/${vaultId}/items/${id}`, {
-      headers: {
-        Authorization: `Bearer ${vaultToken}`,
-        "Content-Type": "application/json",
-      },
-    });
-    console.log(`🔑 Retrieved Private Key from Vault`);
-    return await createdItem.json();
-  } catch (error: any) {
-    console.log(`⛑️🔑 Failed to retrieve Private Key from Vault \n ${error?.message}`);
   }
 }
