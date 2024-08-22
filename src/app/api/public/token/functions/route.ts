@@ -16,7 +16,7 @@ async function handler(req: NextRequestWithAuth) {
         name: f.name,
         inputs: formatInputs(f.inputs)
       })),
-      readFunctions: erc20AllowedFunctions.filter(a => a.state_mutability === "external").map((f) => ({
+      writeFunctions: erc20AllowedFunctions.filter(a => a.state_mutability === "external").map((f) => ({
         name: f.name,
         inputs: formatInputs(f.inputs)
       })),
