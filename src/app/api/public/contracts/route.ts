@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import { withApiToken } from "@/app/middleware/withApiToken";
 import { StatusCodes } from "http-status-codes";
 import { contractsInterfaces, getContractsFunctions } from "@/contracts/interfaces";
-import { NextRequestWithAuth } from "@/app/types/NextRequestWithAuth";
 import { smartContractModel } from "@/prisma/models";
 
 // TODO: update the array of contracts with actual data

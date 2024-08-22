@@ -3,16 +3,15 @@
 import { StatusCodes } from "http-status-codes";
 import { developerAccountModel, developersUserAccountModel } from "@/prisma/models";
 import { sendVerificationEmailCode } from "@/server/auth/sendVerificationEmailCode";
+import z from "zod";
+import validateRequestsBody from "@/services/validateRequestsBody";
+
+const schema = z.object({
+    email: z.string().email(),
+});
 
 export async function validateEmail(email: string, isLocalhost: boolean, accountType?: "dev" | "user"){
-    const isValidEmail = (email: string) => {
-        const pattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-        return pattern.test(email);
-    };
-
-    if (!email || !isValidEmail(email)) {
-        return { message: "Invalid email format", status: StatusCodes.BAD_REQUEST  }
-    }
+    validateRequestsBody(schema, { email });
 
     const isEmailTaken = accountType === "dev"
       ? await developerAccountModel.findFirst({ where: { email } })

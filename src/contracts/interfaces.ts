@@ -1,6 +1,9 @@
 import fs from 'fs';
 import path from 'path';
 import { Abi } from "starknet";
+import {isEmpty} from "lodash-es";
+import {bigIntToHex, decimalToBigInt} from "@/utils/numberConverts";
+import {flattenArray} from "@/utils/flattenArray";
 
 function importAllJsonContractsArtifacts() {
   const dirPath = path.join(process.cwd(), 'src/contracts/artifacts');
@@ -53,4 +56,25 @@ export const getContractsConstructor = (contractName: any) => {
   return constructorInterface.inputs.map((i: any) => i.name);
 }
 
+export const getGaslessTransactionCallData = (method: string, contractAddress: string, body: { [key: string]: any }, abiFunctions: any[]) => {
+  const inputs = abiFunctions.find((m) => m.name === method).inputs;
+  if (isEmpty(inputs)) {
+    return [];
+  } else {
+    const formattedInputs = inputs.map((input) => {
+      if (input.type.includes("integer::u256")) {
+        return [bigIntToHex(decimalToBigInt(body[input.name])), "0x0"];
+      }
+      return body[input.name];
+    });
+    const calldata = flattenArray(formattedInputs);
+    return [
+      {
+        entrypoint: method,
+        contractAddress,
+        calldata,
+      },
+    ];
+  }
+};
 export const contractsInterfaces: ContractsInterfacesType = contractArtifacts as ContractsInterfacesType;

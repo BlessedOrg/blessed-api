@@ -1,9 +1,8 @@
 import { NextResponse } from "next/server";
 import { StatusCodes } from "http-status-codes";
-import { createVaultApiTokenItem, getVaultApiTokenItem } from "@/server/vaultApi";
+import { createVaultApiTokenItem } from "@/server/vaultApi";
 import { apiTokenModel } from "@/prisma/models";
 import { withAuth } from "@/app/middleware/withAuth";
-import { NextRequestWithAuth } from "@/app/types/NextRequestWithAuth";
 import jwt from "jsonwebtoken";
 
 async function postHandler(req: NextRequestWithAuth) {
@@ -16,7 +15,7 @@ async function postHandler(req: NextRequestWithAuth) {
 
   const accessToken = jwt.sign({ id: apiTokenRecord?.id }, process.env.JWT_SECRET);
 
-  const vaultItem = await createVaultApiTokenItem(accessToken, req.userId, false);
+  const vaultItem = await createVaultApiTokenItem(accessToken, req.userId);
 
   await apiTokenModel.update({
     where: {

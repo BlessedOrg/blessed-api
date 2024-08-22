@@ -31,13 +31,11 @@ export async function POST(req: Request) {
   });
   if (createdUser) {
     const {
-      hashedRefreshToken,
-      hashedAccessToken,
       accessToken,
       refreshToken
     } = await createSessionTokens({ id: createdUser?.id });
 
-    const createdUserSession = await createOrUpdateSession(email, "dev");
+    await createOrUpdateSession(email, "dev");
 
     const deployedUserAccount: any = await createAndDeployAccount(createdUser.email);
     console.log(`🚀 Deployed user account:`, deployedUserAccount);

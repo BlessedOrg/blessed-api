@@ -1,11 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { StatusCodes } from "http-status-codes";
 import { validateEmail } from "@/server/auth/validateEmail";
-import z from "zod";
-
-const schema = z.object({
-  email: z.string().email(),
-});
 
 export async function POST(req: NextRequest) {
   const body = await req.json();

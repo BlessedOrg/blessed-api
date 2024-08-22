@@ -6,7 +6,6 @@ import { getContractsFunctions } from "@/contracts/interfaces";
 import z from "zod";
 import interactWithContract from "@/services/interactWithContract";
 import validateRequestsBody from "@/services/validateRequestsBody";
-import { NextRequestWithAuth } from "@/app/types/NextRequestWithAuth";
 import { smartContractModel } from "@/prisma/models";
 
 async function postHandler(req: NextRequestWithAuth, { params : { contractName, usersContractVersion, functionName }}) {
