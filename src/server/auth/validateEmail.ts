@@ -4,14 +4,21 @@ import { StatusCodes } from "http-status-codes";
 import { developerAccountModel, developersUserAccountModel } from "@/prisma/models";
 import { sendVerificationEmailCode } from "@/server/auth/sendVerificationEmailCode";
 import z from "zod";
-import validateRequestsBody from "@/services/validateRequestsBody";
+import {NextResponse} from "next/server";
 
 const schema = z.object({
     email: z.string().email(),
 });
 
 export async function validateEmail(email: string, isLocalhost: boolean, accountType?: "dev" | "user"){
-    validateRequestsBody(schema, { email });
+    const validBody = schema.safeParse({email});
+
+    if (!validBody.success) {
+        return NextResponse.json(
+            { error: validBody.error },
+            { status: StatusCodes.BAD_REQUEST }
+        );
+    }
 
     const isEmailTaken = accountType === "dev"
       ? await developerAccountModel.findFirst({ where: { email } })

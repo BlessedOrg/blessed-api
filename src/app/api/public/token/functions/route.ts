@@ -7,18 +7,15 @@ import {cairoInputsFormat} from "@/utils/cairoInputsFormat";
 async function handler(req: NextRequestWithAuth) {
   const erc20AllowedFunctions = contractsInterfaces["CustomToken"]?.abi?.filter(i => i.type === "interface").flatMap(i => i.items)
 
-  const formatInputs = (inputs) => {
-    return cairoInputsFormat(inputs)
-  }
   return NextResponse.json(
     {
       viewFunctions: erc20AllowedFunctions.filter(a => a.state_mutability === "view").map((f) => ({
         name: f.name,
-        inputs: formatInputs(f.inputs)
+        inputs: cairoInputsFormat(f.inputs)
       })),
       writeFunctions: erc20AllowedFunctions.filter(a => a.state_mutability === "external").map((f) => ({
         name: f.name,
-        inputs: formatInputs(f.inputs)
+        inputs: cairoInputsFormat(f.inputs)
       })),
     },
     { status: StatusCodes.OK },
