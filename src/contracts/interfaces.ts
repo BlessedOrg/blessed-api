@@ -4,6 +4,7 @@ import { Abi } from "starknet";
 import {isEmpty} from "lodash-es";
 import {bigIntToHex, decimalToBigInt} from "@/utils/numberConverts";
 import {flattenArray} from "@/utils/flattenArray";
+import {cairoInputsFormat} from "@/utils/cairoInputsFormat";
 
 function importAllJsonContractsArtifacts() {
   const dirPath = path.join(process.cwd(), 'src/contracts/artifacts');
@@ -46,8 +47,24 @@ export const getContractsFunctions = (contractName: any) => {
     .filter((i: any) => i.type === "function")
     .map((i: any) => ({
       name: i.name,
-      inputs: i.inputs
+      inputs: i.inputs,
+      type: i.state_mutability === "view" ? "read" : "write"
     }));
+};
+
+export const getReadableContractsFunctions = (contractName: any) => {
+  throwErrorForWrongContractId(contractName);
+  const functionsInterface = contractsInterfaces[contractName].abi.filter(i => i.type === "interface").flatMap(i => i.items)
+  return {
+    view: functionsInterface.filter(a => a.state_mutability === "view").map((f) => ({
+      name: f.name,
+      inputs: cairoInputsFormat(f.inputs)
+    })),
+    write: functionsInterface.filter(a => a.state_mutability === "external").map((f) => ({
+      name: f.name,
+      inputs: cairoInputsFormat(f.inputs)
+    })),
+  }
 };
 
 export const getContractsConstructor = (contractName: any) => {
