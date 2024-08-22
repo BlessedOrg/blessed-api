@@ -15,7 +15,7 @@ async function postHandler(req: NextRequestWithAuth) {
 
   const accessToken = jwt.sign({ id: apiTokenRecord?.id }, process.env.JWT_SECRET);
 
-  const vaultItem = await createVaultApiTokenItem(accessToken, req.userId, false);
+  const vaultItem = await createVaultApiTokenItem(accessToken, req.userId);
 
   await apiTokenModel.update({
     where: {

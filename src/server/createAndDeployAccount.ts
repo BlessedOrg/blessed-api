@@ -13,7 +13,7 @@ import ethAbi from "@/contracts/abis/ethAbi.json";
 import { ethers } from "ethers";
 import { createVaultPrivateKeyItem } from "@/server/vaultApi";
 import { gaslessTransaction } from "@/services/gaslessTransaction";
-import {bigIntToHex } from "@/utils/numberConverts";
+import { bigIntToHex } from "@/utils/numberConverts";
 
 export async function createAndDeployAccount(email: string) {
   const provider = new RpcProvider({
@@ -26,13 +26,17 @@ export async function createAndDeployAccount(email: string) {
 
   //Operator account
   const operatorPrivateKey = process.env.OPERATOR_PRIVATE_KEY!;
-  const operatorPublicKey = process.env.OPERATOR_WALLET_ADDR!;
-  if (!operatorPrivateKey || !operatorPublicKey || !argentXaccountClassHash) {
+  const operatorWalletAddress = process.env.OPERATOR_WALLET_ADDR!;
+  if (
+    !operatorPrivateKey ||
+    !operatorWalletAddress ||
+    !argentXaccountClassHash
+  ) {
     throw new Error("Missing operator/argent environment variables");
   }
   const operatorAccount = new Account(
     provider,
-    operatorPublicKey,
+    operatorWalletAddress,
     operatorPrivateKey,
   );
 
@@ -89,12 +93,11 @@ export async function createAndDeployAccount(email: string) {
       `💎🆓 Sending initial funds to the ArgentX account by gasless... (${ethers.formatEther(suggestedMaxFee)} ETH)`,
     );
 
-    const hexNumber = bigIntToHex(suggestedMaxFee)
+    const hexNumber = bigIntToHex(suggestedMaxFee);
     const gaslessTransferTx = await gaslessTransaction(operatorAccount, [
       {
         entrypoint: "transfer",
-        contractAddress:
-          "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
+        contractAddress: ethContractAddress,
         calldata: [`${AXcontractAddress}`, `${hexNumber}`, `0x0`],
       },
     ]);
@@ -102,8 +105,11 @@ export async function createAndDeployAccount(email: string) {
       console.log(
         `✅🆓 Initial funds sent by gasless... txHash: ${gaslessTransferTx.transactionHash}`,
       );
-      console.log(gaslessTransferTx.transactionHash);
       transferInitialFundsTx = gaslessTransferTx.transactionHash;
+    } else {
+      console.log(
+          `❌ Error with sending initial funds by gasless... ${gaslessTransferTx.error}`,
+      );
     }
   } catch (e) {
     console.log(`❌ Error with sending initial funds by gasless... ${e}`);
@@ -164,6 +170,7 @@ const deployAccountAndCreateVaultItem = async (
     const vaultData = await createVaultPrivateKeyItem(
       privateKeyAX,
       starkKeyPubAX,
+      AXcontractFinalAddress,
       email,
       true,
     );
@@ -180,6 +187,7 @@ const deployAccountAndCreateVaultItem = async (
     const vaultData = await createVaultPrivateKeyItem(
       privateKeyAX,
       starkKeyPubAX,
+      "",
       email,
       false,
     );

@@ -88,20 +88,20 @@ async function handler(
 
       const keys = await getVaultItem(devData.vaultKey, 'privateKey');
 
-      const publicKey = keys.fields.find(
-          (field) => field.id === "publicKey",
+      const walletAddress = keys.fields.find(
+          (field) => field.id === "walletAddress",
       )?.value;
       const privateKey = keys.fields.find(
           (field) => field.id === "privateKey",
       )?.value;
-      if (!publicKey || !privateKey) {
+      if (!walletAddress || !privateKey) {
         return NextResponse.json(
             { error: "Keys not found" },
             { status: StatusCodes.NOT_ACCEPTABLE },
         );
       }
 
-      const account = new Account(provider, publicKey, privateKey);
+      const account = new Account(provider, walletAddress, privateKey);
 
       const calldata = getGaslessTransactionCallData(
           method,

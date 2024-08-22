@@ -14,13 +14,13 @@ async function handler(req: NextRequestWithDevAuth) {
 
   //Operator account
   const operatorPrivateKey = process.env.OPERATOR_PRIVATE_KEY!;
-  const operatorPublicKey = process.env.OPERATOR_WALLET_ADDR!;
-  if (!operatorPrivateKey || !operatorPublicKey || !argentXaccountClassHash) {
+  const operatorWalletAddress = process.env.OPERATOR_WALLET_ADDR!;
+  if (!operatorPrivateKey || !operatorWalletAddress || !argentXaccountClassHash) {
     throw new Error("Missing operator/argent environment variables");
   }
   const operatorAccount = new Account(
     provider,
-    operatorPublicKey,
+    operatorWalletAddress,
     operatorPrivateKey,
   );
   const ethAmount = 0.00026460734340459;
