@@ -17,9 +17,7 @@ import connectToContract from "@/services/connectToContract";
 import {cairoInputsFormat} from "@/utils/cairoInputsFormat";
 
 const erc20Abi = contractsInterfaces["CustomToken"]?.abi || [];
-const erc20AllowedFunctions = erc20Abi.find(
-  (f) => f.name === "openzeppelin::token::erc20::interface::ERC20ABI",
-).items;
+const erc20AllowedFunctions = erc20Abi.filter(i => i.type === "interface").flatMap(i => i.items)
 
 async function handler(
   req: NextRequestWithAuth,
