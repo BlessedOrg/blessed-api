@@ -4,8 +4,6 @@ import { NextResponse } from "next/server";
 import { StatusCodes } from "http-status-codes";
 import {cairoInputsFormat} from "@/utils/cairoInputsFormat";
 
-import abii from "@/contracts/abis/erc20CustomAbi.json"
-
 async function handler(req: NextRequestWithAuth) {
   const erc20AllowedFunctions = contractsInterfaces["CustomToken"]?.abi?.filter(i => i.type === "interface").flatMap(i => i.items)
 
