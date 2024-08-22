@@ -4,7 +4,7 @@ import { StatusCodes } from "http-status-codes";
 import {developerAccountModel, developersUserAccountModel, erc20TokenModel} from "@/prisma/models";
 import { getVaultItem } from "@/server/vaultApi";
 import provider from "@/contracts/provider";
-import {Account} from "starknet";
+import {Account } from "starknet";
 import { gaslessTransaction } from "@/services/gaslessTransaction";
 
 import {
@@ -60,11 +60,11 @@ async function handler(
     );
   }
 
-  const contract = await erc20TokenModel.findFirst({
+  const contractData = await erc20TokenModel.findFirst({
     where: { contractAddress },
   });
 
-  if (!contract) {
+  if (!contractData) {
     return NextResponse.json(
       { error: "Contract not found" },
       { status: StatusCodes.NOT_FOUND },
@@ -73,8 +73,8 @@ async function handler(
 
     const accountData = !!userId ? await developersUserAccountModel.findUnique({ where: { id: userId }}) : await developerAccountModel.findUnique({where: {id: developerId}})
 
+  const contract = connectToContract({address: contractAddress, name: "CustomToken"})
     if(functionObject.state_mutability === "view") {
-      const contract = connectToContract({address: contractAddress, name: "CustomToken"})
       const inputs = functionObject.inputs.map((input) => body[input.name])
       const result = await interactWithContract(method, inputs, contract)
 
@@ -105,9 +105,16 @@ async function handler(
           erc20AllowedFunctions,
       );
       const transactionResult = await gaslessTransaction(account, calldata);
+      if(!!transactionResult.error){
+        contract.connect(account);
+        const userTransactionResult = interactWithContract(method, body, contract)
+        const gaslessError= transactionResult.error
+
+
+        return NextResponse.json({ gaslessError, userTransactionResult }, { status: StatusCodes.OK });
+      }
 
       return NextResponse.json({ transactionResult }, { status: StatusCodes.OK });
-
     }
 
 }
