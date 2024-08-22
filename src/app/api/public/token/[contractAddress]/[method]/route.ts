@@ -1,7 +1,7 @@
 import { withAuth } from "@/app/middleware/withAuth";
 import { NextResponse } from "next/server";
 import { StatusCodes } from "http-status-codes";
-import { developerAccountModel, erc20TokenModel } from "@/prisma/models";
+import {developerAccountModel, developersUserAccountModel, erc20TokenModel} from "@/prisma/models";
 import { getVaultItem } from "@/server/vaultApi";
 import provider from "@/contracts/provider";
 import {Account} from "starknet";
@@ -73,10 +73,7 @@ async function handler(
     );
   }
 
-  if (!!developerId) {
-    const devData = await developerAccountModel.findUnique({
-      where: { id: developerId },
-    });
+    const accountData = !!userId ? await developersUserAccountModel.findUnique({ where: { id: userId }}) : await developerAccountModel.findUnique({where: {id: developerId}})
 
     if(functionObject.state_mutability === "view") {
       const contract = connectToContract({address: contractAddress, name: "CustomToken"})
@@ -86,7 +83,7 @@ async function handler(
       return NextResponse.json({ result }, { status: StatusCodes.OK });
     } else {
 
-      const keys = await getVaultItem(devData.vaultKey, 'privateKey');
+      const keys = await getVaultItem(accountData.vaultKey, 'privateKey');
 
       const walletAddress = keys.fields.find(
           (field) => field.id === "walletAddress",
@@ -114,13 +111,7 @@ async function handler(
       return NextResponse.json({ transactionResult }, { status: StatusCodes.OK });
 
     }
-  }
 
-  if (!!userId) {
-    // TODO: Implement user transaction
-  }
-
-  return NextResponse.json({ inputsExists }, { status: StatusCodes.OK });
 }
 
 function generateZodSchema(functionObject: any) {
