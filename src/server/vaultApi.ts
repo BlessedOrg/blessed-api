@@ -143,7 +143,7 @@ export async function getVaultItem(id: string, type?: "apiKey" | "privateKey") {
   }
 }
 
-export async function updateVaultItem(
+export async function replaceVaultItem(
   id: string,
   newData: any,
   type?: "apiKey" | "privateKey",
@@ -167,6 +167,34 @@ export async function updateVaultItem(
           ...newData,
         }),
       },
+    );
+    console.log(`✅🔑 Replaced Vault item`);
+    return await updatedItem.json();
+  } catch (error: any) {
+    console.log(`⛑️🔑 Failed to replace Vault item \n ${error?.message}`);
+  }
+}
+
+export async function updateVaultItem(
+    id: string,
+    newData: {op: "replace" | "add" | "remove", path: string, value: any}[],
+    type?: "apiKey" | "privateKey",
+) {
+  const vaultId =
+      type === "privateKey"
+          ? process.env.OP_PRIVATE_KEY_VAULT_ID!
+          : process.env.OP_API_TOKEN_VAULT_ID!;
+  try {
+    const updatedItem = await fetch(
+        `${vaultApiUrl}/v1/vaults/${vaultId}/items/${id}`,
+        {
+          method: "PATCH",
+          headers: {
+            Authorization: `Bearer ${vaultToken}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(newData),
+        },
     );
     console.log(`✅🔑 Updated Vault item`);
     return await updatedItem.json();

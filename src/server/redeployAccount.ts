@@ -1,7 +1,7 @@
 "use server";
 
 import { developerAccountModel } from "@/prisma/models";
-import {getVaultItem, updateVaultItem} from "@/server/vaultApi";
+import { getVaultItem, updateVaultItem } from "@/server/vaultApi";
 import {
   Account,
   CallData,
@@ -13,7 +13,7 @@ import {
 import { ethers } from "ethers";
 import { gaslessTransaction } from "@/services/gaslessTransaction";
 import ethAbi from "@/contracts/abis/ethAbi.json";
-import {bigIntToHex} from "@/utils/numberConverts";
+import { bigIntToHex } from "@/utils/numberConverts";
 
 export async function redeployDevAccount(id: string) {
   const provider = new RpcProvider({
@@ -27,7 +27,11 @@ export async function redeployDevAccount(id: string) {
   //Operator account
   const operatorPrivateKey = process.env.OPERATOR_PRIVATE_KEY!;
   const operatorWalletAddress = process.env.OPERATOR_WALLET_ADDR!;
-  if (!operatorPrivateKey || !operatorWalletAddress || !argentXaccountClassHash) {
+  if (
+    !operatorPrivateKey ||
+    !operatorWalletAddress ||
+    !argentXaccountClassHash
+  ) {
     throw new Error("Missing operator/argent environment variables");
   }
 
@@ -53,7 +57,7 @@ export async function redeployDevAccount(id: string) {
     throw new Error("Developer account not found");
   }
 
-  const keys = await getVaultItem(devAccount.vaultKey, 'privateKey');
+  const keys = await getVaultItem(devAccount.vaultKey, "privateKey");
 
   if (!keys) {
     throw new Error("Keys not found");
@@ -71,7 +75,7 @@ export async function redeployDevAccount(id: string) {
     guardian: "0",
   });
   const AXcontractAddress = hash.calculateContractAddressFromHash(
-      walletAddress,
+    walletAddress,
     argentXaccountClassHash,
     AXConstructorCallData,
     0,
@@ -91,7 +95,7 @@ export async function redeployDevAccount(id: string) {
     contractAddress: AXcontractAddress,
   });
   console.log(
-      `💰 Suggested max fee ETH: ${ethers.formatEther(suggestedMaxFee)} | BigInt: ${suggestedMaxFee}`,
+    `💰 Suggested max fee ETH: ${ethers.formatEther(suggestedMaxFee)} | BigInt: ${suggestedMaxFee}`,
   );
 
   ethContract.connect(operatorAccount);
@@ -100,7 +104,7 @@ export async function redeployDevAccount(id: string) {
 
   try {
     console.log(
-        `💎 Sending initial funds to the ArgentX account by gasless... (${ethers.formatEther(suggestedMaxFee)} ETH)`,
+      `💎 Sending initial funds to the ArgentX account by gasless... (${ethers.formatEther(suggestedMaxFee)} ETH)`,
     );
     const hexNumber = bigIntToHex(suggestedMaxFee);
     const gaslessTransferTx = await gaslessTransaction(operatorAccount, [
@@ -125,13 +129,13 @@ export async function redeployDevAccount(id: string) {
     console.log(`❌ Error with sending initial funds by gasless... ${e}`);
   }
 
-  if(!transferInitialFundsTx) {
+  if (!transferInitialFundsTx) {
     console.log(
-        `💎 Sending initial funds to the ArgentX account by operator... (${ethers.formatEther(suggestedMaxFee)} ETH)`,
+      `💎 Sending initial funds to the ArgentX account by operator... (${ethers.formatEther(suggestedMaxFee)} ETH)`,
     );
     const transferTx: any = await ethContract.transfer(
-        AXcontractAddress,
-        suggestedMaxFee,
+      AXcontractAddress,
+      suggestedMaxFee,
     );
     transferInitialFundsTx = transferTx.transaction_hash;
   }
@@ -139,12 +143,12 @@ export async function redeployDevAccount(id: string) {
   console.log(`🔄 Waiting for transaction confirmation...`);
 
   const confirmation = await provider.waitForTransaction(
-      transferInitialFundsTx,
+    transferInitialFundsTx,
   );
 
   if (confirmation.statusReceipt === "success") {
     console.log(
-        "🚀 Successfully transfer initial funds to the ArgentX account",
+      "🚀 Successfully transfer initial funds to the ArgentX account",
     );
   }
 
@@ -155,13 +159,28 @@ export async function redeployDevAccount(id: string) {
   if (AXcontractFinalAddress) {
     await developerAccountModel.update({
       where: {
-        id
+        id,
       },
-      data:{
+      data: {
         accountDeployed: true,
-      }
-    })
-    await updateVaultItem(devAccount.vaultKey, {tags: ["deployed", "sepolia"],}, 'privateKey');
+      },
+    });
+    await updateVaultItem(
+      devAccount.vaultKey,
+      [
+        {
+          op: "replace",
+          path: "/tags/0",
+          value: "deployed",
+        },
+        {
+          op: "replace",
+          path: "/tags/1",
+          value: "sepolia",
+        },
+      ],
+      "privateKey",
+    );
     console.log(
       `✅ ArgentX wallet created & deployed: \n  - Final contract address: ${AXcontractFinalAddress}`,
     );
