@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { StatusCodes } from "http-status-codes";
-import { Account, constants, RpcProvider } from "starknet";
 import { withDevAuth } from "@/app/middleware/withDevAuth";
 import { erc20TokenModel } from "@/prisma/models";
 import deployContract from "@/services/deployContract";
@@ -8,9 +7,6 @@ import deployContract from "@/services/deployContract";
 async function handler(req: NextRequestWithDevAuth) {
   const body = await req.json();
   const { name, symbol, supplyAmount } = body;
-  const provider = new RpcProvider({
-    nodeUrl: constants.NetworkName.SN_SEPOLIA,
-  });
 
   if (!name || !symbol || !supplyAmount) {
     return NextResponse.json(
@@ -18,18 +14,6 @@ async function handler(req: NextRequestWithDevAuth) {
       { status: StatusCodes.BAD_REQUEST },
     );
   }
-
-  //Operator account
-  const operatorPrivateKey = process.env.OPERATOR_PRIVATE_KEY!;
-  const operatorPublicKey = process.env.OPERATOR_WALLET_ADDR!;
-  if (!operatorPrivateKey || !operatorPublicKey) {
-    throw new Error("Missing operator environment variables");
-  }
-  const operatorAccount = new Account(
-    provider,
-    operatorPublicKey,
-    operatorPrivateKey,
-  );
 
   const contractClassHash =
     "0x05eecb88cfbe969745a1e1e886010bcd4177164e5e131f71b69176ca6960eda0";

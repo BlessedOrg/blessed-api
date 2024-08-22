@@ -36,13 +36,11 @@ async function handler(req: Request, { params: { developerId } }) {
 
   if (createdUser) {
     const {
-      hashedRefreshToken,
-      hashedAccessToken,
       accessToken,
       refreshToken,
     } = await createSessionTokens({ id: createdUser?.id });
 
-    const createdUserSession = await createOrUpdateSession(email, "user");
+    await createOrUpdateSession(email, "user");
 
     const deployedUserAccount: any = await createAndDeployAccount(createdUser?.email);
     console.log(`🚀 Deployed user account:`, deployedUserAccount);

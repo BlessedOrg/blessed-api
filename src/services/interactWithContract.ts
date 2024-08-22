@@ -5,10 +5,8 @@ const interactWithContract = async (functionName: string, inputs: any[], contrac
   let result;
   if (isEmpty(inputs)) {
     result = await contract[functionName]();
-  } else if(inputs.length === 1) {
-    result = await contract[functionName](inputs[0]);
-  }else {
-    result = await contract[functionName](inputs);
+  } else {
+    result = await contract[functionName](...inputs);
   }
   if (typeof result === "bigint") {
     result = result.toString();
