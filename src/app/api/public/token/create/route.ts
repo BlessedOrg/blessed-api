@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { StatusCodes } from "http-status-codes";
 import { withDevAuth } from "@/app/middleware/withDevAuth";
-import { erc20TokenModel } from "@/prisma/models";
+import { erc20TokenModel, smartContractModel } from "@/prisma/models";
 import deployContract from "@/services/deployContract";
 import { contractsNames } from "@/contracts/interfaces";
 
@@ -36,9 +36,28 @@ async function handler(req: NextRequestWithDevAuth) {
     });
     const { status } = deployResponse;
     if (status === "success") {
+      const maxId = await smartContractModel.aggregate({
+        where: {
+          developerUserId: req.developerId,
+          name
+        },
+        _max: {
+          userVersion: true
+        }
+      });
+      const nextId = (maxId._max.userVersion || 0) + 1;
+      const smartContractRecord = await smartContractModel.create({
+        data: {
+          name,
+          address: deployResponse.contract_address,
+          userVersion: nextId
+        }
+      })
+
       const createdErc20Record = await erc20TokenModel.create({
         data: {
           developerId: req.developerId,
+          smartContractId: smartContractRecord.address,
           contractAddress: deployResponse.contract_address,
           name,
           symbol,
