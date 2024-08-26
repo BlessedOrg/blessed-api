@@ -21,7 +21,7 @@ const deployContract = async ({ contractName, constructorArgs, classHash }: Depl
 
   if (txRes.isSuccess()) {
     const fee = parseInt((txRes as any)?.actual_fee?.amount, 16);
-    console.log("📜 Newly deployed contract address:", deployResponse.contract_address);
+    console.log(`📜 Newly deployed ${contractName} Contract with address: ${deployResponse.contract_address}`);
     return {
       ...deployResponse,
       fee,
