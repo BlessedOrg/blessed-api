@@ -1,53 +1,74 @@
 import { NextResponse } from "next/server";
 import { withApiToken } from "@/app/middleware/withApiToken";
- import { isEmpty, isEqual, sortBy } from "lodash-es";
+import { isEmpty, isEqual, sortBy } from "lodash-es";
 import { StatusCodes } from "http-status-codes";
 import deployContract from "@/services/deployContract";
-import { getContractsConstructor } from "@/contracts/interfaces";
+import { getContractClassHash, getContractsConstructor } from "@/contracts/interfaces";
 import { smartContractModel } from "@/prisma/models";
 
-async function postHandler(req: NextRequestWithAuth, { params: { contractName } }): Promise<NextResponse>  {
-  const constructorArgs = getContractsConstructor(contractName);
+async function postHandler(req: NextRequestWithAuth, { params: { contractName } }): Promise<NextResponse> {
+  try {
+    const classHash = getContractClassHash(contractName);
+    if (!classHash) {
+      return NextResponse.json(
+        { error: `Class hash for the contract ${contractName} not found! Are you sure you are passing correct contract's name? Check list of available contracts at /api/public/contracts` },
+        { status: StatusCodes.BAD_REQUEST }
+      );
+    }
+    const constructorArgs = getContractsConstructor(contractName);
 
-  // TODO: query the contract class hash based on the contractName from the URL
-  const classHash = `0x019994ff99f2a22bda55218dc609fe644d977a0581694d1d6a2bd05977376b52`;
+    const body = await req.json();
 
-  const body = await req.json();
-  if (!isEqual(sortBy(constructorArgs), Object.keys(body)) && !isEmpty(body)) {
+    if (!isEqual(sortBy(constructorArgs), sortBy(Object.keys(body))) || isEmpty(body)) {
+      return NextResponse.json(
+        { error: `Invalid constructor arguments for contract ${contractName}. The proper arguments are: ${constructorArgs} (in this particular order)` },
+        { status: StatusCodes.BAD_REQUEST }
+      );
+    }
+
+    const deployResponse = await deployContract({
+      contractName,
+      constructorArgs: body,
+      classHash
+    });
+
+    const maxId = await smartContractModel.aggregate({
+      where: {
+        developerUserId: req.userId,
+        name: contractName
+      },
+      _max: {
+        userVersion: true
+      }
+    });
+
+    const nextId = (maxId._max.userVersion || 0) + 1;
+
+    const smartContractRecord = await smartContractModel.create({
+      data: {
+        address: deployResponse.contract_address,
+        name: contractName,
+        developerUserId: req.userId,
+        userVersion: nextId
+      }
+    });
+
     return NextResponse.json(
-      { error: `Invalid constructor arguments for contract ${contractName}. The proper arguments are: ${constructorArgs}` },
-      { status: StatusCodes.BAD_REQUEST },
+      {
+        ...deployResponse,
+        databaseId: smartContractRecord?.id,
+        userVersion: smartContractRecord?.userVersion,
+        contractName: smartContractRecord?.name
+      },
+      { status: StatusCodes.OK }
+    );
+  } catch (error) {
+    console.log("🚨 Error:", error);
+    return NextResponse.json(
+      { error: error.message },
+      { status: StatusCodes.BAD_REQUEST }
     );
   }
-
-  const deployResponse = await deployContract({
-    contractName,
-    constructorArgs: body,
-    classHash
-  });
-
-  const maxId = await smartContractModel.aggregate({
-    where: { developerUserId: req.userId },
-    _max: {
-      userVersion: true,
-    },
-  });
-
-  const nextId = (maxId._max.userVersion || 0) + 1;
-  
-  await smartContractModel.create({
-    data: {
-      address: deployResponse.contract_address,
-      name: contractName,
-      developerUserId: req.userId,
-      userVersion: nextId,
-    },
-  });
-
-  return NextResponse.json(
-    { ...deployResponse },
-    { status: StatusCodes.OK } ,
-  );
 }
 
 export const POST = withApiToken(postHandler);

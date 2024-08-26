@@ -3,6 +3,7 @@ import { StatusCodes } from "http-status-codes";
 import { withDevAuth } from "@/app/middleware/withDevAuth";
 import { erc20TokenModel } from "@/prisma/models";
 import deployContract from "@/services/deployContract";
+import { contractsNames } from "@/contracts/interfaces";
 
 async function handler(req: NextRequestWithDevAuth) {
   const body = await req.json();
@@ -11,7 +12,7 @@ async function handler(req: NextRequestWithDevAuth) {
   if (!name || !symbol || !supplyAmount) {
     return NextResponse.json(
       { error: "Missing parameters" },
-      { status: StatusCodes.BAD_REQUEST },
+      { status: StatusCodes.BAD_REQUEST }
     );
   }
 
@@ -25,13 +26,13 @@ async function handler(req: NextRequestWithDevAuth) {
   try {
     const deployResponse = await deployContract({
       classHash: contractClassHash,
-      contractName: "CustomToken",
+      contractName: contractsNames().ERC20EventCurrency,
       constructorArgs: {
         owner: ownerAddress,
         name,
         symbol,
-        supply,
-      },
+        supply
+      }
     });
     const { status } = deployResponse;
     if (status === "success") {
@@ -42,26 +43,26 @@ async function handler(req: NextRequestWithDevAuth) {
           name,
           symbol,
           supply: Number(supplyAmount),
-          decimals: 18,
-        },
+          decimals: 18
+        }
       });
 
       return NextResponse.json(
         {
           contractAddress: deployResponse.contract_address,
           status,
-          createdErc20Record,
+          createdErc20Record
         },
         {
-          status: StatusCodes.OK,
-        },
+          status: StatusCodes.OK
+        }
       );
     }
   } catch (e) {
     const error = e.message as any;
     return NextResponse.json(
       { error },
-      { status: StatusCodes.INTERNAL_SERVER_ERROR },
+      { status: StatusCodes.INTERNAL_SERVER_ERROR }
     );
   }
 }
