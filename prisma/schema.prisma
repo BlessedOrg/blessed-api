@@ -18,7 +18,7 @@ model DeveloperAccount {
   email           String                  @unique
   walletAddress   String?                 @unique
   Otps            AccountOtp[]
-  session         Session?
+  Session         Session?
   accountDeployed Boolean                 @default(false)
   vaultKey        String?
   Users           DevelopersUserAccount[]
@@ -33,15 +33,15 @@ model DevelopersUserAccount {
   email            String           @unique
   walletAddress    String?          @unique
   Otps             AccountOtp[]
-  session          Session?
+  Session          Session?
+  sessionId        String?
   DeveloperAccount DeveloperAccount @relation(fields: [developerId], references: [id])
   developerId      String
   accountDeployed  Boolean          @default(false)
   vaultKey         String?
+  SmartContract    SmartContract[]
   createdAt        DateTime         @default(now())
   updatedAt        DateTime         @updatedAt
-  sessionId        String?
-  SmartContract    SmartContract[]
 }
 
 model AccountOtp {
@@ -96,6 +96,8 @@ model Erc20Token {
   decimals         Int
   supply           Int
   contractAddress  String
+  SmartContract    SmartContract    @relation(fields: [smartContractId], references: [id])
+  smartContractId  String
   createdAt        DateTime         @default(now())
   updatedAt        DateTime         @updatedAt
 }
@@ -104,7 +106,10 @@ model SmartContract {
   id                    String                 @id @default(cuid())
   address               String
   name                  String
+  userVersion           Int
   DevelopersUserAccount DevelopersUserAccount? @relation(fields: [developerUserId], references: [id])
   developerUserId       String?
-  userVersion           Int
+  Erc20Token            Erc20Token[]
+  createdAt             DateTime               @default(now())
+  updatedAt             DateTime               @updatedAt
 }
