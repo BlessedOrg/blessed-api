@@ -11,6 +11,7 @@ import { gaslessTransaction } from "@/services/gaslessTransaction";
 import { generateSchemaForContractBody } from "@/utils/generateSchemaForContractBody";
 import { retrieveWalletCredentials } from "@/utils/retrieveWalletCredentials";
 import { cairoInputsFormat } from "@/utils/cairoInputsFormat";
+import { map, difference, keys, size } from "lodash-es";
 
 async function postHandler(req: NextRequestWithAuth, { params: { contractName, usersContractVersion, functionName } }) {
   try {
@@ -28,10 +29,15 @@ async function postHandler(req: NextRequestWithAuth, { params: { contractName, u
     const inputsExists = targetFunction.inputs.every(input => body[input.name] !== undefined);
 
     if (!inputsExists) {
+
+      const requiredInputNames = map(cairoInputsFormat(targetFunction.inputs), 'name');
+      const missingParameter = difference(requiredInputNames, keys(body));
+
       return NextResponse.json(
         {
-          error: "Missing argument",
-          requiredParameters: cairoInputsFormat(targetFunction.inputs)
+          error: size(missingParameter) > 1 ? "Missing parameters" : "Missing parameter",
+          missingParameter,
+          requiredParameters: cairoInputsFormat(targetFunction.inputs),
         },
         { status: StatusCodes.BAD_REQUEST }
       );
