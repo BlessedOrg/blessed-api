@@ -1,14 +1,5 @@
 "use server";
-import {
-  Account,
-  CallData,
-  constants,
-  Contract,
-  ec,
-  hash,
-  RpcProvider,
-  stark,
-} from "starknet";
+import { Account, CallData, constants, Contract, ec, hash, RpcProvider, stark } from "starknet";
 import ethAbi from "@/contracts/abis/ethAbi.json";
 import { ethers } from "ethers";
 import { createVaultPrivateKeyItem } from "@/server/vaultApi";

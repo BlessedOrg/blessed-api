@@ -37,7 +37,8 @@ export function withApiToken(handler: (req: NextRequest, context: { params: any 
 
       return handler(request, context);
     } catch (error: any) {
-      return NextResponse.json({ error: `Invalid token. Reason: ${error.message}` }, { status: StatusCodes.UNAUTHORIZED });
+      console.log("🚨 withApiToken:", error.message);
+      return NextResponse.json({ error: `Error: ${error.message}` }, { status: StatusCodes.UNAUTHORIZED });
     }
   };
 }
