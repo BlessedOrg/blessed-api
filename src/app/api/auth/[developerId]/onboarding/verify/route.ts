@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { StatusCodes } from "http-status-codes";
 import { developersUserAccountModel } from "@/prisma/models";
-import { createAndDeployAccount } from "@/server/createAndDeployAccount";
+import { createAndDeployAccount } from "@/server/api/accounts/createAndDeployAccount";
 import { verifyEmail } from "@/server/auth/verifyEmail";
 import { createSessionTokens } from "@/server/auth/createSessionTokens";
 import { createOrUpdateSession } from "@/server/auth/session";

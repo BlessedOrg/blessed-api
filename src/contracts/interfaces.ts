@@ -1,9 +1,6 @@
 import fs from "fs";
 import path from "path";
 import { Abi } from "starknet";
-import { isEmpty } from "lodash-es";
-import { bigIntToHex, decimalToBigInt } from "@/utils/numberConverts";
-import { flattenArray } from "@/utils/flattenArray";
 import { cairoInputsFormat } from "@/utils/cairoInputsFormat";
 
 export function contractsNames() {
@@ -29,7 +26,7 @@ export function contractsNames() {
 
 export function getContractClassHash(name: string) {
   switch (name) {
-    case contractsNames().EntranceContract:
+    case contractsNames().EntranceChecker:
       return "0x06c4389c84919d194bdd0f49d4068c013f9d4b508a9283b5d9ecc39aa02c4961";
     case contractsNames().ERC1155EventTicket:
       return "0x044842b906352c6b7eec7647cbea72b82a7b3505bb64a788f114c99f5d47b2d5";
@@ -118,30 +115,4 @@ export const getContractsConstructor = (contractName: any) => {
   return constructorInterface.inputs.map((i: any) => i.name);
 };
 
-export const getGaslessTransactionCallData = (
-  method: string,
-  contractAddress: string,
-  body: { [key: string]: any },
-  abiFunctions: any[]
-) => {
-  const inputs = abiFunctions.find((m) => m.name === method).inputs;
-  if (isEmpty(inputs)) {
-    return [];
-  } else {
-    const formattedInputs = inputs.map((input) => {
-      if (input.type.includes("integer::u256")) {
-        return [bigIntToHex(decimalToBigInt(body[input.name])), "0x0"];
-      }
-      return body[input.name];
-    });
-    const calldata = flattenArray(formattedInputs);
-    return [
-      {
-        entrypoint: method,
-        contractAddress,
-        calldata
-      }
-    ];
-  }
-};
 export const contractsInterfaces: ContractsInterfacesType = contractArtifacts as ContractsInterfacesType;

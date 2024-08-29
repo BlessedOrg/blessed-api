@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { StatusCodes } from "http-status-codes";
-import { getVaultItem } from "@/server/vaultApi";
+import { getVaultItem } from "@/server/api/vault/vaultApi";
 import jwt from "jsonwebtoken";
 import { apiTokenModel } from "@/prisma/models";
 
