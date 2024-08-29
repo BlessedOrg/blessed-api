@@ -3,7 +3,7 @@ import { withApiToken } from "@/app/middleware/withApiToken";
 import { isEmpty, isEqual, sortBy } from "lodash-es";
 import { StatusCodes } from "http-status-codes";
 import deployContract from "@/services/deployContract";
-import { getContractClassHash, getContractsConstructor } from "@/contracts/interfaces";
+import { getContractClassHash, getContractsConstructorsNames } from "@/contracts/interfaces";
 import { smartContractModel } from "@/prisma/models";
 
 async function postHandler(req: NextRequestWithAuth, { params: { contractName } }): Promise<NextResponse> {
@@ -15,7 +15,7 @@ async function postHandler(req: NextRequestWithAuth, { params: { contractName } 
         { status: StatusCodes.BAD_REQUEST }
       );
     }
-    const constructorArgs = getContractsConstructor(contractName);
+    const constructorArgs = getContractsConstructorsNames(contractName);
 
     const body = await req.json();
 
