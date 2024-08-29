@@ -37,7 +37,7 @@ async function handler(req: NextRequestWithDevAuth) {
       },
     });
     const qr = await generateQrCode(
-      `http://192.168.68.102:3000/entrance?contractAddress=${deployedEntranceContract.address}`,
+      `http://${process.env.MOBILE_BASE_URL}/entrance?contractAddress=${deployedEntranceContract.address}`,
     );
 
     return NextResponse.json(
