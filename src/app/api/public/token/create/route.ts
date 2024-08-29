@@ -38,19 +38,19 @@ async function handler(req: NextRequestWithDevAuth) {
     if (status === "success") {
       const maxId = await smartContractModel.aggregate({
         where: {
-          developerUserId: req.developerId,
+          developerId: req.developerId,
           name
         },
         _max: {
-          userVersion: true
+          version: true
         }
       });
-      const nextId = (maxId._max.userVersion || 0) + 1;
+      const nextId = (maxId._max.version || 0) + 1;
       const smartContractRecord = await smartContractModel.create({
         data: {
           name,
           address: deployResponse.contract_address,
-          userVersion: nextId
+          version: nextId
         }
       })
 

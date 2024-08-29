@@ -178,7 +178,7 @@ const deployAccountAndCreateVaultItem = async (
     const vaultData = await createVaultPrivateKeyItem(
       privateKeyAX,
       starkKeyPubAX,
-      "",
+      accountAX.address,
       email,
       false,
     );

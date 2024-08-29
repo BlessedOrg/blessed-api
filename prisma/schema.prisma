@@ -24,6 +24,7 @@ model DeveloperAccount {
   Users           DevelopersUserAccount[]
   ApiTokens       ApiToken[]
   Erc20Tokens     Erc20Token[]
+  SmartContract   SmartContract[]
   createdAt       DateTime                @default(now())
   updatedAt       DateTime                @updatedAt
 }
@@ -39,7 +40,6 @@ model DevelopersUserAccount {
   developerId      String
   accountDeployed  Boolean          @default(false)
   vaultKey         String?
-  SmartContract    SmartContract[]
   createdAt        DateTime         @default(now())
   updatedAt        DateTime         @updatedAt
 }
@@ -103,13 +103,13 @@ model Erc20Token {
 }
 
 model SmartContract {
-  id                    String                 @id @default(cuid())
-  address               String
-  name                  String
-  userVersion           Int
-  DevelopersUserAccount DevelopersUserAccount? @relation(fields: [developerUserId], references: [id])
-  developerUserId       String?
-  Erc20Token            Erc20Token[]
-  createdAt             DateTime               @default(now())
-  updatedAt             DateTime               @updatedAt
+  id                String            @id @default(cuid())
+  address           String
+  name              String
+  version           Int
+  DevelopersAccount DeveloperAccount? @relation(fields: [developerId], references: [id])
+  developerId       String?
+  Erc20Token        Erc20Token[]
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
 }

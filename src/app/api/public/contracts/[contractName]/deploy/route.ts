@@ -34,22 +34,22 @@ async function postHandler(req: NextRequestWithAuth, { params: { contractName } 
 
     const maxId = await smartContractModel.aggregate({
       where: {
-        developerUserId: req.userId,
+        developerId: req.developerId,
         name: contractName
       },
       _max: {
-        userVersion: true
+        version: true
       }
     });
 
-    const nextId = (maxId._max.userVersion || 0) + 1;
+    const nextId = (maxId._max.version || 0) + 1;
 
     const smartContractRecord = await smartContractModel.create({
       data: {
         address: deployResponse.contract_address,
         name: contractName,
-        developerUserId: req.userId,
-        userVersion: nextId
+        developerId: req.developerId,
+        version: nextId
       }
     });
 
@@ -57,7 +57,7 @@ async function postHandler(req: NextRequestWithAuth, { params: { contractName } 
       {
         ...deployResponse,
         databaseId: smartContractRecord?.id,
-        userVersion: smartContractRecord?.userVersion,
+        version: smartContractRecord?.version,
         contractName: smartContractRecord?.name
       },
       { status: StatusCodes.OK }

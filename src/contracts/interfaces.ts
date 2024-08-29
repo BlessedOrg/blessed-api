@@ -29,6 +29,8 @@ export function contractsNames() {
 
 export function getContractClassHash(name: string) {
   switch (name) {
+    case contractsNames().EntranceContract:
+      return "0x06c4389c84919d194bdd0f49d4068c013f9d4b508a9283b5d9ecc39aa02c4961";
     case contractsNames().ERC1155EventTicket:
       return "0x044842b906352c6b7eec7647cbea72b82a7b3505bb64a788f114c99f5d47b2d5";
     case contractsNames().ERC20EventCurrency:
