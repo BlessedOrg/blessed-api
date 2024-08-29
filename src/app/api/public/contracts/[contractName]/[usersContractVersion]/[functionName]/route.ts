@@ -45,8 +45,8 @@ async function postHandler(req: NextRequestWithAuth, { params: { contractName, u
 
     const smartContract = await smartContractModel.findFirst({
       where: {
-        developerUserId: req.userId,
-        userVersion: Number(usersContractVersion),
+        developerId: req.developerId,
+        version: Number(usersContractVersion),
         name: contractName
       }
     });

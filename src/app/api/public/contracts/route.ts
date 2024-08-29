@@ -22,7 +22,7 @@ async function getHandler(req: NextRequestWithAuth) {
 
   const myContracts = await smartContractModel.findMany({
     where: {
-      developerUserId: req.userId
+      developerId: req.developerId
     }
   });
 

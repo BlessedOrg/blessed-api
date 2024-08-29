@@ -63,19 +63,19 @@ export async function redeployDevAccount(id: string) {
     throw new Error("Keys not found");
   }
 
-  const walletAddress = keys.fields.find(
-    (field) => field.id === "walletAddress",
+  const publicKey = keys.fields.find(
+    (field) => field.id === "publicKey",
   )?.value;
   const privateKey = keys.fields.find(
     (field) => field.id === "privateKey",
   )?.value;
 
   const AXConstructorCallData = CallData.compile({
-    owner: walletAddress,
+    owner: publicKey,
     guardian: "0",
   });
   const AXcontractAddress = hash.calculateContractAddressFromHash(
-    walletAddress,
+      publicKey,
     argentXaccountClassHash,
     AXConstructorCallData,
     0,
@@ -86,7 +86,7 @@ export async function redeployDevAccount(id: string) {
     classHash: argentXaccountClassHash,
     constructorCalldata: AXConstructorCallData,
     contractAddress: AXcontractAddress,
-    addressSalt: walletAddress,
+    addressSalt: publicKey,
   };
   console.log(`🔄 Estimating deploy fee for ArgentX account...`);
   const { suggestedMaxFee } = await accountAX.estimateAccountDeployFee({
