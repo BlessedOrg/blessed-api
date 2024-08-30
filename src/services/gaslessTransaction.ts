@@ -39,7 +39,7 @@ export async function gaslessTransaction(
       undefined,
       undefined,
       {
-        apiKey: process.env.ANVU_API_KEY!,
+        apiKey: process.env.ANVU_API_KEY,
         baseUrl: SEPOLIA_BASE_URL,
       },
     );
@@ -63,8 +63,9 @@ export async function gaslessTransaction(
     );
 
     return { transactionHash: executeData.transactionHash };
-  } catch (e) {
-    return { error: e?.message || "Unknown error" };
+  } catch (error) {
+    console.error("🚨 gaslessTransaction error:", error.message)
+    return { error: error?.message || "Unknown error" };
   }
 }
 

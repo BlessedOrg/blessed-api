@@ -7,19 +7,22 @@ export function withDevAuth(handler: (req: NextRequest, context: { params: any }
         try {
           const authHeader = request.headers.get("authorization");
           if (!authHeader || !authHeader.startsWith("Bearer ")) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: StatusCodes.UNAUTHORIZED });
+            return NextResponse.json({ error: "Bearer token not provided" }, { status: StatusCodes.UNAUTHORIZED });
           }
           const token = authHeader.split(" ")[1];
 
-          const session = await sessionModel.findUnique({
+          const session = await sessionModel.findFirst({
             where: {
               accessToken: token,
+            },
+            orderBy: {
+              updatedAt: "desc"
             },
             include: {
               DeveloperAccount: true
             }
           });
-
+          
           if(!session?.developerId) {
             return NextResponse.json({ error: "Unauthorized" }, { status: StatusCodes.UNAUTHORIZED });
           }
@@ -36,7 +39,7 @@ export function withDevAuth(handler: (req: NextRequest, context: { params: any }
           return handler(request, context);
         } catch (error) {
           console.log("🚨 withDevAuth:", error.message);
-          return NextResponse.json({ error: `Error: ${error.message}` }, { status: StatusCodes.UNAUTHORIZED });
+          return NextResponse.json({ error: error.message }, { status: StatusCodes.UNAUTHORIZED });
         }
     };
 }

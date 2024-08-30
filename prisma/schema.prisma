@@ -18,7 +18,7 @@ model DeveloperAccount {
   email           String                  @unique
   walletAddress   String?                 @unique
   Otps            AccountOtp[]
-  Session         Session?
+  Sessions        Session[]
   accountDeployed Boolean                 @default(false)
   vaultKey        String?
   Users           DevelopersUserAccount[]
@@ -34,7 +34,7 @@ model DevelopersUserAccount {
   email            String           @unique
   walletAddress    String?          @unique
   Otps             AccountOtp[]
-  Session          Session?
+  Sessions         Session[]
   sessionId        String?
   DeveloperAccount DeveloperAccount @relation(fields: [developerId], references: [id])
   developerId      String
@@ -55,14 +55,20 @@ model AccountOtp {
   updatedAt             DateTime               @updatedAt
 }
 
+enum sessionType {
+  dev
+  user
+}
+
 model Session {
   id                    String                 @id @default(cuid())
   accessToken           String                 @unique
   refreshToken          String                 @unique
   DeveloperAccount      DeveloperAccount?      @relation(fields: [developerId], references: [id])
-  developerId           String?                @unique
+  developerId           String?
   DevelopersUserAccount DevelopersUserAccount? @relation(fields: [developerUserId], references: [id])
-  developerUserId       String?                @unique
+  developerUserId       String?
+  sessionType           sessionType            @default(dev)
   expiresAt             DateTime
   createdAt             DateTime               @default(now())
   updatedAt             DateTime               @updatedAt

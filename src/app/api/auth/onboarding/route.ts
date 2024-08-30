@@ -1,26 +1,34 @@
 import { NextRequest, NextResponse } from "next/server";
 import { StatusCodes } from "http-status-codes";
 import { validateEmail } from "@/server/auth/validateEmail";
+import { sendVerificationEmailCode } from "@/server/auth/sendVerificationEmailCode";
+import { sessionType } from "@prisma/client";
 
 export async function POST(req: NextRequest) {
-  const body = await req.json();
-  const { email } = body;
+  try {
+    const body = await req.json();
+    const { email } = body;
 
-  const emailValidation: any = await validateEmail(
-    email,
-    req.nextUrl.hostname === "localhost",
-    "dev"
-  );
+    const isEmailTaken: any = await validateEmail(email, sessionType.dev);
 
-  if (emailValidation) {
+    const res = await sendVerificationEmailCode({
+      to: email,
+      isLocalhost: req.nextUrl.hostname === "localhost",
+    });
+
+    if (!isEmailTaken && res) {
+      return NextResponse.json(
+        { message: "Verification code sent 📧" },
+        { status: StatusCodes.OK },
+      );
+    }
+
     return NextResponse.json(
-      { message: emailValidation?.message },
-      { status: emailValidation?.status },
+      { error: "Failed to send verification code email." },
+      { status: StatusCodes.INTERNAL_SERVER_ERROR } as any,
     );
+  } catch (error) {
+    console.log(`🚨 Error on ${req.nextUrl.pathname}:`, error.message);
+    return NextResponse.json({ error: error.message }, { status: StatusCodes.UNAUTHORIZED });
   }
-
-  return NextResponse.json(
-    { error: "Failed to send verification code email." },
-    { status: StatusCodes.INTERNAL_SERVER_ERROR },
-  );
 }

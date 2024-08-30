@@ -1,41 +1,26 @@
-'use server';
-
-import { StatusCodes } from "http-status-codes";
+"use server";
 import { developerAccountModel, developersUserAccountModel } from "@/prisma/models";
-import { sendVerificationEmailCode } from "@/server/auth/sendVerificationEmailCode";
 import z from "zod";
-import {NextResponse} from "next/server";
+import { sessionType } from "@prisma/client";
 
 const schema = z.object({
-    email: z.string().email(),
+  email: z.string().email()
 });
 
-export async function validateEmail(email: string, isLocalhost: boolean, accountType?: "dev" | "user"){
-    const validBody = schema.safeParse({email});
+export async function validateEmail(email: string, accountType?: sessionType) {
+  const validBody = schema.safeParse({ email });
 
-    if (!validBody.success) {
-        return NextResponse.json(
-            { error: validBody.error },
-            { status: StatusCodes.BAD_REQUEST }
-        );
-    }
+  if (!validBody.success) {
+    throw new Error(`${validBody.error}`);
+  }
 
-    const isEmailTaken = accountType === "dev"
-      ? await developerAccountModel.findFirst({ where: { email } })
-      : await developersUserAccountModel.findFirst({ where: { email } });
+  const isEmailTaken = accountType === "dev"
+    ? await developerAccountModel.findFirst({ where: { email } })
+    : await developersUserAccountModel.findFirst({ where: { email } });
+  
+  if (isEmailTaken) {
+    throw new Error("Email already taken")
+  }
 
-    if (isEmailTaken) {
-        return { message: "Email already taken", status: StatusCodes.BAD_REQUEST  }
-    }
-
-    const res = await sendVerificationEmailCode({
-      to: email,
-      isLocalhost,
-    });
-
-    if (!!res?.accepted?.length) {
-        return { message: "Verification code sent 📧", status: StatusCodes.OK  }
-    }
-
-    return false
+  return !!isEmailTaken;
 }

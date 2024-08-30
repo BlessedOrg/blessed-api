@@ -1,5 +1,5 @@
 import { Account, Calldata, CallData } from "starknet";
-import { contractsInterfaces, throwErrorForWrongContractId } from "@/contracts/interfaces";
+import { contractsInterfaces, throwErrorForWrongContractName } from "@/contracts/interfaces";
 import provider from "@/contracts/provider";
 
 interface DeployContractParams {
@@ -9,7 +9,7 @@ interface DeployContractParams {
 }
 
 const deployContract = async ({ contractName, constructorArgs, classHash }: DeployContractParams) => {
-  throwErrorForWrongContractId(contractName);
+  throwErrorForWrongContractName(contractName);
   const account = new Account(provider, process.env.OPERATOR_WALLET_ADDR as string, process.env.OPERATOR_PRIVATE_KEY as string);
   const contractCallData: CallData = new CallData(contractsInterfaces[contractName].abi as any);
   const contractConstructor: Calldata = contractCallData.compile("constructor", constructorArgs);
