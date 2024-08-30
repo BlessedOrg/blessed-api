@@ -96,12 +96,12 @@ async function postHandler(req: NextRequestWithAuth, { params: { contractName, u
       const { walletAddress, privateKey } = retrieveWalletCredentials(keys);
 
       const account = new Account(provider, walletAddress, privateKey);
-      const calldata = getGaslessTransactionCallData({
-        method: functionName,
-        contractAddress: contract.address,
-        body: body,
-        abiFunctions: functions,
-      })
+      const calldata = getGaslessTransactionCallData(
+        functionName,
+        contract.address,
+        body,
+        functions,
+      )
 
       const transactionResult = await gaslessTransaction(account, calldata);
 
