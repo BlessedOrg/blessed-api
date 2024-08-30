@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { withApiToken } from "@/app/middleware/withApiToken";
+import { withDevUserApiToken } from "@/app/middleware/withDevUserApiToken";
 import { StatusCodes } from "http-status-codes";
 import connectToContract from "@/services/connectToContract";
 import { getContractsFunctions, getGaslessTransactionCallData } from "@/contracts/interfaces";
@@ -96,12 +96,13 @@ async function postHandler(req: NextRequestWithAuth, { params: { contractName, u
       const { walletAddress, privateKey } = retrieveWalletCredentials(keys);
 
       const account = new Account(provider, walletAddress, privateKey);
-      const calldata = getGaslessTransactionCallData(
-        functionName,
-        contract.address,
-        body,
-        functions
-      );
+      const calldata = getGaslessTransactionCallData({
+        method: functionName,
+        contractAddress: contract.address,
+        body: body,
+        abiFunctions: functions,
+      })
+
       const transactionResult = await gaslessTransaction(account, calldata);
 
       if (!!transactionResult.error) {
@@ -134,4 +135,4 @@ async function postHandler(req: NextRequestWithAuth, { params: { contractName, u
   }
 }
 
-export const POST = withApiToken(postHandler);
+export const POST = withDevUserApiToken(postHandler);

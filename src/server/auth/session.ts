@@ -1,16 +1,16 @@
 "use server";
 import { createSessionTokens } from "@/server/auth/createSessionTokens";
 import { developerAccountModel, developersUserAccountModel, sessionModel } from "@/prisma/models";
+import { sessionType } from "@prisma/client";
 
-export async function createOrUpdateSession(email: string, accountType: "dev" | "user") {
+export async function createOrUpdateSession(email: string, accountType: sessionType) {
   const existingUser: any =
     accountType === "dev"
       ? await developerAccountModel.findUnique({ where: { email } })
       : await developersUserAccountModel.findUnique({ where: { email } });
-
+  
   if (!existingUser) {
     throw new Error(`User with email ${email} not found`);
-    // return { error: "User not found" };
   }
 
   const {
@@ -46,10 +46,13 @@ export async function createOrUpdateSession(email: string, accountType: "dev" | 
         developerUserId: existingUser.id,
       };
   
-  const existingSession = await sessionModel.findUnique({
+  const existingSession = await sessionModel.findFirst({
     where: {
       ...existingSessionFilters,
     },
+    orderBy: {
+      updatedAt: "desc"
+    }
   });
 
   if (existingSession) {
@@ -80,14 +83,15 @@ export async function createOrUpdateSession(email: string, accountType: "dev" | 
       refreshToken: hashedRefreshToken,
       ...connectUser,
       expiresAt: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000),
-      ... accountType === "user" && {
-        DeveloperAccount: {
-          connect: { id: existingUser.developerId }
+      sessionType: sessionType[accountType],
+      DeveloperAccount: {
+        connect: {
+          id: accountType === "dev" ? existingUser.id : existingUser.developerId
         }
       }
     },
   });
-
+  
   console.log("🔑 accessToken: ", accessToken)
 
   return {
