@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { withApiToken } from "@/app/middleware/withApiToken";
+import { withDevUserApiToken } from "@/app/middleware/withDevUserApiToken";
 import { StatusCodes } from "http-status-codes";
 import { getAllContractsDetails } from "@/contracts/interfaces";
 import { smartContractModel } from "@/prisma/models";
@@ -17,4 +17,4 @@ async function getHandler(req: NextRequestWithAuth) {
   );
 }
 
-export const GET = withApiToken(getHandler);
+export const GET = withDevUserApiToken(getHandler);

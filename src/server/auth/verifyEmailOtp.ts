@@ -1,8 +1,7 @@
 "use server";
-
 import { emailVerificationCodeModel} from "@/prisma/models";
 
-export async function verifyEmail(code: string, accountType: "dev" | "user") {
+export async function verifyEmailOtp(code: string) {
   const existingCodeData = await emailVerificationCodeModel.findFirst({
     where: {
       code,

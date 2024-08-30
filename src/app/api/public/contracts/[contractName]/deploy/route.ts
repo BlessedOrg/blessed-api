@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
-import { withApiToken } from "@/app/middleware/withApiToken";
 import { isEmpty, isEqual, sortBy } from "lodash-es";
 import { StatusCodes } from "http-status-codes";
 import deployContract from "@/services/deployContract";
 import { getContractClassHash, getContractsConstructorsNames } from "@/contracts/interfaces";
 import { smartContractModel } from "@/prisma/models";
+import { withDevAuth } from "@/app/middleware/withDevAuth";
 
 async function postHandler(req: NextRequestWithAuth, { params: { contractName } }): Promise<NextResponse> {
   try {
@@ -71,4 +71,4 @@ async function postHandler(req: NextRequestWithAuth, { params: { contractName } 
   }
 }
 
-export const POST = withApiToken(postHandler);
+export const POST = withDevAuth(postHandler);

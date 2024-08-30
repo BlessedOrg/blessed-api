@@ -2,10 +2,11 @@ import { NextResponse } from "next/server";
 import { StatusCodes } from "http-status-codes";
 import { developersUserAccountModel } from "@/prisma/models";
 import { createAndDeployAccount } from "@/server/createAndDeployAccount";
-import { verifyEmail } from "@/server/auth/verifyEmail";
+import { verifyEmailOtp } from "@/server/auth/verifyEmailOtp";
 import { createSessionTokens } from "@/server/auth/createSessionTokens";
 import { createOrUpdateSession } from "@/server/auth/session";
 import { withExistingDevAccount } from "@/app/middleware/withExistingDevAccount";
+import { sessionType } from "@prisma/client";
 
 async function handler(req: Request, { params: { developerId } }) {
   const body = await req.json();
@@ -18,7 +19,7 @@ async function handler(req: Request, { params: { developerId } }) {
     );
   }
 
-  const verifyEmailResult = await verifyEmail(code, "user");
+  const verifyEmailResult = await verifyEmailOtp(code);
   const { accepted, email } = verifyEmailResult;
   if (!accepted || !email) {
     return NextResponse.json(
@@ -40,12 +41,14 @@ async function handler(req: Request, { params: { developerId } }) {
       refreshToken,
     } = await createSessionTokens({ id: createdUser?.id });
 
-    await createOrUpdateSession(email, "user");
+    await createOrUpdateSession(email, sessionType.user);
 
     const deployedUserAccount: any = await createAndDeployAccount(createdUser?.email);
     console.log(`🚀 Deployed user account:`, deployedUserAccount);
+
+    let newRecordId: string;
     if (deployedUserAccount?.contractAddress) {
-      await developersUserAccountModel.update({
+      const dev = await developersUserAccountModel.update({
         where: {
           email,
         },
@@ -55,8 +58,9 @@ async function handler(req: Request, { params: { developerId } }) {
           vaultKey: deployedUserAccount.vaultKey,
         },
       });
+      newRecordId = dev?.id;
     } else {
-      await developersUserAccountModel.update({
+      const devUser = await developersUserAccountModel.update({
         where: {
           email,
         },
@@ -64,6 +68,7 @@ async function handler(req: Request, { params: { developerId } }) {
           vaultKey: deployedUserAccount.vaultKey,
         },
       });
+      newRecordId = devUser?.id;
     }
 
     return NextResponse.json(
@@ -73,10 +78,11 @@ async function handler(req: Request, { params: { developerId } }) {
         user: {
           email,
           developerId,
-          isDeployed: !!deployedUserAccount?.contractAddress,
+          isDeployed: deployedUserAccount?.contractAddress,
           walletAddress: deployedUserAccount?.contractAddress,
           vaultKey: deployedUserAccount?.vaultKey,
           verifyEmailResult,
+          id: newRecordId
         },
       },
       { status: StatusCodes.OK },

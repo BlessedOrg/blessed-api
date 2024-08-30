@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { StatusCodes } from "http-status-codes";
-import { verifyEmail } from "@/server/auth/verifyEmail";
+import { verifyEmailOtp } from "@/server/auth/verifyEmailOtp";
 import { createOrUpdateSession } from "@/server/auth/session";
+import { sessionType } from "@prisma/client";
 
 export async function POST(req: Request) {
   const body = await req.json();
@@ -13,11 +14,11 @@ export async function POST(req: Request) {
     } as any);
   }
 
-  const verifyEmailResult = await verifyEmail(code, "dev");
+  const verifyEmailResult = await verifyEmailOtp(code);
   const { accepted, email } = verifyEmailResult;
 
   if (accepted && email) {
-    const newSessionData = await createOrUpdateSession(email, "dev");
+    const newSessionData = await createOrUpdateSession(email, sessionType.dev);
 
     if (newSessionData?.error) {
       return NextResponse.json(

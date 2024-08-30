@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { withApiToken } from "@/app/middleware/withApiToken";
+import { withDevUserApiToken } from "@/app/middleware/withDevUserApiToken";
 import { StatusCodes } from "http-status-codes";
 import connectToContract from "@/services/connectToContract";
 import { getContractsFunctions, getGaslessTransactionCallData } from "@/contracts/interfaces";
@@ -135,4 +135,4 @@ async function postHandler(req: NextRequestWithAuth, { params: { contractName, u
   }
 }
 
-export const POST = withApiToken(postHandler);
+export const POST = withDevUserApiToken(postHandler);

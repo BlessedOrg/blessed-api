@@ -77,7 +77,7 @@ const getContractDescription = (contractName: string) => {
   }
 };
 
-export const getContractsFunctions = (contractName: any) => {
+export const getContractsFunctions = (contractName: any, convertFunctionTypesFromCairo = false) => {
   throwErrorForWrongContractName(contractName);
   const abi = contractsInterfaces[contractName].abi;
   const topLevelFunctions = abi
@@ -91,7 +91,7 @@ export const getContractsFunctions = (contractName: any) => {
   return allFunctions
     .map((i: any) => ({
       name: i.name,
-      inputs: cairoInputsFormat(i.inputs),
+      inputs: convertFunctionTypesFromCairo ? cairoInputsFormat(i.inputs) : i.inputs,
       type: i.state_mutability === "view" ? "read" : "write"
     }));
 };
@@ -121,7 +121,7 @@ export const getAllContractsDetails = () => {
         classHash: getContractClassHash(fileName),
         url: `https://github.com/BlessedOrg/blessed-contracts-cairo/blob/master/${fileName}`,
         constructor: cairoInputsFormat(contractsInterfaces[contractName].abi.find((i: any) => i.type === "constructor").inputs),
-        functions: getContractsFunctions(fileName)
+        functions: getContractsFunctions(fileName, true)
       }
 
       availableContracts.push(contractDetails);
