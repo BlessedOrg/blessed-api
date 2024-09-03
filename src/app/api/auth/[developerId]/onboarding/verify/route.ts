@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
 import { StatusCodes } from "http-status-codes";
 import { developersUserAccountModel } from "@/prisma/models";
-import { createAndDeployAccount } from "@/server/createAndDeployAccount";
 import { verifyEmailOtp } from "@/server/auth/verifyEmailOtp";
 import { createSessionTokens } from "@/server/auth/createSessionTokens";
 import { createOrUpdateSession } from "@/server/auth/session";
+import { createAndDeployAccount } from "@/server/api/accounts/createAndDeployAccount";
 import { withExistingDevAccount } from "@/app/middleware/withExistingDevAccount";
 import { sessionType } from "@prisma/client";
 

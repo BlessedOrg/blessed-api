@@ -1,10 +1,13 @@
-import { Account, Call } from "starknet";
+import { Abi, Account, Call } from "starknet";
 import { toBeHex } from "ethers";
 import {
   fetchBuildTypedData,
   fetchExecuteTransaction,
   SEPOLIA_BASE_URL,
 } from "@avnu/gasless-sdk";
+import { isEmpty } from "lodash-es";
+import { bigIntToHex, decimalToBigInt } from "@/utils/numberConverts";
+import { flattenArray } from "@/utils/flattenArray";
 
 /**
  * @param account - Account
@@ -65,3 +68,36 @@ export async function gaslessTransaction(
     return { error: error?.message || "Unknown error" };
   }
 }
+
+export const getGaslessTransactionCallData = (
+  method: string,
+  contractAddress: string,
+  body: { [key: string]: any },
+  abiFunctions: any[] | Abi,
+) => {
+  const inputs = abiFunctions.find((m) => m.name === method).inputs;
+  if (isEmpty(inputs)) {
+    return [
+      {
+        entrypoint: method,
+        contractAddress,
+        calldata: [],
+      },
+    ];
+  } else {
+    const formattedInputs = inputs.map((input) => {
+      if (input.type.includes("integer::u256")) {
+        return [bigIntToHex(decimalToBigInt(body[input.name])), "0x0"];
+      }
+      return body[input.name];
+    });
+    const calldata = flattenArray(formattedInputs);
+    return [
+      {
+        entrypoint: method,
+        contractAddress,
+        calldata,
+      },
+    ];
+  }
+};

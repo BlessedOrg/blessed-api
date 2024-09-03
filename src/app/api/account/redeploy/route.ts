@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { withDevAuth } from "@/app/middleware/withDevAuth";
-import { redeployDevAccount } from "@/server/redeployAccount";
+import { redeployDevAccount } from "@/server/api/accounts/redeployAccount";
 import { StatusCodes } from "http-status-codes";
 
 async function handler(req: NextRequestWithDevAuth) {
@@ -14,4 +14,4 @@ async function handler(req: NextRequestWithDevAuth) {
   );
 }
 
-export const GET = withDevAuth(handler);
+export const POST = withDevAuth(handler);

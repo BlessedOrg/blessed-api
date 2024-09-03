@@ -2,12 +2,12 @@ import { NextResponse } from "next/server";
 import { withDevUserApiToken } from "@/app/middleware/withDevUserApiToken";
 import { StatusCodes } from "http-status-codes";
 import connectToContract from "@/services/connectToContract";
-import { getContractsFunctions, getGaslessTransactionCallData } from "@/contracts/interfaces";
+import { getContractsFunctions } from "@/contracts/interfaces";
 import { developerAccountModel, developersUserAccountModel, smartContractModel } from "@/prisma/models";
-import { getVaultItem } from "@/server/vaultApi";
+import { getVaultItem } from "@/server/api/vault/vaultApi";
 import { Account } from "starknet";
 import provider from "@/contracts/provider";
-import { gaslessTransaction } from "@/services/gaslessTransaction";
+import {gaslessTransaction, getGaslessTransactionCallData} from "@/services/gaslessTransaction";
 import { generateSchemaForContractBody } from "@/utils/generateSchemaForContractBody";
 import { retrieveWalletCredentials } from "@/utils/retrieveWalletCredentials";
 import { cairoInputsFormat } from "@/utils/cairoInputsFormat";
@@ -96,12 +96,12 @@ async function postHandler(req: NextRequestWithAuth, { params: { contractName, u
       const { walletAddress, privateKey } = retrieveWalletCredentials(keys);
 
       const account = new Account(provider, walletAddress, privateKey);
-      const calldata = getGaslessTransactionCallData({
-        method: functionName,
-        contractAddress: contract.address,
-        body: body,
-        abiFunctions: functions,
-      })
+      const calldata = getGaslessTransactionCallData(
+        functionName,
+        contract.address,
+        body,
+        functions,
+      )
 
       const transactionResult = await gaslessTransaction(account, calldata);
 
