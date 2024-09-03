@@ -25,7 +25,7 @@ export function withDevUserApiToken(handler: (req: NextRequest, context: { param
       const itemFromVault = await getVaultItem(apiToken?.vaultKey, "apiKey");
 
       const actualApiToken = itemFromVault.fields.find(f => f.id === "apiToken").value;
-
+      
       if (token !== actualApiToken) {
         return NextResponse.json({ error: "Invalid token" }, { status: StatusCodes.UNAUTHORIZED });
       }

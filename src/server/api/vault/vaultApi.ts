@@ -66,10 +66,7 @@ export async function createVaultPrivateKeyItem(
   }
 }
 
-export async function createVaultApiTokenItem(
-  apiToken: string,
-  userId: string,
-) {
+export async function createVaultApiTokenItem(apiToken: string, userId: string) {
   const vaultId = process.env.OP_API_TOKEN_VAULT_ID!;
   try {
     const createdItem = await fetch(
@@ -85,7 +82,7 @@ export async function createVaultApiTokenItem(
             id: vaultId,
           },
           // 🚨 TODO: use title with real user's wallet/id
-          title: "Vault API Token Item from blessed-dashboard 🤡",
+          title: `API Token for user ${userId}`,
           category: "API_CREDENTIAL",
           tags: ["apiToken"],
           fields: [
@@ -113,17 +110,15 @@ export async function createVaultApiTokenItem(
     console.log(`🔑 Created API Token in Vault for User: ${userId}`);
     return await createdItem.json();
   } catch (error: any) {
-    console.log(
-      `⛑️🔑 Failed to create API Token in Vault for User: ${userId} \n ${error?.message}`,
-    );
+    console.log(`⛑️🔑 Failed to create API Token in Vault for User: ${userId} \n ${error?.message}`);
   }
 }
 
 export async function getVaultItem(id: string, type?: "apiKey" | "privateKey") {
-  const vaultId =
-    type === "privateKey"
-      ? process.env.OP_PRIVATE_KEY_VAULT_ID!
-      : process.env.OP_API_TOKEN_VAULT_ID!;
+  const vaultId = type === "privateKey"
+    ? process.env.OP_PRIVATE_KEY_VAULT_ID!
+    : process.env.OP_API_TOKEN_VAULT_ID!;
+
   try {
     const createdItem = await fetch(
       `${vaultApiUrl}/v1/vaults/${vaultId}/items/${id}`,
@@ -137,21 +132,21 @@ export async function getVaultItem(id: string, type?: "apiKey" | "privateKey") {
     console.log(`🔑 Retrieved API Token from Vault`);
     return await createdItem.json();
   } catch (error: any) {
-    console.log(
-      `⛑️🔑 Failed to retrieve API Token from Vault \n ${error?.message}`,
-    );
+    const errMsg = `Failed to retrieve API Token from Vault: ${error?.message}`;
+    console.error(`⛑️🔑 ${errMsg}`);
+    throw new Error(errMsg);
   }
 }
 
 export async function replaceVaultItem(
   id: string,
   newData: any,
-  type?: "apiKey" | "privateKey",
+  type?: "apiKey" | "privateKey"
 ) {
-  const vaultId =
-    type === "privateKey"
-      ? process.env.OP_PRIVATE_KEY_VAULT_ID!
-      : process.env.OP_API_TOKEN_VAULT_ID!;
+  const vaultId = type === "privateKey"
+    ? process.env.OP_PRIVATE_KEY_VAULT_ID!
+    : process.env.OP_API_TOKEN_VAULT_ID!;
+
   const currentItemData = await getVaultItem(id, type);
   try {
     const updatedItem = await fetch(
