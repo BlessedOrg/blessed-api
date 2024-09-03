@@ -83,8 +83,13 @@ async function postHandler(req: NextRequestWithAuth, { params: { contractName, u
     if (targetFunction.type === "read") {
 
       let result = await contract[functionName](...Object.values(validBody));
+
+      // 🏗️ TODO: read here the type of the function's input,
+      //  and distinguish between Contract Address, and BigInt,
+      //  for better display of result
       if (typeof result === "bigint") {
-        result = `0x${result.toString(16)}`;
+        // result = `0x${result.toString(16)}`;
+        result = BigInt(result).toString(16);
       }
 
       return NextResponse.json(
@@ -96,6 +101,8 @@ async function postHandler(req: NextRequestWithAuth, { params: { contractName, u
       const { walletAddress, privateKey } = retrieveWalletCredentials(keys);
 
       const account = new Account(provider, walletAddress, privateKey);
+      console.log(`🔮 Caller ${account.address} is executing ${functionName} on Contract ${contract.address}`, )
+      console.log("🔮 body: ", body)
       const calldata = getGaslessTransactionCallData(
         functionName,
         contract.address,
