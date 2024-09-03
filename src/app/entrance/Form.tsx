@@ -39,7 +39,7 @@ export const EntranceForm = () => {
   const enteredDate = new Date(enteredTimestamp || 0);
 
   return (
-    <div className={"flex w-full h-[100vh] items-center justify-center"}>
+    <div className="flex w-full h-[100vh] items-center justify-center">
       {enteredToEvent && (
         <p>
           Successfully entered to event at: {enteredDate.toLocaleDateString()} -{" "}
