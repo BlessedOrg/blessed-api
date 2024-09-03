@@ -2,16 +2,16 @@ import { NextResponse } from "next/server";
 import { withDevUserApiToken } from "@/app/middleware/withDevUserApiToken";
 import { StatusCodes } from "http-status-codes";
 import connectToContract from "@/services/connectToContract";
-import { getContractsFunctions } from "@/contracts/interfaces";
+import { contractsInterfaces, getContractsFunctions } from "@/contracts/interfaces";
 import { developerAccountModel, developersUserAccountModel, smartContractModel } from "@/prisma/models";
 import { getVaultItem } from "@/server/api/vault/vaultApi";
-import { Account } from "starknet";
+import { Account, Contract } from "starknet";
 import provider from "@/contracts/provider";
-import {gaslessTransaction, getGaslessTransactionCallData} from "@/services/gaslessTransaction";
+import { gaslessTransaction, getGaslessTransactionCallData } from "@/services/gaslessTransaction";
 import { generateSchemaForContractBody } from "@/utils/generateSchemaForContractBody";
 import { retrieveWalletCredentials } from "@/utils/retrieveWalletCredentials";
 import { cairoInputsFormat } from "@/utils/cairoInputsFormat";
-import { map, difference, keys, size } from "lodash-es";
+import { difference, keys, map, size } from "lodash-es";
 
 async function postHandler(req: NextRequestWithAuth, { params: { contractName, usersContractVersion, functionName } }) {
   try {
@@ -81,25 +81,25 @@ async function postHandler(req: NextRequestWithAuth, { params: { contractName, u
       : await developerAccountModel.findUnique({ where: { id: developerId } });
 
     if (targetFunction.type === "read") {
-
+      console.log("🔥 account: ", account)
+      const contract =  new Contract(contractsInterfaces[contractName].abi, smartContract?.address, account)
       let result = await contract[functionName](...Object.values(validBody));
+      console.log("🔮 result: ", result)
 
-      // 🏗️ TODO: read here the type of the function's input,
-      //  and distinguish between Contract Address, and BigInt,
-      //  for better display of result
-      if (typeof result === "bigint") {
-        // result = `0x${result.toString(16)}`;
-        result = BigInt(result).toString(16);
-      }
+      // 🏗️ TODO: read the Cairo's type of the function's input, distinguish between Contract Address, and BigInt, for better display of result
+      // if (typeof result === "bigint") {
+      //   console.log("🔮 result: ", (result.toString()))
+      //   result = `0x${result.toString(16)}`;
+      //   result = BigInt(result).toString(16);
+      // }
 
       return NextResponse.json(
-        { result: result, type: typeof result },
+        { result: "", type: typeof result },
         { status: StatusCodes.OK }
       );
     } else {
       const keys = await getVaultItem(accountData.vaultKey, "privateKey");
       const { walletAddress, privateKey } = retrieveWalletCredentials(keys);
-
       const account = new Account(provider, walletAddress, privateKey);
       console.log(`🔮 Caller ${account.address} is executing ${functionName} on Contract ${contract.address}`, )
       console.log("🔮 body: ", body)
