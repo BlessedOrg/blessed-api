@@ -69,12 +69,14 @@ export async function gaslessTransaction(
   }
 }
 
-export const getGaslessTransactionCallData = (
-  method: string,
-  contractAddress: string,
-  body: { [key: string]: any },
-  abiFunctions: any[] | Abi,
-) => {
+interface GetGaslessTransactionCallDataArgs {
+  method: string;
+  contractAddress: string;
+  body: { [key: string]: any };
+  abiFunctions: any[] | Abi;
+}
+
+export const getGaslessTransactionCallData = ({ method, contractAddress, body, abiFunctions }: GetGaslessTransactionCallDataArgs) => {
   const inputs = abiFunctions.find((m) => m.name === method).inputs;
   if (isEmpty(inputs)) {
     return [
