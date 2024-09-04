@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { StatusCodes } from "http-status-codes";
 import { createVaultApiTokenItem } from "@/server/api/vault/vaultApi";
 import { apiTokenModel } from "@/prisma/models";
-import { withDevUserAuth } from "@/app/middleware/withDevUserAuth";
+import { withDeveloperUserAccessToken } from "@/app/middleware/withDeveloperUserAccessToken";
 import jwt from "jsonwebtoken";
 
 async function postHandler(req: NextRequestWithAuth) {
@@ -35,4 +35,4 @@ async function postHandler(req: NextRequestWithAuth) {
   );
 }
 
-export const GET = withDevUserAuth(postHandler);
+export const GET = withDeveloperUserAccessToken(postHandler);

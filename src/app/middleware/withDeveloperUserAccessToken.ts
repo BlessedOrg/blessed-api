@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { StatusCodes } from "http-status-codes";
 import { sessionModel } from "@/prisma/models";
 
-export function withDevUserAuth(handler: (req: NextRequest, context: { params: any }) => Promise<NextResponse> | NextResponse) {
+export function withDeveloperUserAccessToken(handler: (req: NextRequest, context: { params: any }) => Promise<NextResponse> | NextResponse) {
   return async (request: NextRequest, context: { params: any }) => {
     try {
       const authHeader = request.headers.get("authorization");
@@ -31,7 +31,7 @@ export function withDevUserAuth(handler: (req: NextRequest, context: { params: a
 
       return handler(request, context);
     } catch (error) {
-      console.log("🚨 withDevUserAuth:", error.message);
+      console.log("🚨 withDeveloperUserAccessToken:", error.message);
       return NextResponse.json({ error: error.message }, { status: StatusCodes.UNAUTHORIZED });
     }
   };

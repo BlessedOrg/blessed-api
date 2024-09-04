@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
-import { withDevUserApiToken } from "@/app/middleware/withDevUserApiToken";
+import { withDeveloperApiToken } from "@/app/middleware/withDeveloperApiToken";
 import { StatusCodes } from "http-status-codes";
 import connectToContract from "@/services/connectToContract";
 import { getContractsFunctions } from "@/contracts/interfaces";
-import { developerAccountModel, developersUserAccountModel, smartContractModel } from "@/prisma/models";
+import { developerAccountModel, developersUserAccountModel, smartContractModel, smartContractInteractionModel } from "@/prisma/models";
 import { getVaultItem } from "@/server/api/vault/vaultApi";
 import { Account } from "starknet";
 import provider from "@/contracts/provider";
@@ -12,6 +12,7 @@ import { generateSchemaForContractBody } from "@/utils/generateSchemaForContract
 import { retrieveWalletCredentials } from "@/utils/retrieveWalletCredentials";
 import { cairoInputsFormat } from "@/utils/cairoInputsFormat";
 import { map, difference, keys, size } from "lodash-es";
+import {withDeveloperUserAccessToken} from "@/app/middleware/withDeveloperUserAccessToken";
 
 async function postHandler(req: NextRequestWithAuth, { params: { contractName, usersContractVersion, functionName } }) {
   try {
@@ -107,6 +108,24 @@ async function postHandler(req: NextRequestWithAuth, { params: { contractName, u
 
       const transactionResult = await gaslessTransaction(account, calldata);
 
+      const txRes = await provider.waitForTransaction(transactionResult.transactionHash) as any;
+      console.log("Interaction response: ",txRes)
+      const fee = parseInt((txRes as any)?.actual_fee?.amount, 16);
+
+      if(!!userId && !!transactionResult.transactionHash) {
+         await smartContractInteractionModel.create({
+            data: {
+              developerUserId: userId,
+              smartContractId: smartContract.id,
+              method: functionName,
+              fees: `${fee}`,
+              type: "gasless",
+              output: txRes,
+              txHash: transactionResult.transactionHash,
+            },
+          });
+      }
+
       if (!!transactionResult.error) {
         contract.connect(account);
         let userTransactionResult = await contract[functionName](...Object.values(validBody));
@@ -137,4 +156,4 @@ async function postHandler(req: NextRequestWithAuth, { params: { contractName, u
   }
 }
 
-export const POST = withDevUserApiToken(postHandler);
+export const POST = withDeveloperApiToken(withDeveloperUserAccessToken(postHandler));

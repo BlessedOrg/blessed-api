@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { StatusCodes } from "http-status-codes";
-import { withDevAuth } from "@/app/middleware/withDevAuth";
+import { withDeveloperAccessToken } from "@/app/middleware/withDeveloperAccessToken";
 import { smartContractModel } from "@/prisma/models";
 import { generateQrCode } from "@/services/generateQrCode";
 
@@ -30,4 +30,4 @@ async function handler(req: NextRequestWithDevAuth) {
   );
 }
 
-export const GET = withDevAuth(handler);
+export const GET = withDeveloperAccessToken(handler);
