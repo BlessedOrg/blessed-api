@@ -7,7 +7,7 @@ import { developerAccountModel, developersUserAccountModel, smartContractModel }
 import { getVaultItem } from "@/server/api/vault/vaultApi";
 import { Account } from "starknet";
 import provider from "@/contracts/provider";
-import {gaslessTransaction, getGaslessTransactionCallData} from "@/services/gaslessTransaction";
+import { gaslessTransaction, getGaslessTransactionCallData } from "@/services/gaslessTransaction";
 import { generateSchemaForContractBody } from "@/utils/generateSchemaForContractBody";
 import { retrieveWalletCredentials } from "@/utils/retrieveWalletCredentials";
 import { cairoInputsFormat } from "@/utils/cairoInputsFormat";
@@ -103,12 +103,7 @@ async function postHandler(req: NextRequestWithAuth, { params: { contractName, u
       const account = new Account(provider, walletAddress, privateKey);
       console.log(`🔮 Caller ${account.address} is executing ${functionName} on Contract ${contract.address}`, )
       console.log("🔮 body: ", body)
-      const calldata = getGaslessTransactionCallData(
-        functionName,
-        contract.address,
-        body,
-        functions,
-      )
+      const calldata = getGaslessTransactionCallData({ method: functionName, contractAddress: contract.address, body, abiFunctions: functions });
 
       const transactionResult = await gaslessTransaction(account, calldata);
 

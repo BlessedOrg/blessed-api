@@ -1,9 +1,6 @@
 import fs from "fs";
 import path from "path";
 import { Abi } from "starknet";
-import { isEmpty } from "lodash-es";
-import { bigIntToHex, decimalToBigInt } from "@/utils/numberConverts";
-import { flattenArray } from "@/utils/flattenArray";
 import { cairoInputsFormat } from "@/utils/cairoInputsFormat";
 
 function importAllJsonContractsArtifacts() {
@@ -128,35 +125,6 @@ export const getAllContractsDetails = () => {
   });
   return availableContracts;
 }
-
-interface GetGaslessTransactionCallDataArgs {
-  method: string;
-  contractAddress: string;
-  body: { [key: string]: any };
-  abiFunctions: any[];
-}
-
-export const getGaslessTransactionCallData = ({ method, contractAddress, body, abiFunctions }: GetGaslessTransactionCallDataArgs) => {
-  const inputs = abiFunctions.find((m) => m.name === method).inputs;
-  if (isEmpty(inputs)) {
-    return [];
-  } else {
-    const formattedInputs = inputs.map((input) => {
-      if (input.type.includes("integer::u256")) {
-        return [bigIntToHex(decimalToBigInt(body[input.name])), "0x0"];
-      }
-      return body[input.name];
-    });
-    const calldata = flattenArray(formattedInputs);
-    return [
-      {
-        entrypoint: method,
-        contractAddress,
-        calldata
-      }
-    ];
-  }
-};
 
 export const throwErrorForWrongContractName = (contractName: any) => {
   if (!contractsInterfaces[contractName]) {
