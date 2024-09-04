@@ -81,8 +81,7 @@ async function postHandler(req: NextRequestWithAuth, { params: { contractName, u
       : await developerAccountModel.findUnique({ where: { id: developerId } });
 
     if (targetFunction.type === "read") {
-      console.log("🔥 account: ", account)
-      const contract =  new Contract(contractsInterfaces[contractName].abi, smartContract?.address, account)
+      const contract =  new Contract(contractsInterfaces[contractName].abi, smartContract?.address)
       let result = await contract[functionName](...Object.values(validBody));
       console.log("🔮 result: ", result)
 
