@@ -29,7 +29,7 @@ export async function sendVerificationEmailCode({ to, expirationTimeMinutes, isL
       },
     });
   } else {
-    const transport = nodeMailer.createTransport({
+    transport = nodeMailer.createTransport({
       service: "gmail",
       auth: {
         user: SMTP_EMAIL,

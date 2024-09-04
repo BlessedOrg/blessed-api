@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { StatusCodes } from "http-status-codes";
 import { getAllContractsDetails } from "@/contracts/interfaces";
 import { smartContractModel } from "@/prisma/models";
-import {withDeveloperApiToken} from "@/app/middleware/withDeveloperApiToken";
+import { withDeveloperApiToken } from "@/app/middleware/withDeveloperApiToken";
 
 async function getHandler(req: NextRequestWithAuth) {
   const myContracts = await smartContractModel.findMany({

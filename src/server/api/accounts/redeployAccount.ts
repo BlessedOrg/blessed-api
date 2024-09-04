@@ -163,6 +163,7 @@ export async function redeployDevAccount(id: string) {
       },
       data: {
         accountDeployed: true,
+        walletAddress: AXcontractFinalAddress,
       },
     });
     await updateVaultItem(
