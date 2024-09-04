@@ -5,16 +5,22 @@ import { sendVerificationEmailCode } from "@/server/auth/sendVerificationEmailCo
 import { sessionType } from "@prisma/client";
 
 export async function POST(req: NextRequest) {
+  console.log(`💽 hello onboarding!`)
   try {
     const body = await req.json();
+    console.log("🔮 body: ", body)
     const { email } = body;
 
     const isEmailTaken: any = await validateEmail(email, sessionType.dev);
+
+    console.log("🔮 isEmailTaken: ", isEmailTaken)
 
     const res = await sendVerificationEmailCode({
       to: email,
       isLocalhost: req.nextUrl.hostname === "localhost",
     });
+
+    console.log("🔮 res: ", res)
 
     if (!isEmailTaken && res) {
       return NextResponse.json(
