@@ -4,7 +4,8 @@ import { StatusCodes } from "http-status-codes";
 import deployContract from "@/services/deployContract";
 import { getContractClassHash, getContractsConstructorsNames } from "@/contracts/interfaces";
 import { smartContractModel } from "@/prisma/models";
-import { withDevAuth } from "@/app/middleware/withDevAuth";
+import { withDeveloperAccessToken } from "@/app/middleware/withDeveloperAccessToken";
+import {withDeveloperApiToken} from "@/app/middleware/withDeveloperApiToken";
 
 async function postHandler(req: NextRequestWithAuth, { params: { contractName } }): Promise<NextResponse> {
   try {
@@ -72,4 +73,4 @@ async function postHandler(req: NextRequestWithAuth, { params: { contractName } 
   }
 }
 
-export const POST = withDevAuth(postHandler);
+export const POST = withDeveloperApiToken(withDeveloperAccessToken(postHandler));

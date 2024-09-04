@@ -30,18 +30,19 @@ model DeveloperAccount {
 }
 
 model DevelopersUserAccount {
-  id               String           @id @default(cuid())
-  email            String           @unique
-  walletAddress    String?          @unique
-  Otps             AccountOtp[]
-  Sessions         Session[]
-  sessionId        String?
-  DeveloperAccount DeveloperAccount @relation(fields: [developerId], references: [id])
-  developerId      String
-  accountDeployed  Boolean          @default(false)
-  vaultKey         String?
-  createdAt        DateTime         @default(now())
-  updatedAt        DateTime         @updatedAt
+  id                        String                     @id @default(cuid())
+  email                     String                     @unique
+  walletAddress             String?                    @unique
+  Otps                      AccountOtp[]
+  Sessions                  Session[]
+  sessionId                 String?
+  DeveloperAccount          DeveloperAccount           @relation(fields: [developerId], references: [id])
+  developerId               String
+  accountDeployed           Boolean                    @default(false)
+  vaultKey                  String?
+  SmartContractInteractions SmartContractInteraction[]
+  createdAt                 DateTime                   @default(now())
+  updatedAt                 DateTime                   @updatedAt
 }
 
 model AccountOtp {
@@ -109,13 +110,36 @@ model Erc20Token {
 }
 
 model SmartContract {
-  id                String            @id @default(cuid())
-  address           String
-  name              String
-  version           Int
-  DevelopersAccount DeveloperAccount? @relation(fields: [developerId], references: [id])
-  developerId       String?
-  Erc20Token        Erc20Token[]
-  createdAt         DateTime          @default(now())
-  updatedAt         DateTime          @updatedAt
+  id                        String                     @id @default(cuid())
+  address                   String                     @unique
+  name                      String
+  version                   Int
+  DevelopersAccount         DeveloperAccount?          @relation(fields: [developerId], references: [id])
+  developerId               String?
+  Erc20Token                Erc20Token[]
+  SmartContractInteractions SmartContractInteraction[]
+  createdAt                 DateTime                   @default(now())
+  updatedAt                 DateTime                   @updatedAt
+}
+
+model SmartContractInteraction {
+  id                    String                       @id @default(cuid())
+  DevelopersUserAccount DevelopersUserAccount        @relation(fields: [developerUserId], references: [id])
+  developerUserId       String
+  SmartContract         SmartContract                @relation(fields: [smartContractId], references: [id])
+  smartContractId       String
+  method                String
+  txHash                String
+  output                Json?
+  input                 Json?
+  fees                  String?
+  type                  SmartContractInteractionType
+  createdAt             DateTime                     @default(now())
+  updatedAt             DateTime                     @updatedAt
+}
+
+enum SmartContractInteractionType {
+  gasless
+  operator
+  wallet
 }

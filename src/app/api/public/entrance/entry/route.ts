@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { StatusCodes } from "http-status-codes";
 import { entranceEntry } from "@/server/api/entranceChecker/entranceEntry";
-import { withDevUserAuth } from "@/app/middleware/withDevUserAuth";
+import { withDeveloperUserAccessToken } from "@/app/middleware/withDeveloperUserAccessToken";
 import { smartContractModel } from "@/prisma/models";
 
 async function handler(
@@ -36,4 +36,4 @@ async function handler(
   });
 }
 
-export const POST = withDevUserAuth(handler);
+export const POST = withDeveloperUserAccessToken(handler);
