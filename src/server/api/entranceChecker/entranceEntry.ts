@@ -32,6 +32,7 @@ export async function entranceEntry(enteredEmail, contractAddress) {
           ${enteredDate.toLocaleTimeString()}}`,
       };
     }
+
     const erc1155ContractAddress = await interactWithContract(
       "get_erc1155",
       [],
@@ -42,13 +43,15 @@ export async function entranceEntry(enteredEmail, contractAddress) {
       name: "ERC1155EventTicket",
       address: erc1155ContractAddress,
     });
+
     const hasTicket = await interactWithContract(
       "balanceOf",
       [account.address, 1],
       ticketContract,
     );
 
-    if (!Number(hasTicket)) {
+    console.log(hasTicket)
+    if (!hasTicket || !Number(hasTicket)) {
       return { error: "You don't have a ticket to enter." };
     }
 
