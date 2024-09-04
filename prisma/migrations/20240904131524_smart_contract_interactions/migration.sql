@@ -15,6 +15,7 @@ CREATE TABLE "SmartContractInteraction" (
     "method" TEXT NOT NULL,
     "txHash" TEXT NOT NULL,
     "output" JSONB,
+    "input" JSONB,
     "fees" TEXT,
     "type" "SmartContractInteractionType" NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,

@@ -131,6 +131,7 @@ model SmartContractInteraction {
   method                String
   txHash                String
   output                Json?
+  input                 Json?
   fees                  String?
   type                  SmartContractInteractionType
   createdAt             DateTime                     @default(now())

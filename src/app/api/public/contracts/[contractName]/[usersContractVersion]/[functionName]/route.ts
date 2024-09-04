@@ -120,6 +120,7 @@ async function postHandler(req: NextRequestWithAuth, { params: { contractName, u
               fees: `${fee}`,
               type: "gasless",
               output: txRes,
+              input: body,
               txHash: transactionResult.transactionHash,
             },
           });
