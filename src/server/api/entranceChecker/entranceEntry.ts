@@ -12,7 +12,7 @@ import interactWithContract from "@/services/interactWithContract";
 export async function entranceEntry(enteredEmail, contractAddress) {
   try {
     const userId = await getUserIdByEmail(enteredEmail);
-    const { account } = await getAccountInstance({ userId });
+    const { account, accountData } = await getAccountInstance({ userId });
     const entranceContract = connectToContract({
       name: "EntranceChecker",
       address: contractAddress,
@@ -67,6 +67,10 @@ export async function entranceEntry(enteredEmail, contractAddress) {
     return {
       txHash: resultTxHash.transactionHash,
       message: "Entered successfully, please scan the NFC.",
+      userData: {
+        email: accountData.email,
+        walletAddress: accountData.walletAddress
+      }
     };
   } catch (e) {
     console.log(e);

@@ -6,6 +6,7 @@ import { toast } from "react-toastify";
 import { Button, TextInput } from "flowbite-react";
 import Image from "next/image";
 import { generateQrCode } from "@/services/generateQrCode";
+import {sendEntranceNotificationToHost} from "@/server/api/entranceChecker/sendEntranceNotificationToHost";
 
 
 export const EntranceForm = () => {
@@ -31,6 +32,8 @@ export const EntranceForm = () => {
         toast(res.message, { type: "warning" });
         setEnteredToEvent(true);
       } else {
+        const isLocalhost = window?.location?.hostname === "localhost";
+        await sendEntranceNotificationToHost({contractAddress, isLocalhost, userData: res.userData})
         setMessage(res.message);
         toast("Successfully entered", { type: "success" });
         setEnteredToEvent(true);
