@@ -1,6 +1,7 @@
 import { Account, Calldata, CallData } from "starknet";
 import { contractsInterfaces, throwErrorForWrongContractName } from "@/contracts/interfaces";
 import provider from "@/contracts/provider";
+import { getExplorerUrl } from "@/utils/getExplorerUrl";
 
 interface DeployContractParams {
   contractName: string;
@@ -21,7 +22,7 @@ const deployContract = async ({ contractName, constructorArgs, classHash }: Depl
 
   if (txRes.isSuccess()) {
     const fee = parseInt((txRes as any)?.actual_fee?.amount, 16);
-    console.log(`📜 Newly deployed ${contractName} Contract with address: ${deployResponse.contract_address}`);
+    console.log(`📜 ${contractName} deployed: ${getExplorerUrl(deployResponse.contract_address)}`);
     return {
       ...deployResponse,
       fee,
