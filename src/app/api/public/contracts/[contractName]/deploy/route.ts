@@ -71,10 +71,11 @@ async function postHandler(req: NextRequestWithAuth, { params: { contractName } 
 
     return NextResponse.json(
       {
-        ...deployResponse,
-        databaseId: smartContractRecord?.id,
+        contractName: smartContractRecord?.name,
         version: smartContractRecord?.version,
-        contractName: smartContractRecord?.name
+        databaseId: smartContractRecord?.id,
+        metadataUrl,
+        ...deployResponse
       },
       { status: StatusCodes.OK }
     );
