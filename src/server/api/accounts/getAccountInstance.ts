@@ -9,16 +9,12 @@ type GetAccountInstanceProps =
   | { developerId: string; userId?: never }
   | { developerId?: never; userId: string };
 
-export const getAccountInstance = async ({
-  developerId,
-  userId,
-}: GetAccountInstanceProps) => {
+export const getAccountInstance = async ({ developerId, userId }: GetAccountInstanceProps) => {
   const accountData = !!developerId
     ? await developerAccountModel.findUnique({ where: { id: developerId } })
     : await developersUserAccountModel.findUnique({ where: { id: userId } });
   const keys = await getVaultItem(accountData.vaultKey, "privateKey");
-  const { walletAddress, privateKey, publicKey } =
-    retrieveWalletCredentials(keys);
+  const { walletAddress, privateKey, publicKey } = retrieveWalletCredentials(keys);
   const account = new Account(provider, walletAddress, privateKey);
 
   return {

@@ -108,17 +108,14 @@ async function postHandler(req: NextRequestWithAuth, { params: { contractName, u
       const keys = await getVaultItem(accountData.vaultKey, "privateKey");
       const { walletAddress, privateKey } = retrieveWalletCredentials(keys);
       const account = new Account(provider, walletAddress, privateKey);
-      console.log(`🔮 Caller is executing ${functionName} on Contract`)
-      console.table([{caller: account.address, contract: contract.address}])
-      console.log(`🔮 Body`, body)
       const calldata = getGaslessTransactionCallData({ method: functionName, contractAddress: contract.address, body, abiFunctions: functions });
 
-      const transactionResult = await gaslessTransaction(account, calldata);
-      const txReceipt = !!transactionResult?.transactionHash ? await provider.waitForTransaction(transactionResult.transactionHash) as any : null;
+      const tx = await gaslessTransaction(account, calldata);
+      const txReceipt = !!tx?.transactionHash ? await provider.waitForTransaction(tx.transactionHash) as any : null;
 
       const fee = parseInt((txReceipt as any)?.actual_fee?.amount, 16);
 
-      if(!!userId && !!transactionResult.transactionHash) {
+      if(!!userId && !!tx.transactionHash) {
         let parsedEvents = [];
         const eventsToParse = eventsPerFunctionName[functionName];
         if(!!eventsToParse && !!txReceipt) {
@@ -144,18 +141,18 @@ async function postHandler(req: NextRequestWithAuth, { params: { contractName, u
             type: "gasless",
             output: isEmpty(parsedEvents) ? txReceipt : parsedEvents,
             input: body,
-            txHash: transactionResult.transactionHash,
+            txHash: tx.transactionHash,
           },
         });
       }
 
-      if (!!transactionResult.error) {
+      if (!!tx.error) {
         contract.connect(account);
         let userTransactionResult = await contract[functionName](...Object.values(validBody));
         if (typeof userTransactionResult === "bigint") {
           userTransactionResult = `0x${userTransactionResult.toString(16)}`;
         }
-        const gaslessError = transactionResult.error;
+        const gaslessError = tx.error;
 
         return NextResponse.json({
           gaslessError,
@@ -165,7 +162,7 @@ async function postHandler(req: NextRequestWithAuth, { params: { contractName, u
       }
 
       return NextResponse.json(
-        { result: transactionResult, transactionType: "gasless" },
+        { result: tx, transactionType: "gasless" },
         { status: StatusCodes.OK }
       );
 

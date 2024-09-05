@@ -25,26 +25,9 @@ export function withDeveloperApiToken(handler: (req: NextRequest, context: { par
       
       const actualApiToken = itemFromVault.fields.find(f => f.id === "apiToken").value;
 
-      console.log("🔮 token: ", token)
-      console.log("🔮 actualApiToken: ", actualApiToken)
-
-      console.log("🔮 typeof token: ", typeof token)
-      console.log("🔮 typeof actualApiToken: ", typeof actualApiToken)
-
-      console.log("🔮 token: ", token.length)
-      console.log("🔮 actualApiToken: ", actualApiToken.length)
-
-      console.log("🔮 token: ", token)
-      console.log("🔮 actualApiToken: ", actualApiToken)
-
-      console.log("LODASH: ",isEqual(token, actualApiToken));
-
       if (!isEqual(token, actualApiToken)) {
-        console.log(`💽 what`)
         return NextResponse.json({ error: "Invalid token" }, { status: StatusCodes.UNAUTHORIZED });
       }
-
-      console.log(`💽 here`)
 
       Object.assign(request, {
         developerId: apiToken.developerId,
