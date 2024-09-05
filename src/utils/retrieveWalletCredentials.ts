@@ -5,6 +5,9 @@ export const retrieveWalletCredentials = (keys) => {
     const privateKey = keys.fields.find(
         (field) => field.id === "privateKey",
     )?.value;
+    const publicKey = keys.fields.find(
+        (field) => field.id === "publicKey",
+    )?.value;
 
-    return { walletAddress, privateKey };
+    return { walletAddress, privateKey, publicKey };
 }
