@@ -47,11 +47,12 @@ export const uploadFile = async ({ name, description, image }: Metadata) => {
 
 interface Metadata {
   name: string;
+  symbol: string;
   description: string;
   image: string; // Base64 encoded image string
 }
 
-export const uploadMetadata = async ({ name, description, image }: Metadata) => {
+export const uploadMetadata = async ({ name, symbol, description, image }: Metadata) => {
   const imageUrl = await uploadImage(image);
-  return uploadFile({ name, description, image: imageUrl });
+  return uploadFile({ name, symbol, description, image: imageUrl });
 };

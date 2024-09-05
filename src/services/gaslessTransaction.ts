@@ -32,6 +32,7 @@ export async function gaslessTransaction(
   account: Account,
   calls: Call[],
 ): Promise<{ transactionHash?: string; error?: any }> {
+  console.log(`💽 hey gasx`)
   try {
     const typedData = await fetchBuildTypedData(
       account.address,
@@ -43,15 +44,27 @@ export async function gaslessTransaction(
         baseUrl: SEPOLIA_BASE_URL,
       },
     );
+    console.log("🔮 typedData: ", typedData)
 
     let signature = await account.signMessage(typedData);
 
+    console.log("🔮 signature: ", signature)
     if (Array.isArray(signature)) {
       signature = signature.map((sig) => toBeHex(BigInt(sig)));
     } else if (signature.r && signature.s) {
       signature = [toBeHex(BigInt(signature.r)), toBeHex(BigInt(signature.s))];
     }
-
+    
+    console.log(`💽 _____________________`)
+    
+    console.log("🔮 account.address: ", account.address)
+    console.log("🔮 JSON.stringify(typedData),: ", JSON.stringify(typedData),)
+    console.log("🔮 signature,: ", signature,)
+    console.log("🔮 process.env.ANVU_API_KEY: ", process.env.ANVU_API_KEY)
+    console.log("🔮 SEPOLIA_BASE_URL: ", SEPOLIA_BASE_URL)
+    
+    console.log(`💽 attempting to fetchExecuteTransaction`)
+    
     const executeData = await fetchExecuteTransaction(
       account.address,
       JSON.stringify(typedData),
@@ -61,6 +74,8 @@ export async function gaslessTransaction(
         baseUrl: SEPOLIA_BASE_URL,
       },
     );
+    
+    console.log("🔮 executeData: ", executeData)
 
     return { transactionHash: executeData.transactionHash };
   } catch (error) {

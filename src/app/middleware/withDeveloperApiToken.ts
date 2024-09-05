@@ -3,6 +3,7 @@ import { StatusCodes } from "http-status-codes";
 import { getVaultItem } from "@/server/api/vault/vaultApi";
 import jwt from "jsonwebtoken";
 import { apiTokenModel } from "@/prisma/models";
+import { isEqual } from "lodash-es";
 
 export function withDeveloperApiToken(handler: (req: NextRequest, context: { params: any }) => Promise<NextResponse> | NextResponse) {
   return async (request: NextRequest, context: { params: any }) => {
@@ -24,9 +25,26 @@ export function withDeveloperApiToken(handler: (req: NextRequest, context: { par
       
       const actualApiToken = itemFromVault.fields.find(f => f.id === "apiToken").value;
 
-      if (token !== actualApiToken) {
+      console.log("🔮 token: ", token)
+      console.log("🔮 actualApiToken: ", actualApiToken)
+
+      console.log("🔮 typeof token: ", typeof token)
+      console.log("🔮 typeof actualApiToken: ", typeof actualApiToken)
+
+      console.log("🔮 token: ", token.length)
+      console.log("🔮 actualApiToken: ", actualApiToken.length)
+
+      console.log("🔮 token: ", token)
+      console.log("🔮 actualApiToken: ", actualApiToken)
+
+      console.log("LODASH: ",isEqual(token, actualApiToken));
+
+      if (!isEqual(token, actualApiToken)) {
+        console.log(`💽 what`)
         return NextResponse.json({ error: "Invalid token" }, { status: StatusCodes.UNAUTHORIZED });
       }
+
+      console.log(`💽 here`)
 
       Object.assign(request, {
         developerId: apiToken.developerId,

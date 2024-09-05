@@ -15,6 +15,7 @@ import { withDeveloperUserAccessToken } from "@/app/middleware/withDeveloperUser
 import { difference, keys, map, size } from "lodash-es";
 
 async function postHandler(req: NextRequestWithAuth, { params: { contractName, usersContractVersion, functionName } }) {
+  console.log(`💽 yo`)
   try {
     const body = await req.json();
     const functions = getContractsFunctions(contractName);
@@ -82,6 +83,7 @@ async function postHandler(req: NextRequestWithAuth, { params: { contractName, u
       : await developerAccountModel.findUnique({ where: { id: developerId } });
 
     if (targetFunction.type === "read") {
+    // if (true) {
       const contract =  new Contract(contractsInterfaces[contractName].abi, smartContract?.address)
       let result = await contract[functionName](...Object.values(validBody));
       console.log("🔮 result: ", result)
@@ -104,8 +106,12 @@ async function postHandler(req: NextRequestWithAuth, { params: { contractName, u
       console.log(`🔮 Caller ${account.address} is executing ${functionName} on Contract ${contract.address}`, )
       console.log("🔮 body: ", body)
       const calldata = getGaslessTransactionCallData({ method: functionName, contractAddress: contract.address, body, abiFunctions: functions });
+      
+      console.log("🔮 calldata: ", calldata)
 
       const transactionResult = await gaslessTransaction(account, calldata);
+      
+      console.log("🍄🍄🍄 transactionResult: ", transactionResult)
 
       const txRes = await provider.waitForTransaction(transactionResult.transactionHash) as any;
       console.log("Interaction response: ",txRes)
@@ -127,6 +133,7 @@ async function postHandler(req: NextRequestWithAuth, { params: { contractName, u
       }
 
       if (!!transactionResult.error) {
+        console.log(`💽 FALLBACK___________`)
         contract.connect(account);
         let userTransactionResult = await contract[functionName](...Object.values(validBody));
         if (typeof userTransactionResult === "bigint") {
@@ -156,4 +163,4 @@ async function postHandler(req: NextRequestWithAuth, { params: { contractName, u
   }
 }
 
-export const POST = withDeveloperApiToken(withDeveloperUserAccessToken(postHandler));
+export const POST = withDeveloperApiToken(postHandler);

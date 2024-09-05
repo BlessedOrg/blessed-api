@@ -28,16 +28,16 @@ async function postHandler(req: NextRequestWithAuth, { params: { contractName } 
       );
     }
 
-    const { metadata: { name, description, image } } = body;
+    const { metadata: { name, description, image, symbol } } = body;
 
-    if (!name || !description || !image) {
+    if (!name || !description || !image || !symbol) {
       return NextResponse.json(
         { error: `Invalid metadata fields. The proper fields are: name (string), description (string), image (base64 string)` },
         { status: StatusCodes.BAD_REQUEST }
       );
     }
     
-    const metadataUrl = await uploadMetadata({ name, description, image });
+    const metadataUrl = await uploadMetadata({ name, description, symbol, image });
 
     const deployResponse = await deployContract({
       contractName,
@@ -87,4 +87,4 @@ async function postHandler(req: NextRequestWithAuth, { params: { contractName } 
   }
 }
 
-export const POST = withDeveloperApiToken(withDeveloperAccessToken(postHandler));
+export const POST = withDeveloperApiToken(postHandler);
