@@ -8,6 +8,10 @@ import {
 } from "@/services/gaslessTransaction";
 import connectToContract from "@/services/connectToContract";
 import interactWithContract from "@/services/interactWithContract";
+import {
+  smartContractInteractionModel,
+  smartContractModel,
+} from "@/prisma/models";
 
 export async function entranceEntry(enteredEmail, contractAddress) {
   try {
@@ -26,7 +30,7 @@ export async function entranceEntry(enteredEmail, contractAddress) {
     );
 
     if (Number(alreadyEntered) > 0) {
-      const enteredDate = new Date((alreadyEntered * 1000));
+      const enteredDate = new Date(alreadyEntered * 1000);
       return {
         message: `Already entered, scan the NFC. Entered at ${enteredDate.toLocaleDateString()} - 
           ${enteredDate.toLocaleTimeString()}}`,
@@ -38,6 +42,27 @@ export async function entranceEntry(enteredEmail, contractAddress) {
       [],
       entranceContract,
     );
+    const bigIntAddress = BigInt(erc1155ContractAddress)
+    const erc1155Address = "0x"+bigIntAddress.toString(16)
+    const findErc1155 = await smartContractModel.findUnique({
+      where: { address: erc1155Address },
+    });
+
+    if (!findErc1155) {
+      return { error: "ERC1155 contract not found.", erc1155ContractAddress, erc1155Address};
+    }
+
+    const ticketTransaction = await smartContractInteractionModel.findFirst({
+      where: {
+        smartContractId: findErc1155.id,
+        method: "get_ticket",
+      },
+    });
+    if (!ticketTransaction) {
+      return { error: "You don't have a ticket to enter." };
+    }
+    //@ts-ignore
+    const tokenId = ticketTransaction.output?.find(i => !!i?.output?.token_id)?.output?.token_id;
 
     const ticketContract = connectToContract({
       name: "ERC1155EventTicket",
@@ -46,11 +71,11 @@ export async function entranceEntry(enteredEmail, contractAddress) {
 
     const hasTicket = await interactWithContract(
       "balanceOf",
-      [account.address, 1],
+      [account.address, tokenId],
       ticketContract,
     );
 
-    console.log(hasTicket)
+    console.log(hasTicket);
     if (!hasTicket || !Number(hasTicket)) {
       return { error: "You don't have a ticket to enter." };
     }
@@ -58,7 +83,7 @@ export async function entranceEntry(enteredEmail, contractAddress) {
     const calls = getGaslessTransactionCallData({
       method: "entry",
       contractAddress,
-      body: { tokenId: 1 },
+      body: { tokenId },
       abiFunctions: entranceContract.abi,
     });
 
@@ -72,8 +97,8 @@ export async function entranceEntry(enteredEmail, contractAddress) {
       message: "Entered successfully, please scan the NFC.",
       userData: {
         email: accountData.email,
-        walletAddress: accountData.walletAddress
-      }
+        walletAddress: accountData.walletAddress,
+      },
     };
   } catch (e) {
     console.log(e);
