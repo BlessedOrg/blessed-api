@@ -31,6 +31,11 @@ async function handler(
     );
   }
   const response = await entranceEntry(email, contractAddress);
+  if(response.error) {
+    return NextResponse.json(response, {
+      status: StatusCodes.BAD_REQUEST,
+    });
+  }
   return NextResponse.json(response, {
     status: StatusCodes.OK,
   });
