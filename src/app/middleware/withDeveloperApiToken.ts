@@ -21,7 +21,7 @@ export function withDeveloperApiToken(handler: (req: NextRequest, context: { par
       });
 
       const itemFromVault = await getVaultItem(apiToken?.vaultKey, "apiKey");
-
+      
       const actualApiToken = itemFromVault.fields.find(f => f.id === "apiToken").value;
 
       if (token !== actualApiToken) {
@@ -34,7 +34,7 @@ export function withDeveloperApiToken(handler: (req: NextRequest, context: { par
 
       return handler(request, context);
     } catch (error: any) {
-      console.log("🚨 withApiToken:", error.message);
+      console.log("🚨 withDeveloperApiToken:", error.message);
       return NextResponse.json({ error: error.message }, { status: StatusCodes.UNAUTHORIZED });
     }
   };

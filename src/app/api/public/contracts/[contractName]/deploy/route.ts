@@ -6,6 +6,7 @@ import { getContractClassHash, getContractsConstructorsNames } from "@/contracts
 import { smartContractModel } from "@/prisma/models";
 import { withDeveloperAccessToken } from "@/app/middleware/withDeveloperAccessToken";
 import {withDeveloperApiToken} from "@/app/middleware/withDeveloperApiToken";
+import { uploadMetadata } from "@/services/irys";
 
 async function postHandler(req: NextRequestWithAuth, { params: { contractName } }): Promise<NextResponse> {
   try {
@@ -20,16 +21,27 @@ async function postHandler(req: NextRequestWithAuth, { params: { contractName } 
 
     const body = await req.json();
 
-    if (!isEqual(sortBy(constructorArgs), sortBy(Object.keys(body))) || isEmpty(body)) {
+    if (!isEqual(sortBy(constructorArgs), sortBy(Object.keys(body.constructor))) || isEmpty(body)) {
       return NextResponse.json(
         { error: `Invalid constructor arguments for contract ${contractName}. The proper arguments are: ${constructorArgs} (in this particular order)` },
         { status: StatusCodes.BAD_REQUEST }
       );
     }
 
+    const { metadata: { name, description, image } } = body;
+
+    if (!name || !description || !image) {
+      return NextResponse.json(
+        { error: `Invalid metadata fields. The proper fields are: name (string), description (string), image (base64 string)` },
+        { status: StatusCodes.BAD_REQUEST }
+      );
+    }
+    
+    const metadataUrl = await uploadMetadata({ name, description, image });
+
     const deployResponse = await deployContract({
       contractName,
-      constructorArgs: body,
+      constructorArgs: body.constructor,
       classHash
     });
     console.log("🔮 deployResponse: ", deployResponse)
@@ -51,7 +63,9 @@ async function postHandler(req: NextRequestWithAuth, { params: { contractName } 
         address: deployResponse.contract_address,
         name: contractName,
         developerId: req.developerId,
-        version: nextId
+        version: nextId,
+        metadataUrl,
+        metadataPayload: body.metadata
       }
     });
 
@@ -65,7 +79,7 @@ async function postHandler(req: NextRequestWithAuth, { params: { contractName } 
       { status: StatusCodes.OK }
     );
   } catch (error) {
-    console.log("🚨 Error:", error);
+    console.log("🚨 Deploy error:", error.message);
     return NextResponse.json(
       { error: error.message },
       { status: StatusCodes.BAD_REQUEST }

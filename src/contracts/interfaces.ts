@@ -56,7 +56,7 @@ export function getContractClassHash(name: string) {
     case contractsNames().ERC20EventCurrency:
       return "0x009b9c1d9acddafd3da6e0a2d57733f539ef2e5d7cdbb917cef7af6cfc051638";
     default:
-      throw new Error(`Provide class hash for the contract ${name}! It is stored in the artifacts folder but the class hash is missing, therefore it cannot be deployed.`);
+      throw new Error(`Provide class hash for the contract ${name}! The contract is stored in the artifacts folder, but the class hash is missing, therefore it cannot be deployed.`);
   }
 }
 
