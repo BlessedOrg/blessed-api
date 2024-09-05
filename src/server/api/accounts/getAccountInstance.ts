@@ -1,8 +1,5 @@
 "use server";
-import {
-  developerAccountModel,
-  developersUserAccountModel,
-} from "@/prisma/models";
+import { developerAccountModel, developersUserAccountModel } from "@/prisma/models";
 import { getVaultItem } from "@/server/api/vault/vaultApi";
 import { retrieveWalletCredentials } from "@/utils/retrieveWalletCredentials";
 import { Account } from "starknet";
@@ -20,11 +17,14 @@ export const getAccountInstance = async ({
     ? await developerAccountModel.findUnique({ where: { id: developerId } })
     : await developersUserAccountModel.findUnique({ where: { id: userId } });
   const keys = await getVaultItem(accountData.vaultKey, "privateKey");
-  const { walletAddress, privateKey } = retrieveWalletCredentials(keys);
+  const { walletAddress, privateKey, publicKey } =
+    retrieveWalletCredentials(keys);
   const account = new Account(provider, walletAddress, privateKey);
 
   return {
     account,
     accountData,
+    publicKey,
+    walletAddress,
   };
 };

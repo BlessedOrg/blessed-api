@@ -1,7 +1,10 @@
 "use server";
 
-import { developerAccountModel } from "@/prisma/models";
-import { getVaultItem, updateVaultItem } from "@/server/api/vault/vaultApi";
+import {
+  developerAccountModel,
+  developersUserAccountModel,
+} from "@/prisma/models";
+import { updateVaultItem } from "@/server/api/vault/vaultApi";
 import {
   Account,
   CallData,
@@ -14,8 +17,12 @@ import { ethers } from "ethers";
 import { gaslessTransaction } from "@/services/gaslessTransaction";
 import ethAbi from "@/contracts/abis/ethAbi.json";
 import { bigIntToHex } from "@/utils/numberConverts";
+import { getAccountInstance } from "@/server/api/accounts/getAccountInstance";
 
-export async function redeployDevAccount(id: string) {
+export async function redeployDevAccount(
+  id: string,
+  type?: "user" | "developer",
+) {
   const provider = new RpcProvider({
     nodeUrl: constants.NetworkName.SN_SEPOLIA,
   });
@@ -48,40 +55,28 @@ export async function redeployDevAccount(id: string) {
   }
   const ethContract = new Contract(ethAbi, ethContractAddress, operatorAccount);
 
-  const devAccount = await developerAccountModel.findUnique({
-    where: {
-      id,
-    },
-  });
-  if (!devAccount) {
-    throw new Error("Developer account not found");
+  const {
+    account: accountAX,
+    accountData,
+    publicKey,
+  } = await getAccountInstance(
+    type === "user" ? { userId: id } : { developerId: id },
+  );
+  if (!accountData) {
+    throw new Error(`${type} account not found`);
   }
-
-  const keys = await getVaultItem(devAccount.vaultKey, "privateKey");
-
-  if (!keys) {
-    throw new Error("Keys not found");
-  }
-
-  const publicKey = keys.fields.find(
-    (field) => field.id === "publicKey",
-  )?.value;
-  const privateKey = keys.fields.find(
-    (field) => field.id === "privateKey",
-  )?.value;
 
   const AXConstructorCallData = CallData.compile({
     owner: publicKey,
     guardian: "0",
   });
   const AXcontractAddress = hash.calculateContractAddressFromHash(
-      publicKey,
+    publicKey,
     argentXaccountClassHash,
     AXConstructorCallData,
     0,
   );
 
-  const accountAX = new Account(provider, AXcontractAddress, privateKey);
   const deployAccountPayload = {
     classHash: argentXaccountClassHash,
     constructorCalldata: AXConstructorCallData,
@@ -157,17 +152,30 @@ export async function redeployDevAccount(id: string) {
     await accountAX.deployAccount(deployAccountPayload);
 
   if (AXcontractFinalAddress) {
-    await developerAccountModel.update({
-      where: {
-        id,
-      },
-      data: {
-        accountDeployed: true,
-        walletAddress: AXcontractFinalAddress,
-      },
-    });
+    if (type === "user") {
+      await developersUserAccountModel.update({
+        where: {
+          id,
+        },
+        data: {
+          accountDeployed: true,
+          walletAddress: AXcontractFinalAddress,
+        },
+      });
+    } else {
+      await developerAccountModel.update({
+        where: {
+          id,
+        },
+        data: {
+          accountDeployed: true,
+          walletAddress: AXcontractFinalAddress,
+        },
+      });
+    }
+
     await updateVaultItem(
-      devAccount.vaultKey,
+      accountData.vaultKey,
       [
         {
           op: "replace",

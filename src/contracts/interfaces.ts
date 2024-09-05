@@ -1,7 +1,9 @@
 import fs from "fs";
 import path from "path";
-import { Abi } from "starknet";
+import { Abi, Contract, GetTransactionReceiptResponse } from "starknet";
 import { cairoInputsFormat } from "@/utils/cairoInputsFormat";
+import { parseEventBigNumber } from "@/utils/parseEventBigNumber";
+import { getContractEventInterface } from "@/utils/getContractEventInterface";
 
 function importAllJsonContractsArtifacts() {
   const dirPath = path.join(process.cwd(), "src/contracts/artifacts");
@@ -118,13 +120,13 @@ export const getAllContractsDetails = () => {
         url: `https://github.com/BlessedOrg/blessed-contracts-cairo/blob/master/${fileName}`,
         constructor: cairoInputsFormat(contractsInterfaces[contractName].abi.find((i: any) => i.type === "constructor").inputs),
         functions: getContractsFunctions(fileName, true)
-      }
+      };
 
       availableContracts.push(contractDetails);
     }
   });
   return availableContracts;
-}
+};
 
 export const throwErrorForWrongContractName = (contractName: any) => {
   if (!contractsInterfaces[contractName]) {
@@ -142,3 +144,41 @@ type ContractsInterfacesType = {
 };
 
 export const contractsInterfaces: ContractsInterfacesType = contractArtifacts as ContractsInterfacesType;
+
+export const getContractEventData = (
+  contract: Contract,
+  eventName: string,
+  txReceipt: GetTransactionReceiptResponse
+) => {
+  const eventInterface = getContractEventInterface(eventName, contract.abi);
+  const parsedEvents = contract.parseEvents(txReceipt);
+  const eventObject = parsedEvents.find((obj) =>
+    Object.keys(obj).some((key) => key.includes(eventName))
+  );
+  if (eventObject) {
+    const key = Object.keys(eventObject).find((key) =>
+      key.includes(eventName)
+    );
+    if (key) {
+      const eventData = eventObject[key] as { [key: string]: string };
+      const formattedEventData = Object.keys(eventData).map((key) => {
+        const interfaceStructure = eventInterface.fields.find(
+          (field) => field.name === key
+        );
+        return {
+          name: key,
+          value: parseEventBigNumber(eventData[key]),
+          type: interfaceStructure.type,
+          kind: interfaceStructure.kind
+        };
+      });
+      const wholeOutput = formattedEventData
+        .reduce((acc, item) => {
+          acc[item.name] = { value: item.value, type: item.type };
+          return acc;
+        }, {});
+
+      return { wholeOutput };
+    }
+  }
+};
