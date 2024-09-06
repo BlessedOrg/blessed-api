@@ -2,7 +2,7 @@ import { Uploader } from "@irys/upload";
 import { BaseEth } from "@irys/upload-ethereum";
 
 export const getIrysUploader = async () =>
-  Uploader(BaseEth).withWallet(process.env.METADATA_FILES_BASE_ETH_OPERATOR_PRIVATE_KEY);
+  Uploader(BaseEth).withWallet(process.env.ONCHAIN_STORAGE_OPERATOR_PRIVATE_KEY);
 
 const uploadImage = async (base64String) => {
   const irys = await getIrysUploader();
