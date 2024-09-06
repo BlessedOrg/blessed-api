@@ -7,6 +7,8 @@ import { createAndDeployAccount } from "@/server/api/accounts/createAndDeployAcc
 import { createOrUpdateSession } from "@/server/auth/session";
 import { sessionType } from "@prisma/client";
 
+export const maxDuration = 300;
+
 export async function POST(req: Request) {
   const body = await req.json();
   const { code } = body;

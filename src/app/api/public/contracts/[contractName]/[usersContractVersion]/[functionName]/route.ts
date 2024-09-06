@@ -14,6 +14,8 @@ import { cairoInputsFormat } from "@/utils/cairoInputsFormat";
 import { withDeveloperUserAccessToken } from "@/app/middleware/withDeveloperUserAccessToken";
 import { difference, isEmpty, keys, map, size } from "lodash-es";
 
+export const maxDuration = 300;
+
 interface EventConfig {
   eventName: string;
   value: string;
