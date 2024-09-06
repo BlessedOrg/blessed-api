@@ -8,6 +8,8 @@ import { createAndDeployAccount } from "@/server/api/accounts/createAndDeployAcc
 import { withExistingDevAccount } from "@/app/middleware/withExistingDevAccount";
 import { sessionType } from "@prisma/client";
 
+export const maxDuration = 300;
+
 async function handler(req: Request, { params: { developerId } }) {
   const body = await req.json();
   const { code } = body;

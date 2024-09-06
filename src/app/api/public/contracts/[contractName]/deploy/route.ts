@@ -8,6 +8,8 @@ import { withDeveloperAccessToken } from "@/app/middleware/withDeveloperAccessTo
 import {withDeveloperApiToken} from "@/app/middleware/withDeveloperApiToken";
 import { uploadMetadata } from "@/services/irys";
 
+export const maxDuration = 300;
+
 async function postHandler(req: NextRequestWithAuth, { params: { contractName } }): Promise<NextResponse> {
   try {
     const classHash = getContractClassHash(contractName);
@@ -88,4 +90,4 @@ async function postHandler(req: NextRequestWithAuth, { params: { contractName } 
   }
 }
 
-export const POST = withDeveloperApiToken(postHandler);
+export const POST = withDeveloperApiToken(withDeveloperAccessToken(postHandler));
