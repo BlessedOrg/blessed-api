@@ -4,6 +4,8 @@ import { withDeveloperAccessToken } from "@/app/middleware/withDeveloperAccessTo
 import { smartContractModel } from "@/prisma/models";
 import { generateQrCode } from "@/services/generateQrCode";
 
+export const dynamic = "force-dynamic";
+
 async function handler(req: NextRequestWithDevAuth) {
   const { developerId } = req;
   const contractData = await smartContractModel.findFirst({
