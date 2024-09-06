@@ -2,16 +2,10 @@
 
 import { getUserIdByEmail } from "@/server/api/accounts/getUserIdByEmail";
 import { getAccountInstance } from "@/server/api/accounts/getAccountInstance";
-import {
-  gaslessTransaction,
-  getGaslessTransactionCallData,
-} from "@/services/gaslessTransaction";
+import { gaslessTransaction, getGaslessTransactionCallData } from "@/services/gaslessTransaction";
 import connectToContract from "@/services/connectToContract";
 import interactWithContract from "@/services/interactWithContract";
-import {
-  smartContractInteractionModel,
-  smartContractModel,
-} from "@/prisma/models";
+import { smartContractInteractionModel, smartContractModel } from "@/prisma/models";
 
 export async function entranceEntry(enteredEmail, contractAddress) {
   try {
@@ -19,44 +13,44 @@ export async function entranceEntry(enteredEmail, contractAddress) {
     const { account, accountData } = await getAccountInstance({ userId });
     const entranceContract = connectToContract({
       name: "EntranceChecker",
-      address: contractAddress,
+      address: contractAddress
     });
     entranceContract.connect(account);
 
     const alreadyEntered = await interactWithContract(
       "get_entry",
       [account.address],
-      entranceContract,
+      entranceContract
     );
 
     if (Number(alreadyEntered) > 0) {
       const enteredDate = new Date(alreadyEntered * 1000);
       return {
         message: `Already entered, scan the NFC. Entered at ${enteredDate.toLocaleDateString()} - 
-          ${enteredDate.toLocaleTimeString()}}`,
+          ${enteredDate.toLocaleTimeString()}}`
       };
     }
 
     const erc1155ContractAddress = await interactWithContract(
       "get_erc1155",
       [],
-      entranceContract,
+      entranceContract
     );
-    const bigIntAddress = BigInt(erc1155ContractAddress)
-    const erc1155Address = "0x"+bigIntAddress.toString(16)
+    const bigIntAddress = BigInt(erc1155ContractAddress);
+    const erc1155Address = "0x" + bigIntAddress.toString(16);
     const findErc1155 = await smartContractModel.findUnique({
-      where: { address: erc1155Address },
+      where: { address: erc1155Address }
     });
 
     if (!findErc1155) {
-      return { error: "ERC1155 contract not found.", erc1155ContractAddress, erc1155Address};
+      return { error: "ERC1155 contract not found.", erc1155ContractAddress, erc1155Address };
     }
 
     const ticketTransaction = await smartContractInteractionModel.findFirst({
       where: {
         smartContractId: findErc1155.id,
-        method: "get_ticket",
-      },
+        method: "get_ticket"
+      }
     });
     if (!ticketTransaction) {
       return { error: "You don't have a ticket to enter." };
@@ -66,13 +60,13 @@ export async function entranceEntry(enteredEmail, contractAddress) {
 
     const ticketContract = connectToContract({
       name: "ERC1155EventTicket",
-      address: erc1155ContractAddress,
+      address: erc1155ContractAddress
     });
 
     const hasTicket = await interactWithContract(
       "balanceOf",
       [account.address, tokenId],
-      ticketContract,
+      ticketContract
     );
 
     console.log(hasTicket);
@@ -84,7 +78,7 @@ export async function entranceEntry(enteredEmail, contractAddress) {
       method: "entry",
       contractAddress,
       body: { tokenId },
-      abiFunctions: entranceContract.abi,
+      abiFunctions: entranceContract.abi
     });
 
     const resultTxHash = await gaslessTransaction(account, calls);
@@ -97,8 +91,8 @@ export async function entranceEntry(enteredEmail, contractAddress) {
       message: "Entered successfully, please scan the NFC.",
       userData: {
         email: accountData.email,
-        walletAddress: accountData.walletAddress,
-      },
+        walletAddress: accountData.walletAddress
+      }
     };
   } catch (e) {
     console.log(e);
