@@ -1,9 +1,9 @@
-import {decodeWalletAddressFromBigInt} from "@/utils/decodeWalletAddressFromBigInt";
+import {decodeContractAddressFromBigInt} from "@/utils/decodeContractAddressFromBigInt";
 
 export function parseEventBigNumber(value: any) {
     return typeof value === "bigint"
         ? `${value}`.length > 20
-            ? decodeWalletAddressFromBigInt(value)
+            ? decodeContractAddressFromBigInt(value)
             : Number(value)
         : value
 }

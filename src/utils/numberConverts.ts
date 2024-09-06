@@ -4,7 +4,13 @@ export const bigIntToHex = (value: BigInt) => {
   return hexNumber;
 };
 
-
 export const decimalToBigInt = (value: number) => {
-    return BigInt(value * 10 ** 18);
-}
+  return BigInt(value * 10 ** 18);
+};
+
+export const decimalToBigIntWithExtraDigits = (
+  value: number,
+  digits?: number,
+) => {
+  return BigInt(value * 10 ** (digits || 18));
+};

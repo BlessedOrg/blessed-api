@@ -42,40 +42,45 @@ export async function entranceEntry(enteredEmail, contractAddress) {
       [],
       entranceContract,
     );
-    const bigIntAddress = BigInt(erc1155ContractAddress)
-    const erc1155Address = "0x"+bigIntAddress.toString(16)
+    const bigIntAddress = BigInt(erc1155ContractAddress);
+    const erc1155Address = "0x" + bigIntAddress.toString(16);
     const findErc1155 = await smartContractModel.findUnique({
       where: { address: erc1155Address },
     });
 
     if (!findErc1155) {
-      return { error: "ERC1155 contract not found.", erc1155ContractAddress, erc1155Address};
+      return {
+        error: "ERC1155 contract not found.",
+        erc1155ContractAddress,
+        erc1155Address,
+      };
     }
 
     const ticketTransaction = await smartContractInteractionModel.findFirst({
       where: {
         smartContractId: findErc1155.id,
         method: "get_ticket",
+        developerUserId: userId,
       },
     });
     if (!ticketTransaction) {
       return { error: "You don't have a ticket to enter." };
     }
     //@ts-ignore
-    const tokenId = ticketTransaction.output?.find(i => !!i?.output?.token_id)?.output?.token_id;
+    const tokenId = ticketTransaction.output?.targetEventValues?.token_id;
 
     const ticketContract = connectToContract({
       name: "ERC1155EventTicket",
-      address: erc1155ContractAddress,
+      address: erc1155Address,
     });
 
     const hasTicket = await interactWithContract(
-      "balanceOf",
+      "balance_of",
       [account.address, tokenId],
       ticketContract,
     );
 
-    console.log(hasTicket);
+    console.log(`Has ticket`, hasTicket);
     if (!hasTicket || !Number(hasTicket)) {
       return { error: "You don't have a ticket to enter." };
     }
@@ -83,14 +88,17 @@ export async function entranceEntry(enteredEmail, contractAddress) {
     const calls = getGaslessTransactionCallData({
       method: "entry",
       contractAddress,
-      body: { tokenId },
+      body: {
+        tokenId,
+      },
       abiFunctions: entranceContract.abi,
     });
 
     const resultTxHash = await gaslessTransaction(account, calls);
 
     if (resultTxHash.error) {
-      return { error: resultTxHash.error };
+      const walletInteractionResult = await entranceContract["entry"](tokenId);
+      return { gaslessError: resultTxHash.error, walletInteractionResult };
     }
     return {
       txHash: resultTxHash.transactionHash,

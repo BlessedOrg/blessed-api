@@ -6,7 +6,7 @@ import {
   SEPOLIA_BASE_URL,
 } from "@avnu/gasless-sdk";
 import { isEmpty } from "lodash-es";
-import { bigIntToHex, decimalToBigInt } from "@/utils/numberConverts";
+import { bigIntToHex, decimalToBigIntWithExtraDigits } from "@/utils/numberConverts";
 import { flattenArray } from "@/utils/flattenArray";
 
 /**
@@ -33,6 +33,7 @@ export async function gaslessTransaction(
   calls: Call[],
 ): Promise<{ transactionHash?: string; error?: any }> {
   try {
+    console.log(`🔮 Gasless transaction for ${account.address}`);
     const typedData = await fetchBuildTypedData(
       account.address,
       calls,
@@ -64,7 +65,7 @@ export async function gaslessTransaction(
 
     return { transactionHash: executeData.transactionHash };
   } catch (error) {
-    console.error("🚨 gaslessTransaction error:", error.message)
+    console.error("🚨 gaslessTransaction error:", error);
     return { error: error?.message || "Unknown error" };
   }
 }
@@ -76,7 +77,12 @@ interface GetGaslessTransactionCallDataArgs {
   abiFunctions: any[] | Abi;
 }
 
-export const getGaslessTransactionCallData = ({ method, contractAddress, body, abiFunctions }: GetGaslessTransactionCallDataArgs) => {
+export const getGaslessTransactionCallData = ({
+  method,
+  contractAddress,
+  body,
+  abiFunctions,
+}: GetGaslessTransactionCallDataArgs) => {
   const inputs = abiFunctions.find((m) => m.name === method).inputs;
   if (isEmpty(inputs)) {
     return [
@@ -89,7 +95,10 @@ export const getGaslessTransactionCallData = ({ method, contractAddress, body, a
   } else {
     const formattedInputs = inputs.map((input) => {
       if (input.type.includes("integer::u256")) {
-        return [bigIntToHex(decimalToBigInt(body[input.name])), "0x0"];
+        if (input.name.toLowerCase().includes("id")) {
+          return [bigIntToHex(BigInt(body[input.name])), "0x0"];
+        }
+        return [bigIntToHex(decimalToBigIntWithExtraDigits(body[input.name])), "0x0"];
       }
       return body[input.name];
     });
