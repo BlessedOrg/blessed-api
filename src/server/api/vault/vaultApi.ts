@@ -81,7 +81,7 @@ export async function createVaultApiTokenItem(apiToken: string, userId: string) 
           vault: {
             id: vaultId,
           },
-          // 🚨 TODO: use title with real user's wallet/id
+          // 🏗️ TODO: use title with real user's wallet/id
           title: `API Token for user ${userId}`,
           category: "API_CREDENTIAL",
           tags: ["apiToken"],

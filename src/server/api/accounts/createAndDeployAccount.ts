@@ -68,9 +68,10 @@ export async function createAndDeployAccount(email: string) {
   let transferInitialFundsTx = "";
 
   try {
-    console.log(`💎🆓 Sending initial funds to the ArgentX account by gasless... (${ethers.formatEther(suggestedMaxFee)} ETH)`);
+    const adjustedMaxFee = (suggestedMaxFee * BigInt(125)) / BigInt(100);
+    console.log(`💎🆓 Sending initial funds to the ArgentX account by gasless... (${ethers.formatEther(adjustedMaxFee)} ETH)`);
 
-    const hexNumber = bigIntToHex(suggestedMaxFee);
+    const hexNumber = bigIntToHex(adjustedMaxFee);
     const gaslessTransferTx = await gaslessTransaction(operatorAccount, [
       {
         entrypoint: "transfer",
@@ -108,14 +109,13 @@ export async function createAndDeployAccount(email: string) {
   }
 
   console.log("🔄 Deploying ArgentX account...");
-  const deployStatus = await deployAccountAndCreateVaultItem(
+  return deployAccountAndCreateVaultItem(
     accountAX,
     privateKeyAX,
     deployAccountPayload,
     starkKeyPubAX,
     email
   );
-  return deployStatus;
 }
 
 const deployAccountAndCreateVaultItem = async (
