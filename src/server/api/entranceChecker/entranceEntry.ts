@@ -6,13 +6,14 @@ import connectToContract from "@/services/connectToContract";
 import interactWithContract from "@/services/interactWithContract";
 import { smartContractInteractionModel, smartContractModel } from "@/prisma/models";
 import { gaslessTransactionWithFallback } from "@/server/gaslessTransactionWithFallback";
+import { contractsNames } from "@/contracts/interfaces";
 
 export async function entranceEntry(enteredEmail, entranceContractAddress) {
   try {
     const userId = await getUserIdByEmail(enteredEmail);
     const { account, accountData } = await getAccountInstance({ userId });
     const entranceContract = connectToContract({
-      name: "EntranceChecker",
+      name: contractsNames().EntranceChecker,
       address: entranceContractAddress,
     });
     entranceContract.connect(account);
@@ -56,15 +57,14 @@ export async function entranceEntry(enteredEmail, entranceContractAddress) {
         method: "get_ticket",
         developerUserId: userId,
       },
-    });
+    })
     if (!ticketTransaction) {
       return { error: "You don't have a ticket to enter." };
     }
-    //@ts-ignore
-    const tokenId = ticketTransaction.output?.targetEventValues?.token_id;
+    const tokenId = ticketTransaction?.output?.['targetEventValues']?.token_id;
 
     const ticketContract = connectToContract({
-      name: "ERC1155EventTicket",
+      name: contractsNames().ERC1155EventTicket,
       address: erc1155Address,
     });
 
