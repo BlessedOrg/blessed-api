@@ -2,24 +2,21 @@
 
 import { getUserIdByEmail } from "@/server/api/accounts/getUserIdByEmail";
 import { getAccountInstance } from "@/server/api/accounts/getAccountInstance";
-import {
-  gaslessTransaction,
-  getGaslessTransactionCallData,
-} from "@/services/gaslessTransaction";
 import connectToContract from "@/services/connectToContract";
 import interactWithContract from "@/services/interactWithContract";
 import {
   smartContractInteractionModel,
   smartContractModel,
 } from "@/prisma/models";
+import { gaslessTransactionWithFallback } from "@/server/gaslessTransactionWithFallback";
 
-export async function entranceEntry(enteredEmail, contractAddress) {
+export async function entranceEntry(enteredEmail, entranceContractAddress) {
   try {
     const userId = await getUserIdByEmail(enteredEmail);
     const { account, accountData } = await getAccountInstance({ userId });
     const entranceContract = connectToContract({
       name: "EntranceChecker",
-      address: contractAddress,
+      address: entranceContractAddress,
     });
     entranceContract.connect(account);
 
@@ -85,23 +82,13 @@ export async function entranceEntry(enteredEmail, contractAddress) {
       return { error: "You don't have a ticket to enter." };
     }
 
-    const calls = getGaslessTransactionCallData({
-      method: "entry",
-      contractAddress,
-      body: {
-        tokenId,
-      },
-      abiFunctions: entranceContract.abi,
-    });
+    const transactionResult = await gaslessTransactionWithFallback(account, "entry", entranceContract, { tokenId }, entranceContract.abi);
 
-    const resultTxHash = await gaslessTransaction(account, calls);
-
-    if (resultTxHash.error) {
-      const walletInteractionResult = await entranceContract["entry"](tokenId);
-      return { gaslessError: resultTxHash.error, walletInteractionResult };
+    if (transactionResult.error) {
+      return { error: transactionResult };
     }
     return {
-      txHash: resultTxHash.transactionHash,
+      txHash: transactionResult.txHash,
       message: "Entered successfully, please scan the NFC.",
       userData: {
         email: accountData.email,

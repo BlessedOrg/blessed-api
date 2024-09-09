@@ -4,15 +4,14 @@ import { StatusCodes } from "http-status-codes";
 import connectToContract from "@/services/connectToContract";
 import { developerAccountModel, developersUserAccountModel, smartContractModel, smartContractInteractionModel } from "@/prisma/models";
 import {contractsInterfaces, getContractOutput, getContractsFunctions} from "@/contracts/interfaces";
-import { getVaultItem } from "@/server/api/vault/vaultApi";
-import { Account, Contract } from "starknet";
+import { Contract } from "starknet";
 import provider from "@/contracts/provider";
-import { gaslessTransaction, getGaslessTransactionCallData } from "@/services/gaslessTransaction";
 import { generateSchemaForContractBody } from "@/utils/generateSchemaForContractBody";
-import { retrieveWalletCredentials } from "@/utils/retrieveWalletCredentials";
 import { cairoInputsFormat } from "@/utils/cairoInputsFormat";
 import { withDeveloperUserAccessToken } from "@/app/middleware/withDeveloperUserAccessToken";
 import { difference, keys, map, size } from "lodash-es";
+import { gaslessTransactionWithFallback } from "@/server/gaslessTransactionWithFallback";
+import { getAccountInstance } from "@/server/api/accounts/getAccountInstance";
 
 interface EventConfig {
   eventName: string;
@@ -91,10 +90,10 @@ async function postHandler(req: NextRequestWithAuth, { params: { contractName, u
 
     const userId = req.userId;
     const developerId = req.developerId;
-    const accountData = !!userId
-      ? await developersUserAccountModel.findUnique({ where: { id: userId } })
-      : await developerAccountModel.findUnique({ where: { id: developerId } });
-
+    const targetAccount = !!userId
+      ? await developersUserAccountModel.findUnique({ where: { id: userId }, select: {id: true} })
+      : await developerAccountModel.findUnique({ where: { id: developerId }, select: {id: true} });
+    const { account } = await getAccountInstance(!!userId ? { userId: targetAccount.id } : { developerId: targetAccount.id });
     if (targetFunction.type === "read") {
       const contract =  new Contract(contractsInterfaces[contractName].abi, smartContract?.address)
       let result = await contract[functionName](...Object.values(validBody));
@@ -107,30 +106,29 @@ async function postHandler(req: NextRequestWithAuth, { params: { contractName, u
           { status: StatusCodes.OK }
       );
     } else {
-      const keys = await getVaultItem(accountData.vaultKey, "privateKey");
-      const { walletAddress, privateKey } = retrieveWalletCredentials(keys);
-      const account = new Account(provider, walletAddress, privateKey);
-      const calldata = getGaslessTransactionCallData({
-        method: functionName,
-        contractAddress: contract.address,
-        body,
-        abiFunctions: functions,
-      });
-
-      const gaslessTransactionResult = await gaslessTransaction(account, calldata);
-      const txReceiptGasless = !!gaslessTransactionResult?.transactionHash
+      const transactionResult = await gaslessTransactionWithFallback(account, functionName, contract, body, functions);
+      const txReceipt = !!transactionResult?.txHash
         ? ((await provider.waitForTransaction(
-          gaslessTransactionResult.transactionHash,
+          transactionResult?.txHash,
           )) as any)
         : null;
 
-      const fee = parseInt((txReceiptGasless as any)?.actual_fee?.amount, 16);
+      if (!!transactionResult.error) {
+        return NextResponse.json(
+          {
+            result: transactionResult,
+          },
+          { status: StatusCodes.BAD_REQUEST },
+        );
+      }
 
-      if (!!userId && !!txReceiptGasless) {
+      const fee = parseInt((txReceipt as any)?.actual_fee?.amount, 16);
+
+      if (!!userId && !!txReceipt) {
         const output = getContractOutput({
           functionName,
           contract,
-          txReceipt: txReceiptGasless,
+          txReceipt: txReceipt,
           eventsPerFunctionName,
         });
 
@@ -140,64 +138,17 @@ async function postHandler(req: NextRequestWithAuth, { params: { contractName, u
             smartContractId: smartContract.id,
             method: functionName,
             fees: `${fee}`,
-            type: "gasless",
+            type: transactionResult.type as "wallet" | "gasless",
             // @ts-ignore
             output,
             input: body,
-            txHash: gaslessTransactionResult.transactionHash,
+            txHash: transactionResult.txHash,
           },
         });
       }
 
-      if (!!gaslessTransactionResult.error) {
-        contract.connect(account);
-        let userTransactionResult = await contract[functionName](
-          ...Object.values(validBody),
-        );
-        if (typeof userTransactionResult === "bigint") {
-          userTransactionResult = `0x${userTransactionResult.toString(16)}`;
-        }
-        const userTxReceipt = !!userTransactionResult
-          ? ((await provider.waitForTransaction(
-            userTransactionResult,
-            )) as any)
-          : null;
-        if (!!userId && !!userTxReceipt) {
-          const output = getContractOutput({
-            functionName,
-            contract,
-            txReceipt: userTxReceipt,
-            eventsPerFunctionName,
-          });
-
-          await smartContractInteractionModel.create({
-            data: {
-              developerUserId: userId,
-              smartContractId: smartContract.id,
-              method: functionName,
-              fees: `${fee}`,
-              type: "wallet",
-              // @ts-ignore
-              output,
-              input: body,
-              txHash: userTransactionResult,
-            },
-          });
-        }
-        const gaslessError = gaslessTransactionResult.error;
-
-        return NextResponse.json(
-          {
-            gaslessError,
-            result: userTransactionResult,
-            transactionType: "credentials",
-          },
-          { status: StatusCodes.OK },
-        );
-      }
-
       return NextResponse.json(
-        { result: gaslessTransactionResult, transactionType: "gasless" },
+        { result: transactionResult},
         { status: StatusCodes.OK },
       );
     }
