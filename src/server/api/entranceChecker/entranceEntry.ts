@@ -4,10 +4,7 @@ import { getUserIdByEmail } from "@/server/api/accounts/getUserIdByEmail";
 import { getAccountInstance } from "@/server/api/accounts/getAccountInstance";
 import connectToContract from "@/services/connectToContract";
 import interactWithContract from "@/services/interactWithContract";
-import {
-  smartContractInteractionModel,
-  smartContractModel,
-} from "@/prisma/models";
+import { smartContractInteractionModel, smartContractModel } from "@/prisma/models";
 import { gaslessTransactionWithFallback } from "@/server/gaslessTransactionWithFallback";
 
 export async function entranceEntry(enteredEmail, entranceContractAddress) {
