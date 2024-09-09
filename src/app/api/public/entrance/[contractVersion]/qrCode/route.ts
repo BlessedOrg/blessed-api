@@ -6,10 +6,11 @@ import { generateQrCode } from "@/services/generateQrCode";
 
 export const dynamic = "force-dynamic";
 
-async function handler(req: NextRequestWithDevAuth) {
+async function handler(req: NextRequestWithDevAuth, { params: { contractVersion } }) {
   const { developerId } = req;
+  console.log(`contractVersion:`, +contractVersion);
   const contractData = await smartContractModel.findFirst({
-    where: { developerId, name: "EntranceChecker" },
+    where: { developerId, name: "EntranceChecker", version: +contractVersion },
   });
 
   if (!contractData?.address) {

@@ -2,8 +2,9 @@ import fs from "fs";
 import path from "path";
 import { Abi, Contract, GetTransactionReceiptResponse } from "starknet";
 import { cairoInputsFormat } from "@/utils/cairoInputsFormat";
-import { parseEventBigNumber } from "@/utils/parseEventBigNumber";
-import { getContractEventInterface } from "@/utils/getContractEventInterface";
+import { EventsPerFunctionName } from "@/app/api/public/contracts/[contractName]/[usersContractVersion]/[functionName]/route";
+import { formatParsedEventsArray } from "@/utils/contractEvents/formatParsedEventsArray";
+import { getTargetEventData } from "@/utils/contractEvents/getTargetEventData";
 
 function importAllJsonContractsArtifacts() {
   const dirPath = path.join(process.cwd(), "src/contracts/artifacts");
@@ -20,7 +21,6 @@ function importAllJsonContractsArtifacts() {
       if (!classHash) {
         throw new Error(`Provide class hash for the contract ${fileName}! It is stored in the artifacts folder but the class hash is missing, therefore it cannot be deployed.`);
       }
-
     }
   });
   return jsonObjects;
@@ -145,40 +145,43 @@ type ContractsInterfacesType = {
 
 export const contractsInterfaces: ContractsInterfacesType = contractArtifacts as ContractsInterfacesType;
 
-export const getContractEventData = (
-  contract: Contract,
-  eventName: string,
-  txReceipt: GetTransactionReceiptResponse
-) => {
-  const eventInterface = getContractEventInterface(eventName, contract.abi);
+interface IContractOutputProps {
+  eventsPerFunctionName: EventsPerFunctionName;
+  contract: Contract;
+  txReceipt: GetTransactionReceiptResponse;
+  functionName: string;
+}
+interface IOuputEvent {
+  events: { eventName: string; [key: string]: string }[];
+  txReceipt: GetTransactionReceiptResponse;
+  targetEventValues: { [key: string]: string };
+}
+export const getContractOutput = ({
+  eventsPerFunctionName,
+  functionName,
+  contract,
+  txReceipt,
+}: IContractOutputProps): IOuputEvent & {[ket: string]: any} => {
   const parsedEvents = contract.parseEvents(txReceipt);
-  const eventObject = parsedEvents.find((obj) =>
-    Object.keys(obj).some((key) => key.includes(eventName))
-  );
-  if (eventObject) {
-    const key = Object.keys(eventObject).find((key) =>
-      key.includes(eventName)
-    );
-    if (key) {
-      const eventData = eventObject[key] as { [key: string]: string };
-      const formattedEventData = Object.keys(eventData).map((key) => {
-        const interfaceStructure = eventInterface.fields.find(
-          (field) => field.name === key
-        );
-        return {
-          name: key,
-          value: parseEventBigNumber(eventData[key]),
-          type: interfaceStructure.type,
-          kind: interfaceStructure.kind
-        };
-      });
-      const wholeOutput = formattedEventData
-        .reduce((acc, item) => {
-          acc[item.name] = { value: item.value, type: item.type };
-          return acc;
-        }, {});
 
-      return { wholeOutput };
+  const eventsToParse = eventsPerFunctionName[functionName];
+  let targetEventValues = {};
+  if (!!eventsToParse && !!txReceipt) {
+    for (const event of eventsToParse) {
+      const targetValue = getTargetEventData(
+        event.eventName,
+        parsedEvents,
+        event.value,
+      );
+      if (!!targetValue) {
+        targetEventValues[event?.saveValue || event.value] = targetValue;
+      }
     }
   }
+
+  return {
+    events: formatParsedEventsArray(parsedEvents),
+    txReceipt,
+    targetEventValues,
+  };
 };
