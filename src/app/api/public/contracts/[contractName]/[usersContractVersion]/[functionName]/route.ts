@@ -2,8 +2,8 @@ import { NextResponse } from "next/server";
 import { withDeveloperApiToken } from "@/app/middleware/withDeveloperApiToken";
 import { StatusCodes } from "http-status-codes";
 import connectToContract from "@/services/connectToContract";
-import { developerAccountModel, developersUserAccountModel, smartContractModel, smartContractInteractionModel } from "@/prisma/models";
-import {contractsInterfaces, getContractOutput, getContractsFunctions} from "@/contracts/interfaces";
+import { developerAccountModel, developersUserAccountModel, smartContractInteractionModel, smartContractModel } from "@/prisma/models";
+import { contractsInterfaces, getContractOutput, getContractsFunctions } from "@/contracts/interfaces";
 import { Contract } from "starknet";
 import provider from "@/contracts/provider";
 import { generateSchemaForContractBody } from "@/utils/generateSchemaForContractBody";
@@ -12,6 +12,8 @@ import { withDeveloperUserAccessToken } from "@/app/middleware/withDeveloperUser
 import { difference, keys, map, size } from "lodash-es";
 import { gaslessTransactionWithFallback } from "@/server/gaslessTransactionWithFallback";
 import { getAccountInstance } from "@/server/api/accounts/getAccountInstance";
+
+export const maxDuration = 300;
 
 interface EventConfig {
   eventName: string;
@@ -23,8 +25,8 @@ export interface EventsPerFunctionName {
 }
 const eventsPerFunctionName: EventsPerFunctionName = {
   get_ticket: [
-    { eventName: "TransferSingle", value: "id", saveValue: "token_id" },
-  ],
+    { eventName: "TransferSingle", value: "id", saveValue: "token_id" }
+  ]
 };
 
 async function postHandler(req: NextRequestWithAuth, { params: { contractName, usersContractVersion, functionName } }) {
@@ -44,14 +46,14 @@ async function postHandler(req: NextRequestWithAuth, { params: { contractName, u
 
     if (!inputsExists) {
 
-      const requiredInputNames = map(cairoInputsFormat(targetFunction.inputs), 'name');
+      const requiredInputNames = map(cairoInputsFormat(targetFunction.inputs), "name");
       const missingParameter = difference(requiredInputNames, keys(body));
 
       return NextResponse.json(
         {
           error: size(missingParameter) > 1 ? "Missing parameters" : "Missing parameter",
           missingParameter,
-          requiredParameters: cairoInputsFormat(targetFunction.inputs),
+          requiredParameters: cairoInputsFormat(targetFunction.inputs)
         },
         { status: StatusCodes.BAD_REQUEST }
       );
@@ -91,34 +93,38 @@ async function postHandler(req: NextRequestWithAuth, { params: { contractName, u
     const userId = req.userId;
     const developerId = req.developerId;
     const targetAccount = !!userId
-      ? await developersUserAccountModel.findUnique({ where: { id: userId }, select: {id: true} })
-      : await developerAccountModel.findUnique({ where: { id: developerId }, select: {id: true} });
+      ? await developersUserAccountModel.findUnique({ where: { id: userId }, select: { id: true } })
+      : await developerAccountModel.findUnique({ where: { id: developerId }, select: { id: true } });
     const { account } = await getAccountInstance(!!userId ? { userId: targetAccount.id } : { developerId: targetAccount.id });
     if (targetFunction.type === "read") {
-      const contract =  new Contract(contractsInterfaces[contractName].abi, smartContract?.address)
+      // 🏗️ TODO: call the contract as the user, not operator
+      const contract = new Contract(contractsInterfaces[contractName].abi, smartContract?.address);
       let result = await contract[functionName](...Object.values(validBody));
 
+      // 🏗️ TODO: read the Cairo's type of the function's input, distinguish between Contract Address, and BigInt, for
+      // better display of result if (typeof result === "bigint") { console.log("🔮 result: ", (result.toString()))
+      // result = `0x${result.toString(16)}`; result = BigInt(result).toString(16); }
       if (typeof result === "bigint") {
         result = `0x${result.toString(16)}`;
       }
       return NextResponse.json(
-          { result, type: typeof result },
-          { status: StatusCodes.OK }
+        { result },
+        { status: StatusCodes.OK }
       );
     } else {
       const transactionResult = await gaslessTransactionWithFallback(account, functionName, contract, body, functions);
       const txReceipt = !!transactionResult?.txHash
         ? ((await provider.waitForTransaction(
-          transactionResult?.txHash,
-          )) as any)
+          transactionResult?.txHash
+        )) as any)
         : null;
 
       if (!!transactionResult.error) {
         return NextResponse.json(
           {
-            result: transactionResult,
+            result: transactionResult
           },
-          { status: StatusCodes.BAD_REQUEST },
+          { status: StatusCodes.BAD_REQUEST }
         );
       }
 
@@ -129,7 +135,7 @@ async function postHandler(req: NextRequestWithAuth, { params: { contractName, u
           functionName,
           contract,
           txReceipt: txReceipt,
-          eventsPerFunctionName,
+          eventsPerFunctionName
         });
 
         await smartContractInteractionModel.create({
@@ -139,17 +145,16 @@ async function postHandler(req: NextRequestWithAuth, { params: { contractName, u
             method: functionName,
             fees: `${fee}`,
             type: transactionResult.type as "wallet" | "gasless",
-            // @ts-ignore
             output,
             input: body,
-            txHash: transactionResult.txHash,
-          },
+            txHash: transactionResult.txHash
+          }
         });
       }
 
       return NextResponse.json(
-        { result: transactionResult},
-        { status: StatusCodes.OK },
+        { result: transactionResult },
+        { status: StatusCodes.OK }
       );
     }
   } catch (error) {

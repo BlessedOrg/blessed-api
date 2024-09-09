@@ -161,11 +161,10 @@ export const getContractOutput = ({
   functionName,
   contract,
   txReceipt,
-}: IContractOutputProps): IOuputEvent => {
+}: IContractOutputProps): IOuputEvent & {[ket: string]: any} => {
   const parsedEvents = contract.parseEvents(txReceipt);
 
   const eventsToParse = eventsPerFunctionName[functionName];
-  let allEvents = [];
   let targetEventValues = {};
   if (!!eventsToParse && !!txReceipt) {
     for (const event of eventsToParse) {
@@ -179,11 +178,9 @@ export const getContractOutput = ({
       }
     }
   }
-  const formattedArray = formatParsedEventsArray(parsedEvents);
-  allEvents.push(...formattedArray);
 
   return {
-    events: allEvents,
+    events: formatParsedEventsArray(parsedEvents),
     txReceipt,
     targetEventValues,
   };
