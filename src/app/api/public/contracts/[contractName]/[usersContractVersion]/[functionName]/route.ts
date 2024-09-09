@@ -2,17 +2,16 @@ import { NextResponse } from "next/server";
 import { withDeveloperApiToken } from "@/app/middleware/withDeveloperApiToken";
 import { StatusCodes } from "http-status-codes";
 import connectToContract from "@/services/connectToContract";
-import { developerAccountModel, developersUserAccountModel, smartContractModel, smartContractInteractionModel } from "@/prisma/models";
-import { contractsInterfaces, getContractEventData, getContractsFunctions } from "@/contracts/interfaces";
-import { getVaultItem } from "@/server/api/vault/vaultApi";
-import { Account, Contract } from "starknet";
+import { developerAccountModel, developersUserAccountModel, smartContractInteractionModel, smartContractModel } from "@/prisma/models";
+import { contractsInterfaces, getContractOutput, getContractsFunctions } from "@/contracts/interfaces";
+import { Contract } from "starknet";
 import provider from "@/contracts/provider";
-import { gaslessTransaction, getGaslessTransactionCallData } from "@/services/gaslessTransaction";
 import { generateSchemaForContractBody } from "@/utils/generateSchemaForContractBody";
-import { retrieveWalletCredentials } from "@/utils/retrieveWalletCredentials";
 import { cairoInputsFormat } from "@/utils/cairoInputsFormat";
 import { withDeveloperUserAccessToken } from "@/app/middleware/withDeveloperUserAccessToken";
-import { difference, isEmpty, keys, map, size } from "lodash-es";
+import { difference, keys, map, size } from "lodash-es";
+import { gaslessTransactionWithFallback } from "@/server/gaslessTransactionWithFallback";
+import { getAccountInstance } from "@/server/api/accounts/getAccountInstance";
 
 export const maxDuration = 300;
 
@@ -21,13 +20,13 @@ interface EventConfig {
   value: string;
   saveValue?: string;
 }
-
-interface EventsPerFunctionName {
+export interface EventsPerFunctionName {
   [key: string]: EventConfig[];
 }
-
-const getFunctionEvents: EventsPerFunctionName = {
-  "get_ticket": [{ eventName: "TransferSingle", value: "id", saveValue: "token_id" }]
+const eventsPerFunctionName: EventsPerFunctionName = {
+  get_ticket: [
+    { eventName: "TransferSingle", value: "id", saveValue: "token_id" }
+  ]
 };
 
 async function postHandler(req: NextRequestWithAuth, { params: { contractName, usersContractVersion, functionName } }) {
@@ -93,10 +92,10 @@ async function postHandler(req: NextRequestWithAuth, { params: { contractName, u
 
     const userId = req.userId;
     const developerId = req.developerId;
-    const accountData = !!userId
-      ? await developersUserAccountModel.findUnique({ where: { id: userId } })
-      : await developerAccountModel.findUnique({ where: { id: developerId } });
-
+    const targetAccount = !!userId
+      ? await developersUserAccountModel.findUnique({ where: { id: userId }, select: { id: true } })
+      : await developerAccountModel.findUnique({ where: { id: developerId }, select: { id: true } });
+    const { account } = await getAccountInstance(!!userId ? { userId: targetAccount.id } : { developerId: targetAccount.id });
     if (targetFunction.type === "read") {
       // 🏗️ TODO: call the contract as the user, not operator
       const contract = new Contract(contractsInterfaces[contractName].abi, smartContract?.address);
@@ -109,76 +108,54 @@ async function postHandler(req: NextRequestWithAuth, { params: { contractName, u
         result = `0x${result.toString(16)}`;
       }
       return NextResponse.json(
-        { result: result, type: typeof result },
+        { result },
         { status: StatusCodes.OK }
       );
     } else {
-      const keys = await getVaultItem(accountData.vaultKey, "privateKey");
-      const { walletAddress, privateKey } = retrieveWalletCredentials(keys);
-      const account = new Account(provider, walletAddress, privateKey);
-      const calldata = getGaslessTransactionCallData({
-        method: functionName,
-        contractAddress: contract.address,
-        body,
-        abiFunctions: functions
-      });
+      const transactionResult = await gaslessTransactionWithFallback(account, functionName, contract, body, functions);
+      const txReceipt = !!transactionResult?.txHash
+        ? ((await provider.waitForTransaction(
+          transactionResult?.txHash
+        )) as any)
+        : null;
 
-      const tx = await gaslessTransaction(account, calldata);
-      const txReceipt = !!tx?.transactionHash ? await provider.waitForTransaction(tx.transactionHash) as any : null;
+      if (!!transactionResult.error) {
+        return NextResponse.json(
+          {
+            result: transactionResult
+          },
+          { status: StatusCodes.BAD_REQUEST }
+        );
+      }
 
       const fee = parseInt((txReceipt as any)?.actual_fee?.amount, 16);
 
-      if (!!userId && !!tx.transactionHash) {
-        let parsedEvents = [];
-        const eventsToParse = getFunctionEvents[functionName];
-        if (!!eventsToParse && !!txReceipt) {
-          for (const event of eventsToParse) {
-            const parsedEvent = getContractEventData(contract, event.eventName, txReceipt);
-            if (!!parsedEvent) {
-              if (!!event?.saveValue && !!event.value) {
-                parsedEvents.push({
-                  ...parsedEvent,
-                  output: { [event.saveValue]: parsedEvent?.wholeOutput?.[event.value]?.value }
-                });
-              }
-              parsedEvents.push(parsedEvent);
-            }
-          }
-        }
+      if (!!userId && !!txReceipt) {
+        const output = getContractOutput({
+          functionName,
+          contract,
+          txReceipt: txReceipt,
+          eventsPerFunctionName
+        });
+
         await smartContractInteractionModel.create({
           data: {
             developerUserId: userId,
             smartContractId: smartContract.id,
             method: functionName,
             fees: `${fee}`,
-            type: "gasless",
-            output: isEmpty(parsedEvents) ? txReceipt : parsedEvents,
+            type: transactionResult.type as "wallet" | "gasless",
+            output,
             input: body,
-            txHash: tx.transactionHash
+            txHash: transactionResult.txHash
           }
         });
       }
 
-      if (!!tx.error) {
-        contract.connect(account);
-        let userTransactionResult = await contract[functionName](...Object.values(validBody));
-        if (typeof userTransactionResult === "bigint") {
-          userTransactionResult = `0x${userTransactionResult.toString(16)}`;
-        }
-        const gaslessError = tx.error;
-
-        return NextResponse.json({
-          gaslessError,
-          result: userTransactionResult,
-          transactionType: "credentials"
-        }, { status: StatusCodes.OK });
-      }
-
       return NextResponse.json(
-        { result: tx, transactionType: "gasless" },
+        { result: transactionResult },
         { status: StatusCodes.OK }
       );
-
     }
   } catch (error) {
     console.log("🚨 Error while interacting with Smart Contract:", error.message);
