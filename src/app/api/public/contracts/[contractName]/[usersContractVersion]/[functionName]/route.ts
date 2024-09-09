@@ -45,7 +45,6 @@ async function postHandler(req: NextRequestWithAuth, { params: { contractName, u
     const inputsExists = targetFunction.inputs.every(input => body[input.name] !== undefined);
 
     if (!inputsExists) {
-
       const requiredInputNames = map(cairoInputsFormat(targetFunction.inputs), "name");
       const missingParameter = difference(requiredInputNames, keys(body));
 
@@ -121,9 +120,7 @@ async function postHandler(req: NextRequestWithAuth, { params: { contractName, u
 
       if (!!transactionResult.error) {
         return NextResponse.json(
-          {
-            result: transactionResult
-          },
+          { result: transactionResult },
           { status: StatusCodes.BAD_REQUEST }
         );
       }

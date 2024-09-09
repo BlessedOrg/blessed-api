@@ -19,7 +19,7 @@ async function handler(req: NextRequest) {
 
     if (!isEmailTaken && res) {
       return NextResponse.json(
-        { message: "Verification code sent 📧" },
+        { message: "Verification code sent." },
         { status: StatusCodes.OK },
       );
     }
