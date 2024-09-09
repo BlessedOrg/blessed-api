@@ -7,22 +7,26 @@ import { createAndDeployAccount } from "@/server/api/accounts/createAndDeployAcc
 import { createOrUpdateSession } from "@/server/auth/session";
 import { sessionType } from "@prisma/client";
 
+export const maxDuration = 300;
+
 export async function POST(req: Request) {
   const body = await req.json();
   const { code } = body;
 
   if (!code) {
-    return NextResponse.json({ error: "Invalid code format" }, {
-      status: StatusCodes.BAD_REQUEST,
-    } as any);
+    return NextResponse.json(
+      { error: "Invalid code format" },
+      { status: StatusCodes.BAD_REQUEST }
+    );
   }
 
   const verifyEmailResult = await verifyEmailOtp(code);
   const { accepted, email } = verifyEmailResult;
   if (!accepted || !email) {
-    return NextResponse.json({ error: "Invalid code", verifyEmailResult }, {
-      status: StatusCodes.BAD_REQUEST,
-    } as any);
+    return NextResponse.json(
+      { error: "Invalid code", verifyEmailResult },
+      { status: StatusCodes.BAD_REQUEST }
+    );
   }
 
   const createdUser: any = await developerAccountModel.create({
@@ -80,7 +84,7 @@ export async function POST(req: Request) {
           id: newRecordId
         },
       },
-      { status: StatusCodes.OK } as any,
+      { status: StatusCodes.OK },
     );
   }
 

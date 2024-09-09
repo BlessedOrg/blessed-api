@@ -12,11 +12,11 @@ export function getContractEventInterface(eventName: string, abi: any[] | Abi) {
   const fields = event.members.map((member) => ({
     name: member.name,
     type: ciaroTypeFormat(member.type),
-    kind: member.kind,
+    kind: member.kind
   }));
 
   return {
     name: eventName,
-    fields,
+    fields
   };
 }

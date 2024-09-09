@@ -5,6 +5,8 @@ import { apiTokenModel } from "@/prisma/models";
 import { withDeveloperUserAccessToken } from "@/app/middleware/withDeveloperUserAccessToken";
 import jwt from "jsonwebtoken";
 
+export const dynamic = "force-dynamic";
+
 async function postHandler(req: NextRequestWithAuth) {
   const apiTokenRecord = await apiTokenModel.create({
     data: {

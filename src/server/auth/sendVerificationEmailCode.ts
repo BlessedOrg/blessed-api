@@ -10,10 +10,10 @@ type VerificationEmailParams = {
 };
 
 export async function sendVerificationEmailCode({ to, expirationTimeMinutes, isLocalhost }: VerificationEmailParams) {
-  const { SMTP_PASSWORD, SMTP_EMAIL } = process.env;
+  const { SMTP_PASSWORD, SMTP_EMAIL, SMTP_HOST, SMTP_PORT } = process.env;
   
-  if (!isLocalhost && (!SMTP_PASSWORD || !SMTP_EMAIL)) {
-    throw new Error("SMTP_PASSWORD or SMTP_EMAIL is not set");
+  if (!isLocalhost && (!SMTP_PASSWORD || !SMTP_EMAIL || !SMTP_HOST || !SMTP_PORT)) {
+    throw new Error(`You need to provide all SMTP related environment variables - SMTP_PASSWORD, SMTP_EMAIL, SMTP_HOST, SMTP_PORT.`);
   }
 
   let transport;
@@ -30,7 +30,9 @@ export async function sendVerificationEmailCode({ to, expirationTimeMinutes, isL
     });
   } else {
     transport = nodeMailer.createTransport({
-      service: "gmail",
+      host: SMTP_HOST,
+      port: SMTP_PORT as any,
+      secure: false,
       auth: {
         user: SMTP_EMAIL,
         pass: SMTP_PASSWORD,

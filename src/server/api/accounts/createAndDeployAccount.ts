@@ -8,28 +8,20 @@ import { bigIntToHex } from "@/utils/numberConverts";
 
 export async function createAndDeployAccount(email: string) {
   const provider = new RpcProvider({
-    nodeUrl: constants.NetworkName.SN_SEPOLIA,
+    nodeUrl: constants.NetworkName.SN_SEPOLIA
   });
 
   // Argent
-  const argentXaccountClassHash =
-    process.env.NEXT_PUBLIC_ARGENT_ACCOUNT_CLASS_HASH!;
+  const argentXaccountClassHash = process.env.NEXT_PUBLIC_ARGENT_ACCOUNT_CLASS_HASH!;
 
   //Operator account
   const operatorPrivateKey = process.env.OPERATOR_PRIVATE_KEY!;
   const operatorWalletAddress = process.env.OPERATOR_WALLET_ADDR!;
-  if (
-    !operatorPrivateKey ||
-    !operatorWalletAddress ||
-    !argentXaccountClassHash
-  ) {
+  if (!operatorPrivateKey || !operatorWalletAddress || !argentXaccountClassHash) {
     throw new Error("Missing operator/argent environment variables");
   }
-  const operatorAccount = new Account(
-    provider,
-    operatorWalletAddress,
-    operatorPrivateKey,
-  );
+
+  const operatorAccount = new Account(provider, operatorWalletAddress, operatorPrivateKey);
 
   //ETH contract
   const ethContractAddress = process.env.NEXT_PUBLIC_ETH_CONTRACT_ADDRESS!;
@@ -44,18 +36,16 @@ export async function createAndDeployAccount(email: string) {
   // Calculate future address of the ArgentX account
   const AXConstructorCallData = CallData.compile({
     owner: starkKeyPubAX,
-    guardian: "0",
+    guardian: "0"
   });
   const AXcontractAddress = hash.calculateContractAddressFromHash(
     starkKeyPubAX,
     argentXaccountClassHash,
     AXConstructorCallData,
-    0,
+    0
   );
   if (!!AXcontractAddress) {
-    console.log(
-      `📝 Successfully created account with credentials: \n  - private key : ${privateKeyAX}  \n  - public key: ${starkKeyPubAX} \n  - precalculated address: ${AXcontractAddress}`,
-    );
+    console.log(`📝 Successfully created account with credentials: \n  - private key : ${privateKeyAX}  \n  - public key: ${starkKeyPubAX} \n  - precalculated address: ${AXcontractAddress}`);
   }
 
   const accountAX = new Account(provider, AXcontractAddress, privateKeyAX);
@@ -63,56 +53,46 @@ export async function createAndDeployAccount(email: string) {
     classHash: argentXaccountClassHash,
     constructorCalldata: AXConstructorCallData,
     contractAddress: AXcontractAddress,
-    addressSalt: starkKeyPubAX,
+    addressSalt: starkKeyPubAX
   };
   console.log(`🔄 Estimating deploy fee for ArgentX account...`);
   const { suggestedMaxFee } = await accountAX.estimateAccountDeployFee({
     classHash: argentXaccountClassHash,
     constructorCalldata: AXConstructorCallData,
-    contractAddress: AXcontractAddress,
+    contractAddress: AXcontractAddress
   });
-  console.log(
-    `💰 Suggested max fee ETH: ${ethers.formatEther(suggestedMaxFee)} | BigInt: ${suggestedMaxFee}`,
-  );
+  console.log(`💰 Suggested max fee ETH: ${ethers.formatEther(suggestedMaxFee)} | BigInt: ${suggestedMaxFee}`);
 
   ethContract.connect(operatorAccount);
 
   let transferInitialFundsTx = "";
 
   try {
-    console.log(
-      `💎🆓 Sending initial funds to the ArgentX account by gasless... (${ethers.formatEther(suggestedMaxFee)} ETH)`,
-    );
+    console.log(`💎🆓 Sending initial funds to the ArgentX account by gasless... (${ethers.formatEther(suggestedMaxFee)} ETH)`);
 
     const hexNumber = bigIntToHex(suggestedMaxFee);
     const gaslessTransferTx = await gaslessTransaction(operatorAccount, [
       {
         entrypoint: "transfer",
         contractAddress: ethContractAddress,
-        calldata: [`${AXcontractAddress}`, `${hexNumber}`, `0x0`],
-      },
+        calldata: [`${AXcontractAddress}`, `${hexNumber}`, `0x0`]
+      }
     ]);
     if (!!gaslessTransferTx?.transactionHash) {
-      console.log(
-        `✅🆓 Initial funds sent by gasless... txHash: ${gaslessTransferTx.transactionHash}`,
-      );
+      console.log(`✅🆓 Initial funds sent by gasless... txHash: ${gaslessTransferTx.transactionHash}`);
       transferInitialFundsTx = gaslessTransferTx.transactionHash;
     } else {
-      console.log(
-          `❌ Error with sending initial funds by gasless... ${gaslessTransferTx.error}`,
-      );
+      console.log(`❌ Error with sending initial funds by gasless... ${gaslessTransferTx.error}`);
     }
   } catch (e) {
     console.log(`❌ Error with sending initial funds by gasless... ${e}`);
   }
 
   if (!transferInitialFundsTx) {
-    console.log(
-      `💎 Sending initial funds to the ArgentX account by operator... (${ethers.formatEther(suggestedMaxFee)} ETH)`,
-    );
+    console.log(`💎 Sending initial funds to the ArgentX account by operator... (${ethers.formatEther(suggestedMaxFee)} ETH)`);
     const transferTx: any = await ethContract.transfer(
       AXcontractAddress,
-      suggestedMaxFee,
+      suggestedMaxFee
     );
     transferInitialFundsTx = transferTx.transaction_hash;
   }
@@ -120,13 +100,11 @@ export async function createAndDeployAccount(email: string) {
   console.log(`🔄 Waiting for transaction confirmation...`);
 
   const confirmation = await provider.waitForTransaction(
-    transferInitialFundsTx,
+    transferInitialFundsTx
   );
 
   if (confirmation.statusReceipt === "success") {
-    console.log(
-      "🚀 Successfully transfer initial funds to the ArgentX account",
-    );
+    console.log("🚀 Successfully transfer initial funds to the ArgentX account");
   }
 
   console.log("🔄 Deploying ArgentX account...");
@@ -135,7 +113,7 @@ export async function createAndDeployAccount(email: string) {
     privateKeyAX,
     deployAccountPayload,
     starkKeyPubAX,
-    email,
+    email
   );
   return deployStatus;
 }
@@ -145,32 +123,30 @@ const deployAccountAndCreateVaultItem = async (
   privateKeyAX: string,
   deployAccountPayload: any,
   starkKeyPubAX: string,
-  email: string,
+  email: string
 ) => {
   try {
     const {
       transaction_hash: AXdAth,
-      contract_address: AXcontractFinalAddress,
+      contract_address: AXcontractFinalAddress
     } = await accountAX.deployAccount(deployAccountPayload);
 
     if (AXcontractFinalAddress) {
-      console.log(
-        `✅ ArgentX wallet created & deployed: \n  - Final contract address: ${AXcontractFinalAddress}`,
-      );
+      console.log(`✅ ArgentX wallet created & deployed: \n  - Final contract address: ${AXcontractFinalAddress}`);
     }
     const vaultData = await createVaultPrivateKeyItem(
       privateKeyAX,
       starkKeyPubAX,
       AXcontractFinalAddress,
       email,
-      true,
+      true
     );
     return {
       message: "✅ ArgentX wallet created & deployed",
       contractAddress: AXcontractFinalAddress,
       privateKey: privateKeyAX,
       publicKey: starkKeyPubAX,
-      vaultKey: vaultData?.id,
+      vaultKey: vaultData?.id
     };
   } catch (e) {
     const error = e as any;
@@ -180,12 +156,12 @@ const deployAccountAndCreateVaultItem = async (
       starkKeyPubAX,
       accountAX.address,
       email,
-      false,
+      false
     );
     return {
       message: "❌ ArgentX wallet deployment failed",
       error: error?.message,
-      vaultKey: vaultData?.id,
+      vaultKey: vaultData?.id
     };
   }
 };

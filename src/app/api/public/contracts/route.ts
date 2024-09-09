@@ -4,6 +4,8 @@ import { getAllContractsDetails } from "@/contracts/interfaces";
 import { smartContractModel } from "@/prisma/models";
 import { withDeveloperApiToken } from "@/app/middleware/withDeveloperApiToken";
 
+export const dynamic = "force-dynamic";
+
 async function getHandler(req: NextRequestWithAuth) {
   const myContracts = await smartContractModel.findMany({
     where: {

@@ -116,6 +116,8 @@ model SmartContract {
   version                   Int
   DevelopersAccount         DeveloperAccount?          @relation(fields: [developerId], references: [id])
   developerId               String?
+  metadataUrl               String
+  metadataPayload           Json
   Erc20Token                Erc20Token[]
   SmartContractInteractions SmartContractInteraction[]
   createdAt                 DateTime                   @default(now())

@@ -4,6 +4,8 @@ import { withDeveloperAccessToken } from "@/app/middleware/withDeveloperAccessTo
 import { smartContractModel } from "@/prisma/models";
 import { generateQrCode } from "@/services/generateQrCode";
 
+export const dynamic = "force-dynamic";
+
 async function handler(req: NextRequestWithDevAuth) {
   const { developerId } = req;
   const contractData = await smartContractModel.findFirst({
@@ -20,7 +22,7 @@ async function handler(req: NextRequestWithDevAuth) {
   }
 
   const qrCode = await generateQrCode(
-    `${process.env.NEXT_PUBLIC_BASE_URL}/entrance?contractAddress=${contractData.address}`,
+    `${req.nextUrl.origin}/entrance?contractAddress=${contractData.address}`,
   );
   return NextResponse.json(
     { qrCode },
