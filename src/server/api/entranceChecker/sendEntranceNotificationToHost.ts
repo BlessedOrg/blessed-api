@@ -55,7 +55,6 @@ export async function sendEntranceNotificationToHost({
 
   try {
     const testResult = await transport.verify();
-    console.log(`📧 Email service is ready: ${testResult}`);
     if (!testResult) {
       throw new Error("Email service is not ready");
     }
@@ -73,9 +72,7 @@ export async function sendEntranceNotificationToHost({
     });
 
     if (isLocalhost) {
-      console.log(
-        `📨 Email sent. Preview URL: ${nodeMailer.getTestMessageUrl(sendResult)}`,
-      );
+      console.log(`📨 Email sent. Preview URL: ${nodeMailer.getTestMessageUrl(sendResult)}`);
     }
 
     return sendResult;
