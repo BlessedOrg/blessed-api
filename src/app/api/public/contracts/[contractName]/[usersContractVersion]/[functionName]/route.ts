@@ -12,6 +12,7 @@ import { withDeveloperUserAccessToken } from "@/app/middleware/withDeveloperUser
 import { difference, keys, map, size } from "lodash-es";
 import { gaslessTransactionWithFallback } from "@/server/gaslessTransactionWithFallback";
 import { getAccountInstance } from "@/server/api/accounts/getAccountInstance";
+import formatCairoFunctionResult from "@/utils/formatCairoFunctionResult";
 
 export const maxDuration = 300;
 
@@ -96,18 +97,15 @@ async function postHandler(req: NextRequestWithAuth, { params: { contractName, u
       : await developerAccountModel.findUnique({ where: { id: developerId }, select: { id: true } });
     const { account } = await getAccountInstance(!!userId ? { userId: targetAccount.id } : { developerId: targetAccount.id });
     if (targetFunction.type === "read") {
-      // 🏗️ TODO: call the contract as the user, not operator
       const contract = new Contract(contractsInterfaces[contractName].abi, smartContract?.address);
+      contract.connect(account);
       let result = await contract[functionName](...Object.values(validBody));
-
-      // 🏗️ TODO: read the Cairo's type of the function's input, distinguish between Contract Address, and BigInt, for
-      // better display of result if (typeof result === "bigint") { console.log("🔮 result: ", (result.toString()))
-      // result = `0x${result.toString(16)}`; result = BigInt(result).toString(16); }
-      if (typeof result === "bigint") {
-        result = `0x${result.toString(16)}`;
-      }
+      const initialType = typeof result;
       return NextResponse.json(
-        { result },
+        {
+          result: formatCairoFunctionResult(result, targetFunction),
+          type: initialType
+        },
         { status: StatusCodes.OK }
       );
     } else {

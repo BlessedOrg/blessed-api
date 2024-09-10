@@ -42,7 +42,6 @@ export async function sendVerificationEmailCode({ to, expirationTimeMinutes, isL
 
   try {
     const testResult = await transport.verify();
-    console.log(`📧 Email service is ready: ${testResult}`);
     if (!testResult) {
       throw new Error("Email service is not ready");
     }
