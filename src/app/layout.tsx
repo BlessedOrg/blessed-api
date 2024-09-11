@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.scss";
-import { Flowbite, ThemeModeScript } from "flowbite-react";
+import { Flowbite } from "flowbite-react";
 import { RootProvider } from "@/providers/RootProvider";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -14,12 +14,13 @@ export const metadata: Metadata = {
 export default function RootLayout({ children, }: Readonly<{ children: React.ReactNode; }>) {
   return (
     <html lang="en">
-      <head>
-        <ThemeModeScript defaultValue={"dark"} />
-      </head>
       <body className={inter.className}>
-        <Flowbite>
-          <RootProvider>{children}</RootProvider>
+        <Flowbite >
+          <RootProvider>
+            <main className="flex flex-col gap-8 items-center w-full">
+              {children}
+            </main>
+          </RootProvider>
         </Flowbite>
       </body>
     </html>
