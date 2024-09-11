@@ -22,7 +22,7 @@ const deployContract = async ({ contractName, constructorArgs, classHash }: Depl
 
   if (txRes.isSuccess()) {
     const fee = parseInt((txRes as any)?.actual_fee?.amount, 16);
-    console.log(`📜 ${contractName} deployed: ${getExplorerUrl(deployResponse.contract_address)}`);
+    console.log(`📜 ${contractName} deployed: ${getExplorerUrl(deployResponse.contract_address, "contract")}`);
     return {
       ...deployResponse,
       fee,

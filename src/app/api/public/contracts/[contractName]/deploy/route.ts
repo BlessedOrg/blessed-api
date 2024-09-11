@@ -46,7 +46,6 @@ async function postHandler(req: NextRequestWithAuth, { params: { contractName } 
       constructorArgs: body.constructor,
       classHash
     });
-    console.log("🔮 deployResponse: ", deployResponse)
 
     const maxId = await smartContractModel.aggregate({
       where: {
