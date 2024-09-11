@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { StatusCodes } from "http-status-codes";
 import { withDeveloperAccessToken } from "@/app/middleware/withDeveloperAccessToken";
 import { smartContractModel } from "@/prisma/models";
-import { generateQrCode } from "@/services/generateQrCode";
+import { generateQrCode } from "@/server/services/generateQrCode";
 
 export const dynamic = "force-dynamic";
 

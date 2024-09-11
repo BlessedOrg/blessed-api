@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
 import { isEmpty, isEqual, sortBy } from "lodash-es";
 import { StatusCodes } from "http-status-codes";
-import deployContract from "@/services/deployContract";
+import deployContract from "@/server/services/deployContract";
 import { getContractClassHash, getContractsConstructorsNames } from "@/contracts/interfaces";
 import { smartContractModel } from "@/prisma/models";
 import { withDeveloperAccessToken } from "@/app/middleware/withDeveloperAccessToken";
 import {withDeveloperApiToken} from "@/app/middleware/withDeveloperApiToken";
-import { uploadMetadata } from "@/services/irys";
+import { uploadMetadata } from "@/server/services/irys";
 
 export const maxDuration = 300;
 

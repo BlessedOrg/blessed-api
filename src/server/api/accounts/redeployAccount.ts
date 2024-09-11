@@ -3,7 +3,7 @@ import { developerAccountModel, developersUserAccountModel } from "@/prisma/mode
 import { updateVaultItem } from "@/server/api/vault/vaultApi";
 import { Account, CallData, constants, Contract, hash, RpcProvider } from "starknet";
 import { ethers } from "ethers";
-import { gaslessTransaction } from "@/services/gaslessTransaction";
+import { gaslessTransaction } from "@/server/services/gaslessTransaction";
 import ethAbi from "@/contracts/abis/ethAbi.json";
 import { bigIntToHex } from "@/utils/numberConverts";
 import { getAccountInstance } from "@/server/api/accounts/getAccountInstance";

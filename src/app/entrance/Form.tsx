@@ -5,7 +5,7 @@ import { entranceEntry } from "@/server/api/entranceChecker/entranceEntry";
 import { toast } from "react-toastify";
 import { Button, TextInput } from "flowbite-react";
 import Image from "next/image";
-import { generateQrCode } from "@/services/generateQrCode";
+import { generateQrCode } from "@/server/services/generateQrCode";
 import {sendEntranceNotificationToHost} from "@/server/api/entranceChecker/sendEntranceNotificationToHost";
 
 

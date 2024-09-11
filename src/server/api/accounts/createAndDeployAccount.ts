@@ -3,7 +3,7 @@ import { Account, CallData, constants, Contract, ec, hash, RpcProvider, stark } 
 import ethAbi from "@/contracts/abis/ethAbi.json";
 import { ethers } from "ethers";
 import { createVaultPrivateKeyItem } from "@/server/api/vault/vaultApi";
-import { gaslessTransaction } from "@/services/gaslessTransaction";
+import { gaslessTransaction } from "@/server/services/gaslessTransaction";
 import { bigIntToHex } from "@/utils/numberConverts";
 
 export async function createAndDeployAccount(email: string) {

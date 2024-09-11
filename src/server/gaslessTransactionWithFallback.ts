@@ -1,6 +1,6 @@
 "use server";
 import { Abi, Account, Contract } from "starknet";
-import { gaslessTransaction, getGaslessTransactionCallData } from "@/services/gaslessTransaction";
+import { gaslessTransaction, getGaslessTransactionCallData } from "@/server/services/gaslessTransaction";
 
 export async function gaslessTransactionWithFallback(
   account: Account,
