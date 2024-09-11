@@ -17,7 +17,7 @@ export default function RootLayout({ children, }: Readonly<{ children: React.Rea
       <body className={inter.className}>
         <Flowbite >
           <RootProvider>
-            <main className="flex flex-col gap-8 items-center w-full">
+            <main className="flex flex-col gap-8 items-center w-full bg-gray-500 min-h-[100vh] px-[1.5rem]">
               {children}
             </main>
           </RootProvider>

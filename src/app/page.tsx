@@ -1,8 +1,10 @@
+import { Navigation } from "@/components/navigation/Navigation";
+
 export default function Home() {
 
   return (
     <>
-      <h1>Blessed</h1>
+     <Navigation />
     </>
   );
 }
