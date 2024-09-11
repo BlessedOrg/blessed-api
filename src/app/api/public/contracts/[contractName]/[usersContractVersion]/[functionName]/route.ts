@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { withDeveloperApiToken } from "@/app/middleware/withDeveloperApiToken";
 import { StatusCodes } from "http-status-codes";
-import connectToContract from "@/services/connectToContract";
+import connectToContract from "@/server/services/connectToContract";
 import { developerAccountModel, developersUserAccountModel, smartContractInteractionModel, smartContractModel } from "@/prisma/models";
 import { contractsInterfaces, getContractOutput, getContractsFunctions } from "@/contracts/interfaces";
 import { Contract } from "starknet";
