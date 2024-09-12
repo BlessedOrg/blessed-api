@@ -5,7 +5,7 @@ import deployContract from "@/server/services/deployContract";
 import { getContractClassHash, getContractsConstructorsNames } from "@/contracts/interfaces";
 import { smartContractModel } from "@/prisma/models";
 import { withDeveloperAccessToken } from "@/app/middleware/withDeveloperAccessToken";
-import {withDeveloperApiToken} from "@/app/middleware/withDeveloperApiToken";
+import { withDeveloperApiToken } from "@/app/middleware/withDeveloperApiToken";
 import { uploadMetadata } from "@/server/services/irys";
 
 export const maxDuration = 300;
@@ -38,7 +38,7 @@ async function postHandler(req: NextRequestWithAuth, { params: { contractName } 
         { status: StatusCodes.BAD_REQUEST }
       );
     }
-    
+
     const metadataUrl = await uploadMetadata({ name, description, symbol, image });
 
     const deployResponse = await deployContract({

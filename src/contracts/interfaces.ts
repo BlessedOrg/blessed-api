@@ -54,7 +54,7 @@ export function getContractClassHash(name: string) {
     case contractsNames().EntranceChecker:
       return "0x037059dd76cb7df102862b83cb07e338c084c38c2eef707e1700892c8aaac83c";
     case contractsNames().ERC1155EventTicket:
-      return "0x022473b5da94aa8beeb3b592342e109bd19383afb931896b9e4686011443d4e4";
+      return "0x00ecffa1e0b3375663df478b5d42a9f232fad4e6badf016fb0fbdcdcd0426468";
     case contractsNames().ERC20EventCurrency:
       return "0x009b9c1d9acddafd3da6e0a2d57733f539ef2e5d7cdbb917cef7af6cfc051638";
     default:
