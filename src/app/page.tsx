@@ -1,10 +1,11 @@
-import { Navigation } from "@/components/navigation/Navigation";
+import { HomeDashboard } from "@/components/homeDashboard/HomeDashboard";
+import { Navigation } from "@/components/homeDashboard/navigation/Navigation";
 
-export default function Home() {
-
+export default function HomePage() {
   return (
-    <>
-     <Navigation />
-    </>
+    <div className="flex w-full flex-col bg-gray-500">
+      <Navigation />
+      <HomeDashboard />
+    </div>
   );
 }

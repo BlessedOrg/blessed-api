@@ -7,7 +7,25 @@ const config: Config = {
   content: ["./src/**/*.{js,ts,jsx,tsx,mdx}", flowbite.content()],
   darkMode: "class",
   theme: {
+    screens: {
+      "xs": "580px",
+      "sm": "640px",
+      "md": "768px",
+      "lg": "1024px",
+      "xl": "1280px",
+      "2xl": "1440px",
+      "3xl": "1536px",
+      "4xl": "1680px",
+      "5xl": "1920px",
+    },
     extend: {
+      backgroundImage: {
+        'primary': 'linear-gradient(90deg, #06F881 0%, #FFFACD 100%)',
+        'secondary': 'linear-gradient(247.1deg, #06F881 0%, #FFFACD 67%)',
+      },
+      height: {
+        "button": "3.25rem"
+      },
       colors: {
         "primary": {
           50: "#E0FEF0",
@@ -36,10 +54,10 @@ const config: Config = {
         "gray": {
           50: "#FFFFFF",
           100: "#F7F7F7",
-          200: "#EFEFEF",
+          200: "#5F5F5F",
           300: "#E0E0E0",
           400: "#D1D1D1",
-          500: "#C2C2C2",
+          500: "#EFEFEF",
           600: "#B3B3B3",
           700: "#A4A4A4",
           800: "#959595",

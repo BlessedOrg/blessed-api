@@ -41,5 +41,6 @@ next-env.d.ts
 
 .idea/*
 
-# creds
+# rest
 1password-credentials.json
+.prettierrc
