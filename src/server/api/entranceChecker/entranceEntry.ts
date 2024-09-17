@@ -13,7 +13,7 @@ export async function entranceEntry(enteredEmail, entranceContractAddress) {
     const userId = await getUserIdByEmail(enteredEmail);
     const { account, accountData } = await getAccountInstance({ userId });
     const entranceContract = connectToContract({
-      name: contractsNames().EntranceChecker,
+      name: contractsNames().entrance_checker,
       address: entranceContractAddress,
     });
     entranceContract.connect(account);
@@ -64,7 +64,7 @@ export async function entranceEntry(enteredEmail, entranceContractAddress) {
     const tokenId = ticketTransaction?.output?.['targetEventValues']?.token_id;
 
     const ticketContract = connectToContract({
-      name: contractsNames().ERC1155EventTicket,
+      name: contractsNames().ticket,
       address: erc1155Address,
     });
 

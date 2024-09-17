@@ -7,6 +7,7 @@ import { smartContractModel } from "@/prisma/models";
 import { withDeveloperAccessToken } from "@/app/middleware/withDeveloperAccessToken";
 import { withDeveloperApiToken } from "@/app/middleware/withDeveloperApiToken";
 import { uploadMetadata } from "@/server/services/irys";
+import z from "zod";
 
 export const maxDuration = 300;
 
@@ -22,15 +23,35 @@ async function postHandler(req: NextRequestWithAuth, { params: { contractName } 
     const constructorArgs = getContractsConstructorsNames(contractName);
 
     const body = await req.json();
+    const { metadata, ...constructor } = body;
 
-    if (!isEqual(sortBy(constructorArgs), sortBy(Object.keys(body.constructor))) || isEmpty(body)) {
+
+    if (!isEqual(sortBy(constructorArgs), sortBy(Object.keys(constructor))) || isEmpty(body)) {
       return NextResponse.json(
         { error: `Invalid constructor arguments for contract ${contractName}. The proper arguments are: ${constructorArgs} (in this particular order)` },
         { status: StatusCodes.BAD_REQUEST }
       );
     }
 
-    const { metadata: { name, description, image, symbol } } = body;
+    const MetadataSchema = z.object({
+      metadata: z.object({
+        name: z.string().min(1),
+        description: z.string().min(1),
+        image: z.string().min(1),
+        symbol: z.string().min(1),
+      }).required(),
+    });
+
+    const parsedBody = MetadataSchema.safeParse(body);
+
+    if (!parsedBody.success) {
+      return NextResponse.json(
+        { error: `Invalid request body. The proper fields are: metadata { name (string), description (string), image (base64 string), symbol (string) }` },
+        { status: StatusCodes.BAD_REQUEST }
+      );
+    }
+
+    const { metadata: { name, description, image, symbol } } = parsedBody.data;
 
     if (!name || !description || !image || !symbol) {
       return NextResponse.json(
@@ -43,7 +64,7 @@ async function postHandler(req: NextRequestWithAuth, { params: { contractName } 
 
     const deployResponse = await deployContract({
       contractName,
-      constructorArgs: body.constructor,
+      constructorArgs: constructor,
       classHash
     });
 
