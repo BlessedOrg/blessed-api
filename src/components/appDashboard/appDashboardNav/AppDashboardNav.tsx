@@ -2,7 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { CustomButton } from "@/components/CustomComponents";
 import { MobileNavigation } from "@/components/homeDashboard/navigation/MobileNavigation";
-import { ProjectSelect } from "@/components/createDashboard/createDashboardNav/ProjectSelect";
+import { AppSelect } from "@/components/appDashboard/appDashboardNav/AppSelect";
 
 export const AppDashboardNav = () => {
   return (
@@ -11,7 +11,7 @@ export const AppDashboardNav = () => {
         <Link href={"/"} className="p-2 rounded-full bg-white h-[3.25rem] flex items-center justify-center">
           <Image src={"/logo-small.svg"} alt="logo blessed" width={36} height={36} className="h-[36px]" />
         </Link>
-        <ProjectSelect />
+        <AppSelect />
       </div>
       <div className="flex gap-2">
         <CustomButton className="bg-white">App</CustomButton>

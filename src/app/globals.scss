@@ -11,13 +11,3 @@ body {
   color: rgb(var(--foreground-rgb));
   background: rgb(var(--background-rgb));
 }
-
-//flowbite overwrite
-
-* {
-  --tw-ring-color: rgb(0 0 0 / 0) !important;
-  --tw-ring-opacity: 0 !important;
-}
-* > button {
-  cursor: pointer;
-}

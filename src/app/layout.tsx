@@ -1,5 +1,4 @@
 import { RootProvider } from "@/providers/RootProvider";
-import { Flowbite } from "flowbite-react";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.scss";
@@ -15,9 +14,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   return (
     <html lang="en">
       <body className={inter.className}>
-        <Flowbite>
-          <RootProvider>{children}</RootProvider>
-        </Flowbite>
+        <RootProvider>{children}</RootProvider>
       </body>
     </html>
   );

@@ -1,6 +1,5 @@
 import { createDashboardSidebarCategoriesAndFields } from "@/components/createDashboard/createDashboardSidebarFields/createDashboardSidebarCategoriesAndFields";
 import { Card } from "@/components/Card";
-import { Label, TextInput } from "flowbite-react";
 
 export const CreateDashboardContent = ({ selectedTab, form }) => {
   const { register } = form;
@@ -26,22 +25,15 @@ export const CreateDashboardContent = ({ selectedTab, form }) => {
             <Card key={field.id} className={`${selectedTab === tab.href ? "" : "!hidden"}`}>
               <div>
                 <div className="mb-2 block">
-                  <Label htmlFor={field.id} color="gray" value={field.name} />
+                  <label htmlFor={field.id} color="gray">
+                    {field.name}
+                  </label>
                 </div>
-                <TextInput
+                <input
                   id={field.id}
                   type={field.type}
                   placeholder={field.placeholder}
                   required={field.required}
-                  color="white"
-                  className=""
-                  theme={{
-                    field: {
-                      input: {
-                        base: "!placeholder-black-300",
-                      },
-                    },
-                  }}
                   {...register(field.id)}
                 />
               </div>
