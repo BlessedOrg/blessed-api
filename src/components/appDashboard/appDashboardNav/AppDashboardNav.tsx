@@ -3,9 +3,8 @@ import Image from "next/image";
 import { CustomButton } from "@/components/CustomComponents";
 import { MobileNavigation } from "@/components/homeDashboard/navigation/MobileNavigation";
 import { ProjectSelect } from "@/components/createDashboard/createDashboardNav/ProjectSelect";
-import { Suspense } from "react";
 
-export const CreateDashboardNav = () => {
+export const AppDashboardNav = () => {
   return (
     <nav className="flex justify-between w-full py-6 bg-gray-500 px-6 sticky top-0 left-0 right-0 z-20">
       <div className="flex gap-2">
@@ -15,23 +14,18 @@ export const CreateDashboardNav = () => {
         <ProjectSelect />
       </div>
       <div className="flex gap-2">
-        <CustomButton className="bg-white">Create</CustomButton>
+        <CustomButton className="bg-white">App</CustomButton>
         <CustomButton className="bg-transparent">Analyze</CustomButton>
       </div>
-      <div className="hidden md:flex gap-5 items-center">
-        <Image
-          alt=""
-          height="52"
-          referrerPolicy="no-referrer"
-          src="/img/placeholder_avatar.png"
-          width="52"
-          className="h-button w-[52px] rounded-full"
-        />
-        <CustomButton>Publish</CustomButton>
-      </div>
-      <Suspense>
-        <MobileNavigation />
-      </Suspense>
+      <Image
+        alt=""
+        height="52"
+        referrerPolicy="no-referrer"
+        src="/img/placeholder_avatar.png"
+        width="52"
+        className="h-button w-[52px] rounded-full"
+      />
+      <MobileNavigation />
     </nav>
   );
 };

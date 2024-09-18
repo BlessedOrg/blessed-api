@@ -18,6 +18,7 @@
     "@starknet-react/chains": "^0.1.7",
     "@types/qrcode": "^1.5.5",
     "bcryptjs": "^2.4.3",
+    "cookies-next": "^4.2.1",
     "ethers": "^6.13.2",
     "flowbite": "^2.5.1",
     "flowbite-react": "^0.10.1",
@@ -37,6 +38,7 @@
     "sass": "^1.77.8",
     "starknet": "^6.12.1",
     "starknetkit": "^2.2.7",
+    "swr": "^2.2.5",
     "uuid": "^10.0.0",
     "zod": "^3.23.8"
   },

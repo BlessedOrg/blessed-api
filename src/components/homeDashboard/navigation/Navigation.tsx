@@ -1,4 +1,4 @@
-import { CustomButton } from "@/components/CustomButton";
+import { CustomLink } from "@/components/CustomComponents";
 import Image from "next/image";
 import Link from "next/link";
 import { MobileNavigation } from "./MobileNavigation";
@@ -18,7 +18,7 @@ export const Navigation = () => {
           width="52"
           className="h-button w-[52px] rounded-full"
         />
-        <CustomButton>Add entry</CustomButton>
+        <CustomLink href="/create">Add entry</CustomLink>
       </div>
       <MobileNavigation />
     </nav>

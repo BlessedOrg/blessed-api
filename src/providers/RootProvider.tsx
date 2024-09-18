@@ -1,10 +1,11 @@
 import "react-toastify/dist/ReactToastify.css";
 import { ToastContainer } from "react-toastify";
+import { UserContextProvider } from "@/store/UserContext";
 
 export const RootProvider = ({ children }) => {
   return (
     <>
-      {children}
+      <UserContextProvider>{children}</UserContextProvider>
       <ToastContainer
         position="bottom-center"
         autoClose={3000}

@@ -1,5 +1,5 @@
 import { Card } from "@/components/Card";
-import { CustomButton } from "@/components/CustomButton";
+import { CustomLink } from "@/components/CustomComponents";
 import { EntriesView } from "@/components/homeDashboard/views/EntriesView";
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
@@ -12,7 +12,9 @@ export const Dashboard = () => {
           <h2 className="font-bold text-3xl uppercase">Start creating</h2>
           <p className="text-sm">Create and manage your entry API in just three steps.</p>
         </div>
-        <CustomButton className="bg-transparent border-2 border-black-50 w-fit">Create entry</CustomButton>
+        <CustomLink href="/create" className="bg-transparent border-2 border-black-50 w-fit">
+          Create entry
+        </CustomLink>
       </Card>
 
       <Card className="flex gap-5 justify-between">

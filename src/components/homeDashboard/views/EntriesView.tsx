@@ -1,5 +1,5 @@
 import { Card } from "@/components/Card";
-import { CustomButton } from "@/components/CustomButton";
+import { CustomButton, CustomLink } from "@/components/CustomComponents";
 import Image from "next/image";
 
 const recentEntries = [
@@ -31,7 +31,13 @@ export const EntriesView = () => {
         {recentEntries.map((entry, index) => {
           return (
             <Card key={entry.title + index} className="flex gap-4">
-              <Image src={entry.image} alt="" width={175} height={99} className="rounded-2xl w-full max-w-[175px] h-[100px] object-cover" />
+              <Image
+                src={entry.image}
+                alt=""
+                width={175}
+                height={99}
+                className="rounded-2xl w-full max-w-[175px] h-[100px] object-cover"
+              />
               <div className="flex flex-col gap-1">
                 <div>
                   <p className="text-sm text-gray-200 uppercase font-semibold">Entry Type </p>
@@ -47,7 +53,9 @@ export const EntriesView = () => {
       </div>
       <div className="flex gap-4 justify-center">
         <CustomButton className="bg-transparent border-2 border-black-50 w-fit">See more</CustomButton>
-        <CustomButton className="w-fit">Add new entry</CustomButton>
+        <CustomLink href="/create" className="w-fit">
+          Add entry
+        </CustomLink>
       </div>
     </div>
   );

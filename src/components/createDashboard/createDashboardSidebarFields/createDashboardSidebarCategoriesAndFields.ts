@@ -8,22 +8,11 @@ export const createDashboardSidebarCategoriesAndFields = [
     icon: "/img/icons/heart.svg",
     tabs: [
       {
-        name: "API key",
-        href: "api-key",
-        fields: [
-          {
-            id: "api-key",
-            name: "API key",
-            type: "text"
-          }
-        ]
-      },
-      {
         name: "Name and description",
         href: "name-and-description",
         primary: true,
         customFieldComponents: [NameAndDescriptionField],
-        fields: []
+        fields: [],
       },
       {
         name: "Date and time",
@@ -34,8 +23,8 @@ export const createDashboardSidebarCategoriesAndFields = [
             name: "Date",
             type: "date",
             required: true,
-          }
-        ]
+          },
+        ],
       },
       {
         name: "Ticket type",
@@ -44,11 +33,11 @@ export const createDashboardSidebarCategoriesAndFields = [
           {
             id: "ticket-type",
             name: "Ticket type",
-            type: "select"
-          }
-        ]
-      }
-    ]
+            type: "select",
+          },
+        ],
+      },
+    ],
   },
   {
     id: "customize",
@@ -60,19 +49,19 @@ export const createDashboardSidebarCategoriesAndFields = [
         name: "Ticket design",
         href: "ticket-design",
         fields: [],
-        primary: true
+        primary: true,
       },
       {
         name: "Payment methods",
         href: "payment-methods",
-        fields: []
+        fields: [],
       },
       {
         name: "Discounts and promo codes",
         href: "discounts-and-promo-codes",
-        fields: []
-      }
-    ]
+        fields: [],
+      },
+    ],
   },
   {
     id: "publish",
@@ -84,23 +73,23 @@ export const createDashboardSidebarCategoriesAndFields = [
         name: "Publish date",
         href: "publish-date",
         fields: [],
-        primary: true
+        primary: true,
       },
       {
         name: "API Endpoints",
         href: "api-endpoints",
-        fields: []
+        fields: [],
       },
       {
         name: "Preview",
         href: "preview",
-        fields: []
+        fields: [],
       },
       {
         name: "Distribution channels",
         href: "distribution-channels",
-        fields: []
-      }
-    ]
-  }
+        fields: [],
+      },
+    ],
+  },
 ];
