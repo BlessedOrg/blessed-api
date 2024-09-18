@@ -25,6 +25,7 @@ model DeveloperAccount {
   ApiTokens       ApiToken[]
   Erc20Tokens     Erc20Token[]
   SmartContract   SmartContract[]
+  Applications    DeveloperApplication[]
   createdAt       DateTime                @default(now())
   updatedAt       DateTime                @updatedAt
 }
@@ -85,13 +86,16 @@ model EmailVerificationCode {
 }
 
 model ApiToken {
-  id               String            @id @default(cuid())
-  vaultKey         String
-  DeveloperAccount DeveloperAccount? @relation(fields: [developerId], references: [id])
-  developerId      String?
-  expiresAt        DateTime?
-  createdAt        DateTime          @default(now())
-  updatedAt        DateTime          @updatedAt
+  id                     String                @id @default(cuid())
+  vaultKey               String
+  DeveloperAccount       DeveloperAccount?     @relation(fields: [developerId], references: [id])
+  developerId            String?
+  DeveloperApplication   DeveloperApplication? @relation(fields: [developerApplicationId], references: [id])
+  developerApplicationId String?
+  revoked                Boolean               @default(false)
+  expiresAt              DateTime?
+  createdAt              DateTime              @default(now())
+  updatedAt              DateTime              @updatedAt
 }
 
 model Erc20Token {
@@ -118,6 +122,8 @@ model SmartContract {
   developerId               String?
   metadataUrl               String
   metadataPayload           Json
+  DeveloperApplication      DeveloperApplication?      @relation(fields: [developerApplicationId], references: [id])
+  developerApplicationId    String?
   Erc20Token                Erc20Token[]
   SmartContractInteractions SmartContractInteraction[]
   createdAt                 DateTime                   @default(now())
@@ -125,23 +131,39 @@ model SmartContract {
 }
 
 model SmartContractInteraction {
-  id                    String                       @id @default(cuid())
-  DevelopersUserAccount DevelopersUserAccount        @relation(fields: [developerUserId], references: [id])
-  developerUserId       String
-  SmartContract         SmartContract                @relation(fields: [smartContractId], references: [id])
-  smartContractId       String
-  method                String
-  txHash                String
-  output                Json?
-  input                 Json?
-  fees                  String?
-  type                  SmartContractInteractionType
-  createdAt             DateTime                     @default(now())
-  updatedAt             DateTime                     @updatedAt
+  id                     String                       @id @default(cuid())
+  DevelopersUserAccount  DevelopersUserAccount        @relation(fields: [developerUserId], references: [id])
+  developerUserId        String
+  SmartContract          SmartContract                @relation(fields: [smartContractId], references: [id])
+  smartContractId        String
+  DeveloperApplication   DeveloperApplication?        @relation(fields: [developerApplicationId], references: [id])
+  developerApplicationId String?
+  method                 String
+  txHash                 String
+  output                 Json?
+  input                  Json?
+  fees                   String?
+  type                   SmartContractInteractionType
+  createdAt              DateTime                     @default(now())
+  updatedAt              DateTime                     @updatedAt
 }
 
 enum SmartContractInteractionType {
   gasless
   operator
   wallet
+}
+
+model DeveloperApplication {
+  id                        String                     @id @default(cuid())
+  name                      String
+  description               String?
+  image                     String?
+  SmartContracts            SmartContract[]
+  SmartContractInteractions SmartContractInteraction[]
+  ApiTokens                 ApiToken[]
+  DeveloperAccount          DeveloperAccount           @relation(fields: [developerId], references: [id])
+  developerId               String
+  createdAt                 DateTime                   @default(now())
+  updatedAt                 DateTime                   @updatedAt
 }
