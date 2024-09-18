@@ -1,13 +1,11 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { entranceEntry } from "@/server/api/entranceChecker/entranceEntry";
 import { toast } from "react-toastify";
-import { Button, TextInput } from "flowbite-react";
 import Image from "next/image";
-import { generateQrCode } from "@/server/services/generateQrCode";
-import {sendEntranceNotificationToHost} from "@/server/api/entranceChecker/sendEntranceNotificationToHost";
-
+import { generateQrCode } from "@/utils/generateQrCode";
+import { CustomButton } from "@/components/CustomComponents";
+import { fetcher } from "@/requests/requests";
 
 export const EntranceForm = () => {
   const [enteredToEvent, setEnteredToEvent] = useState(false);
@@ -21,7 +19,13 @@ export const EntranceForm = () => {
 
   const onSubmit = async () => {
     try {
-      const res = await entranceEntry(enteredEmail, contractAddress);
+      const res = await fetcher(`/entrance/notify`, {
+        method: "POST",
+        body: JSON.stringify({
+          enteredEmail,
+          contractAddress,
+        }),
+      });
       if (res?.error) {
         setErrorMessage(res.error);
         toast(`Something went wrong: ${res.error}`, { type: "error" });
@@ -33,7 +37,14 @@ export const EntranceForm = () => {
         setEnteredToEvent(true);
       } else {
         const isLocalhost = window?.location?.hostname === "localhost";
-        await sendEntranceNotificationToHost({contractAddress, isLocalhost, userData: res.userData})
+        await fetcher(`/entrance/notify`, {
+          method: "POST",
+          body: JSON.stringify({
+            contractAddress,
+            isLocalhost,
+            userData: res.userData,
+          }),
+        });
         setMessage(res.message);
         toast("Successfully entered", { type: "success" });
         setEnteredToEvent(true);
@@ -48,7 +59,7 @@ export const EntranceForm = () => {
   const generateQrCodeForContract = async () => {
     const mobileDomain = process.env.NEXT_PUBLIC_MOBILE_BASE_URL;
     const qr = await generateQrCode(
-      `http://${mobileDomain}/entrance?contractAddress=0x73a4a17ebe1fe23652d0b7b03a5a7759b6eb7649d2a8e61da02755fe6cab771`,
+      `http://${mobileDomain}/entrance?contractAddress=0x73a4a17ebe1fe23652d0b7b03a5a7759b6eb7649d2a8e61da02755fe6cab771`
     );
     setQrCode(qr);
     return;
@@ -66,19 +77,11 @@ export const EntranceForm = () => {
       {!!contractAddress && !enteredToEvent && !errorMessage && (
         <div className="flex flex-col gap-2">
           <p>Enter email to join the event</p>
-          <TextInput
-            onChange={onEmailChange}
-            value={enteredEmail}
-            type={"email"}
-            addon={"@"}
-            placeholder={"Enter email"}
-          />
-          <Button onClick={onSubmit}>Submit</Button>
+          <input onChange={onEmailChange} value={enteredEmail} type={"email"} placeholder={"Enter email"} />
+          <CustomButton onClick={onSubmit}>Submit</CustomButton>
         </div>
       )}
-      {!contractAddress && qrCode && (
-        <Image src={qrCode} alt={"qr"} width={200} height={200} />
-      )}
+      {!contractAddress && qrCode && <Image src={qrCode} alt={"qr"} width={200} height={200} />}
     </div>
   );
 };

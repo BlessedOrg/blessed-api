@@ -5,9 +5,7 @@ import { retrieveWalletCredentials } from "@/utils/retrieveWalletCredentials";
 import { Account } from "starknet";
 import provider from "@/contracts/provider";
 
-type GetAccountInstanceProps =
-  | { developerId: string; userId?: never }
-  | { developerId?: never; userId: string };
+type GetAccountInstanceProps = { developerId: string; userId?: never } | { developerId?: never; userId: string };
 
 export const getAccountInstance = async ({ developerId, userId }: GetAccountInstanceProps) => {
   const accountData = !!developerId
@@ -23,4 +21,12 @@ export const getAccountInstance = async ({ developerId, userId }: GetAccountInst
     publicKey,
     walletAddress,
   };
+};
+
+export const getAccountData = async ({ developerId, userId }: GetAccountInstanceProps) => {
+  const accountData = !!developerId
+    ? await developerAccountModel.findUnique({ where: { id: developerId }, include: { ApiTokens: true } })
+    : await developersUserAccountModel.findUnique({ where: { id: userId } });
+
+  return accountData;
 };
