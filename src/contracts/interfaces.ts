@@ -2,7 +2,7 @@ import fs from "fs";
 import path from "path";
 import { Abi, Contract, GetTransactionReceiptResponse } from "starknet";
 import { cairoInputsFormat } from "@/utils/cairoInputsFormat";
-import { EventsPerFunctionName } from "@/app/api/public/contracts/[contractName]/[usersContractVersion]/[functionName]/route";
+import { EventsPerFunctionName } from "@/app/api/public/[contractName]/[usersContractVersion]/[functionName]/route";
 import { formatParsedEventsArray } from "@/utils/contractEvents/formatParsedEventsArray";
 import { getTargetEventData } from "@/utils/contractEvents/getTargetEventData";
 
@@ -42,20 +42,21 @@ export function contractsNames() {
 
   const obj: ContractNames = {};
 
-  contractNames.forEach((item, index) => {
+  contractNames.forEach((item) => {
     obj[item] = item;
   });
+
 
   return obj;
 }
 
 export function getContractClassHash(name: string) {
   switch (name) {
-    case contractsNames().EntranceChecker:
+    case contractsNames().entrance_checker:
       return "0x037059dd76cb7df102862b83cb07e338c084c38c2eef707e1700892c8aaac83c";
-    case contractsNames().ERC1155EventTicket:
-      return "0x022473b5da94aa8beeb3b592342e109bd19383afb931896b9e4686011443d4e4";
-    case contractsNames().ERC20EventCurrency:
+    case contractsNames().ticket:
+      return "0x0268c5b73ae11a2857b99fec980a4b4c76ecf736e392dcc85fd2b2b18cc792e5";
+    case contractsNames().token:
       return "0x009b9c1d9acddafd3da6e0a2d57733f539ef2e5d7cdbb917cef7af6cfc051638";
     default:
       throw new Error(`Provide class hash for the contract ${name}! The contract is stored in the artifacts folder, but the class hash is missing, therefore it cannot be deployed.`);
@@ -64,11 +65,11 @@ export function getContractClassHash(name: string) {
 
 const getContractDescription = (contractName: string) => {
   switch (contractName) {
-    case contractsNames().EntranceChecker:
+    case contractsNames().entrance_checker:
       return "🚨 FIlL THIS OUt";
-    case contractsNames().ERC1155EventTicket:
+    case contractsNames().ticket:
       return "Multi-token standard for creating 'tickets on steroids'. Can be limited to whitelisted marketplaces, collect royalties on the secondary market, used for fan rewards & perks, kill bots  and offer endless  advanced functionality beyond traditional ticketing systems.";
-    case contractsNames().ERC20EventCurrency:
+    case contractsNames().token:
       return "Token standard for creating in-house, event-specific, or in-app currencies. Ideal for community building and native event payments, enhancing user engagement and providing a seamless transaction experience within our ecosystem.";
     default:
       throw new Error(`Provide description for the contract ${contractName}!`);
@@ -97,6 +98,7 @@ export const getContractsFunctions = (contractName: any, convertFunctionTypesFro
 export const getContractsConstructorsNames = (contractName: any) => {
   throwErrorForWrongContractName(contractName);
   const constructorInterface = contractsInterfaces[contractName].abi.find((i: any) => i.type === "constructor");
+  console.log("🔮 constructorInterface: ", constructorInterface)
   return constructorInterface.inputs.map((i: any) => i.name);
 };
 
