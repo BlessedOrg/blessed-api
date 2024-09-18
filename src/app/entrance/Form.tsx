@@ -1,12 +1,11 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { entranceEntry } from "@/server/api/entranceChecker/entranceEntry";
 import { toast } from "react-toastify";
 import Image from "next/image";
-import { generateQrCode } from "@/server/services/generateQrCode";
-import { sendEntranceNotificationToHost } from "@/server/api/entranceChecker/sendEntranceNotificationToHost";
+import { generateQrCode } from "@/utils/generateQrCode";
 import { CustomButton } from "@/components/CustomComponents";
+import { fetcher } from "@/requests/requests";
 
 export const EntranceForm = () => {
   const [enteredToEvent, setEnteredToEvent] = useState(false);
@@ -20,7 +19,13 @@ export const EntranceForm = () => {
 
   const onSubmit = async () => {
     try {
-      const res = await entranceEntry(enteredEmail, contractAddress);
+      const res = await fetcher(`/entrance/notify`, {
+        method: "POST",
+        body: JSON.stringify({
+          enteredEmail,
+          contractAddress,
+        }),
+      });
       if (res?.error) {
         setErrorMessage(res.error);
         toast(`Something went wrong: ${res.error}`, { type: "error" });
@@ -32,7 +37,14 @@ export const EntranceForm = () => {
         setEnteredToEvent(true);
       } else {
         const isLocalhost = window?.location?.hostname === "localhost";
-        await sendEntranceNotificationToHost({ contractAddress, isLocalhost, userData: res.userData });
+        await fetcher(`/entrance/notify`, {
+          method: "POST",
+          body: JSON.stringify({
+            contractAddress,
+            isLocalhost,
+            userData: res.userData,
+          }),
+        });
         setMessage(res.message);
         toast("Successfully entered", { type: "success" });
         setEnteredToEvent(true);
