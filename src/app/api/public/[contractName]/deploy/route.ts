@@ -11,7 +11,7 @@ import z from "zod";
 
 export const maxDuration = 300;
 
-async function postHandler(req: NextRequestWithAuth, { params: { contractName } }): Promise<NextResponse> {
+async function postHandler(req: NextRequestWithApiTokenAuth, { params: { contractName } }): Promise<NextResponse> {
   try {
     const classHash = getContractClassHash(contractName);
     if (!classHash) {
@@ -87,7 +87,8 @@ async function postHandler(req: NextRequestWithAuth, { params: { contractName } 
         developerId: req.developerId,
         version: nextId,
         metadataUrl,
-        metadataPayload: body.metadata
+        metadataPayload: body.metadata,
+        appId: req.appId
       }
     });
 

@@ -34,4 +34,5 @@ async function handler(req: NextRequest) {
   }
 }
 
-export const POST = withExistingDevAccount(handler);
+// export const POST = withExistingDevAccount(handler);
+export const POST = handler;
