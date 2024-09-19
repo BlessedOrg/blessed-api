@@ -1,5 +1,3 @@
 export default function HomePage() {
-  return (
-    <main></main>
-  );
+  return <div className="flex w-full flex-col bg-gray-500">blessedd</div>;
 }
