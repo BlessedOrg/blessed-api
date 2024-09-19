@@ -31,6 +31,7 @@ export function withDeveloperApiToken(handler: (req: NextRequest, context: { par
 
       Object.assign(request, {
         developerId: apiToken.developerId,
+        appId: decoded.appId
       });
 
       return handler(request, context);

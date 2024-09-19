@@ -25,6 +25,7 @@ model DeveloperAccount {
   ApiTokens       ApiToken[]
   Erc20Tokens     Erc20Token[]
   SmartContract   SmartContract[]
+  Apps            App[]
   createdAt       DateTime                @default(now())
   updatedAt       DateTime                @updatedAt
 }
@@ -33,6 +34,8 @@ model DevelopersUserAccount {
   id                        String                     @id @default(cuid())
   email                     String                     @unique
   walletAddress             String?                    @unique
+  App                       App                        @relation(fields: [appId], references: [id])
+  appId                     String
   Otps                      AccountOtp[]
   Sessions                  Session[]
   sessionId                 String?
@@ -89,6 +92,9 @@ model ApiToken {
   vaultKey         String
   DeveloperAccount DeveloperAccount? @relation(fields: [developerId], references: [id])
   developerId      String?
+  App              App               @relation(fields: [appId], references: [id])
+  appId            String
+  revoked          Boolean           @default(false)
   expiresAt        DateTime?
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @updatedAt
@@ -118,6 +124,8 @@ model SmartContract {
   developerId               String?
   metadataUrl               String
   metadataPayload           Json
+  App                       App                        @relation(fields: [appId], references: [id])
+  appId                     String
   Erc20Token                Erc20Token[]
   SmartContractInteractions SmartContractInteraction[]
   createdAt                 DateTime                   @default(now())
@@ -144,4 +152,18 @@ enum SmartContractInteractionType {
   gasless
   operator
   wallet
+}
+
+model App {
+  id               String                  @id @default(cuid())
+  name             String
+  description      String?
+  imageUrl         String?
+  SmartContracts   SmartContract[]
+  ApiTokens        ApiToken[]
+  DeveloperAccount DeveloperAccount        @relation(fields: [developerId], references: [id])
+  developerId      String
+  Users            DevelopersUserAccount[]
+  createdAt        DateTime                @default(now())
+  updatedAt        DateTime                @updatedAt
 }

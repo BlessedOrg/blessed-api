@@ -1,9 +1,9 @@
 import { NextRequest } from "next/server";
 
 declare global {
-  type NextRequestWithAuth = NextRequest & {
+  type NextRequestWithApiTokenAuth = NextRequest & {
     developerId: string;
-    userId: string;
+    appId: string;
   };
 
   type NextRequestWithDevAuth = NextRequest & {

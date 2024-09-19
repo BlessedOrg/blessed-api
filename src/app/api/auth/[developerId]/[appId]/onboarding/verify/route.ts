@@ -10,7 +10,8 @@ import { sessionType } from "@prisma/client";
 
 export const maxDuration = 300;
 
-async function handler(req: Request, { params: { developerId } }) {
+async function handler(req: Request, { params: { developerId, appId } }) {
+  console.log("🔥 appId: ", appId)
   const body = await req.json();
   const { code } = body;
 
@@ -34,14 +35,12 @@ async function handler(req: Request, { params: { developerId } }) {
     data: {
       email,
       developerId: developerId,
+      appId
     },
   });
 
   if (createdUser) {
-    const {
-      accessToken,
-      refreshToken,
-    } = await createSessionTokens({ id: createdUser?.id });
+    const { accessToken, refreshToken } = await createSessionTokens({ id: createdUser?.id });
 
     await createOrUpdateSession(email, sessionType.user);
 

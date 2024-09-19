@@ -6,7 +6,7 @@ import { withDeveloperApiToken } from "@/app/middleware/withDeveloperApiToken";
 
 export const dynamic = "force-dynamic";
 
-async function getHandler(req: NextRequestWithAuth) {
+async function getHandler(req: NextRequestWithApiTokenAuth) {
   const myContracts = await smartContractModel.findMany({
     where: {
       developerId: req.userId

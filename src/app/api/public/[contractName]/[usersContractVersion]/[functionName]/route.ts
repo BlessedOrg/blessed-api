@@ -30,7 +30,7 @@ const eventsPerFunctionName: EventsPerFunctionName = {
   ]
 };
 
-async function postHandler(req: NextRequestWithAuth, { params: { contractName, usersContractVersion, functionName } }) {
+async function postHandler(req: NextRequestWithDevUserAuth & NextRequestWithApiTokenAuth, { params: { contractName, usersContractVersion, functionName } }) {
   try {
     const body = await req.json();
     const functions = getContractsFunctions(contractName);
