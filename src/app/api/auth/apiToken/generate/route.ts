@@ -8,7 +8,7 @@ import { withDeveloperAccessToken } from "@/app/middleware/withDeveloperAccessTo
 
 export const dynamic = "force-dynamic";
 
-async function postHandler(req: NextRequestWithApiTokenAuth) {
+async function postHandler(req: NextRequestWithDevAuth) {
   const parsedParams = z.string().safeParse(req.nextUrl.searchParams.get("appId"));
   if (!parsedParams.success) {
     return NextResponse.json({ error: "appId is required" }, { status: StatusCodes.BAD_REQUEST });
