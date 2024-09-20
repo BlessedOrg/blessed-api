@@ -8,7 +8,7 @@ import { withDeveloperAccessToken } from "@/app/middleware/withDeveloperAccessTo
 
 export const dynamic = "force-dynamic";
 
-async function postHandler(req: NextRequestWithApiTokenAuth) {
+async function postHandler(req: NextRequestWithDevAuth) {
   const parsedParams = z.string().safeParse(req.nextUrl.searchParams.get("appId"));
   if (!parsedParams.success) {
     return NextResponse.json(
@@ -27,7 +27,7 @@ async function postHandler(req: NextRequestWithApiTokenAuth) {
 
   const accessToken = jwt.sign({ id: apiTokenRecord?.id, appId: parsedParams.data }, process.env.JWT_SECRET);
 
-  const vaultItem = await createVaultApiTokenItem(accessToken, req.userId);
+  const vaultItem = await createVaultApiTokenItem(accessToken, req.developerId);
 
   await apiTokenModel.update({
     where: {

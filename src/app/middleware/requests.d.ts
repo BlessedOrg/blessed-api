@@ -4,6 +4,7 @@ declare global {
   type NextRequestWithApiTokenAuth = NextRequest & {
     developerId: string;
     appId: string;
+    userId: string;
   };
 
   type NextRequestWithDevAuth = NextRequest & {
