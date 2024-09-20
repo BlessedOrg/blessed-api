@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
 import { StatusCodes } from "http-status-codes";
-import { withDeveloperAccessToken } from "@/app/middleware/withDeveloperAccessToken";
 import { smartContractModel } from "@/prisma/models";
 import { generateQrCode } from "@/utils/generateQrCode";
+import { withDeveloperApiToken } from "@/app/middleware/withDeveloperApiToken";
 
 export const dynamic = "force-dynamic";
 
-async function handler(req: NextRequestWithDevAuth, { params: { contractVersion } }) {
+async function handler(req: NextRequestWithApiTokenAuth, { params: { contractVersion } }) {
   const { developerId } = req;
   console.log(`contractVersion:`, +contractVersion);
   const contractData = await smartContractModel.findFirst({
@@ -31,4 +31,4 @@ async function handler(req: NextRequestWithDevAuth, { params: { contractVersion 
   );
 }
 
-export const GET = withDeveloperAccessToken(handler);
+export const GET = withDeveloperApiToken(handler);

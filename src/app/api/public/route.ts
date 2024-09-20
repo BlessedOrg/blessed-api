@@ -9,14 +9,11 @@ export const dynamic = "force-dynamic";
 async function getHandler(req: NextRequestWithApiTokenAuth) {
   const myContracts = await smartContractModel.findMany({
     where: {
-      developerId: req.userId
-    }
+      developerId: req.developerId,
+    },
   });
 
-  return NextResponse.json(
-    { availableContracts: getAllContractsDetails(), myContracts },
-    { status: StatusCodes.OK },
-  );
+  return NextResponse.json({ availableContracts: getAllContractsDetails(), myContracts }, { status: StatusCodes.OK });
 }
 
-export const GET = withDeveloperApiToken(getHandler)
+export const GET = withDeveloperApiToken(getHandler);
