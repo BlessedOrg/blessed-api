@@ -1,4 +1,4 @@
-import { Account, Calldata, CallData } from "starknet";
+import { Account, cairo, Calldata, CallData } from "starknet";
 import { contractsInterfaces, throwErrorForWrongContractName } from "@/contracts/interfaces";
 import provider from "@/contracts/provider";
 import { getExplorerUrl } from "@/utils/getExplorerUrl";
@@ -13,7 +13,20 @@ const deployContract = async ({ contractName, constructorArgs, classHash }: Depl
   throwErrorForWrongContractName(contractName);
   const account = new Account(provider, process.env.OPERATOR_WALLET_ADDR as string, process.env.OPERATOR_PRIVATE_KEY as string);
   const contractCallData: CallData = new CallData(contractsInterfaces[contractName].abi as any);
-  const contractConstructor: Calldata = contractCallData.compile("constructor", constructorArgs);
+
+  // 🏗️ TODO: move it to separate fn - overwriteConstructor or sth like that
+  let finalArgs = constructorArgs;
+  if (contractName === "ticket") {
+    finalArgs = {
+      ...constructorArgs,
+      royalties_receivers: constructorArgs.royalties_receivers.map((item: any) => {
+        return cairo.tuple(item[0], item[1])
+      })
+    }
+  }
+
+  const contractConstructor: Calldata = contractCallData.compile("constructor", finalArgs);
+
   const deployResponse = await account.deployContract({
     classHash: classHash,
     constructorCalldata: contractConstructor,
