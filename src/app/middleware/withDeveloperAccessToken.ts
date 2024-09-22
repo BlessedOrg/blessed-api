@@ -8,12 +8,11 @@ export function withDeveloperAccessToken(
   return async (request: NextRequest, context: { params: any }) => {
     try {
       const authHeader = request.headers.get("authorization");
-      const accessToken = request.cookies.get("accessToken")?.value;
 
-      if (!accessToken && !!(!authHeader || !authHeader.startsWith("Bearer "))) {
+      if (!authHeader || !authHeader.startsWith("Bearer ")) {
         return NextResponse.json({ error: "Bearer token not provided" }, { status: StatusCodes.UNAUTHORIZED });
       }
-      const token = accessToken || authHeader.split(" ")[1];
+      const token = authHeader.split(" ")[1];
 
       const session = await sessionModel.findFirst({
         where: {
