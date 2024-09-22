@@ -55,7 +55,7 @@ export function getContractClassHash(name: string) {
     case contractsNames().entrance_checker:
       return "0x037059dd76cb7df102862b83cb07e338c084c38c2eef707e1700892c8aaac83c";
     case contractsNames().ticket:
-      return "0x009d4ce9529a7c12e5207491ac39524d44ce6f4789fc2c5f19d6d0933e11f14f";
+      return "0x047866dd18518e60a58bfd554fd21978292e2b6820d6223022e5121581c463fe";
     case contractsNames().token:
       return "0x009b9c1d9acddafd3da6e0a2d57733f539ef2e5d7cdbb917cef7af6cfc051638";
     default:
