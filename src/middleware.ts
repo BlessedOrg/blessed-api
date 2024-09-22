@@ -4,8 +4,7 @@ const allowedOrigins = [
   "http://localhost:3002",
   "http://localhost:3001",
   "https://blessed.fan",
-  "https://www.blessed.fan",
-  "https://blessed-dashboard-xi.vercel.app",
+  "https://app.blessed.fan",
 ];
 
 const corsOptions = {
