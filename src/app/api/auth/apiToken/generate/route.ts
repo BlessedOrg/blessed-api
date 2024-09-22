@@ -18,8 +18,8 @@ async function postHandler(req: NextRequestWithDevAuth) {
     data: {
       developerId: req.developerId,
       vaultKey: "_",
-      appId: parsedParams.data,
-    },
+      appId: parsedParams.data
+    }
   });
 
   const accessToken = jwt.sign(
@@ -31,11 +31,11 @@ async function postHandler(req: NextRequestWithDevAuth) {
 
   await apiTokenModel.update({
     where: {
-      id: apiTokenRecord?.id,
+      id: apiTokenRecord?.id
     },
     data: {
-      vaultKey: vaultItem?.id as string,
-    },
+      vaultKey: vaultItem?.id as string
+    }
   });
 
   const tokensToRevoke = await apiTokenModel.findMany({
@@ -43,26 +43,26 @@ async function postHandler(req: NextRequestWithDevAuth) {
       developerId: req.developerId,
       appId: parsedParams.data,
       id: {
-        not: apiTokenRecord?.id,
-      },
-    },
+        not: apiTokenRecord?.id
+      }
+    }
   });
 
   await apiTokenModel.updateMany({
     where: {
       id: {
-        in: tokensToRevoke.map((t) => t.id),
-      },
+        in: tokensToRevoke.map((t) => t.id)
+      }
     },
     data: {
-      revoked: true,
-    },
+      revoked: true
+    }
   });
 
   return NextResponse.json(
     {
       apiToken: vaultItem?.fields?.find((f) => f.id === "apiToken")?.value,
-      vaultKey: vaultItem?.id,
+      vaultKey: vaultItem?.id
     },
     { status: StatusCodes.OK }
   );
