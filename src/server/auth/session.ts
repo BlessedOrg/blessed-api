@@ -8,51 +8,48 @@ export async function createOrUpdateSession(email: string, accountType: sessionT
     accountType === "dev"
       ? await developerAccountModel.findUnique({ where: { email } })
       : await developersUserAccountModel.findUnique({ where: { email } });
-  
+
   if (!existingUser) {
     throw new Error(`User with email ${email} not found`);
   }
 
-  const {
-    hashedRefreshToken,
-    hashedAccessToken,
-    accessToken,
-    refreshToken,
-  } = await createSessionTokens({ id: existingUser?.id });
+  const { hashedRefreshToken, hashedAccessToken, accessToken, refreshToken } = await createSessionTokens({
+    id: existingUser?.id,
+  });
 
   const connectUser =
     accountType === "dev"
       ? {
-        DeveloperAccount: {
-          connect: {
-            id: existingUser.id,
+          DeveloperAccount: {
+            connect: {
+              id: existingUser.id,
+            },
           },
-        },
-      }
+        }
       : {
-        DevelopersUserAccount: {
-          connect: {
-            id: existingUser.id,
+          DevelopersUserAccount: {
+            connect: {
+              id: existingUser.id,
+            },
           },
-        },
-      };
+        };
 
   const existingSessionFilters: any =
     accountType === "dev"
       ? {
-        developerId: existingUser.id,
-      }
+          developerId: existingUser.id,
+        }
       : {
-        developerUserId: existingUser.id,
-      };
-  
+          developerUserId: existingUser.id,
+        };
+
   const existingSession = await sessionModel.findFirst({
     where: {
       ...existingSessionFilters,
     },
     orderBy: {
-      updatedAt: "desc"
-    }
+      updatedAt: "desc",
+    },
   });
 
   if (existingSession) {
@@ -67,16 +64,17 @@ export async function createOrUpdateSession(email: string, accountType: sessionT
         expiresAt: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000),
       },
     });
-    
+
     if (!updatedSession) {
       return { error: "Session not updated, something went wrong ⛑️" };
     }
     return {
       accessToken,
       refreshToken,
+      walletAddress: existingUser.walletAddress,
     };
   }
-  
+
   await sessionModel.create({
     data: {
       accessToken: hashedAccessToken,
@@ -86,16 +84,17 @@ export async function createOrUpdateSession(email: string, accountType: sessionT
       sessionType: sessionType[accountType],
       DeveloperAccount: {
         connect: {
-          id: accountType === "dev" ? existingUser.id : existingUser.developerId
-        }
-      }
+          id: accountType === "dev" ? existingUser.id : existingUser.developerId,
+        },
+      },
     },
   });
-  
-  console.log("🔑 accessToken: ", accessToken)
+
+  console.log("🔑 accessToken: ", accessToken);
 
   return {
     accessToken,
     refreshToken,
+    walletAddress: existingUser.walletAddress,
   };
 }
