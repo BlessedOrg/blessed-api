@@ -3,7 +3,8 @@ import { NextRequest, NextResponse } from "next/server";
 const allowedOrigins = [
   "http://localhost:3002",
   "http://localhost:3001",
-  "https://blessed-landing-page.vercel.app",
+  "https://blessed.fan",
+  "https://www.blessed.fan",
   "https://blessed-dashboard-xi.vercel.app",
 ];
 
