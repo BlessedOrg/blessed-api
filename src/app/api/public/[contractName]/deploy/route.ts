@@ -2,11 +2,15 @@ import { NextResponse } from "next/server";
 import { isEmpty, isEqual, sortBy } from "lodash-es";
 import { StatusCodes } from "http-status-codes";
 import deployContract from "@/server/services/deployContract";
-import { getContractClassHash, getContractsConstructorsNames } from "@/contracts/interfaces";
+import { getContractClassHash, getContractsConstructorsNames, getContractsFunctions } from "@/contracts/interfaces";
 import { smartContractModel } from "@/prisma/models";
 import { withDeveloperApiToken } from "@/app/middleware/withDeveloperApiToken";
 import { uploadMetadata } from "@/server/services/irys";
 import z from "zod";
+import provider from "@/contracts/provider";
+import { getAccountInstance } from "@/server/api/accounts/getAccountInstance";
+import connectToContract from "@/server/services/connectToContract";
+import { gaslessTransaction, getGaslessTransactionCallData } from "@/server/services/gaslessTransaction";
 
 export const maxDuration = 300;
 
@@ -75,6 +79,30 @@ async function postHandler(req: NextRequestWithApiTokenAuth, { params: { contrac
       constructorArgs: finalConstructor,
       classHash
     });
+
+    if (contractName === "ticket") {
+      const contract = connectToContract({
+        address: deployResponse.contract_address,
+        name: contractName
+      });
+      const { account } = await getAccountInstance({ developerId: req.developerId } );
+
+      const calldata = getGaslessTransactionCallData({
+        method: "set_base_uri",
+        contractAddress: contract.address,
+        body: { "base_uri": metadataUrl },
+        abiFunctions: getContractsFunctions(contractName),
+      });
+
+      console.log("🌳 calldata: ", calldata)
+
+      const { transactionHash } = await gaslessTransaction(account, calldata);
+      const txReceipt = !!transactionHash
+        ? await provider.waitForTransaction(transactionHash)
+        : null;
+
+      console.log("🔮 txReceipt: ", txReceipt)
+    }
 
     const maxId = await smartContractModel.aggregate({
       where: {
