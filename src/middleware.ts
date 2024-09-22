@@ -4,7 +4,7 @@ const allowedOrigins = [
   "http://localhost:3002",
   "http://localhost:3001",
   "https://blessed.fan",
-  "https://app.blessed.fan",
+  "https://dashboard.blessed.fan",
 ];
 
 const corsOptions = {
