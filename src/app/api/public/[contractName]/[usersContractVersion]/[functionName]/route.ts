@@ -95,7 +95,9 @@ async function postHandler(req: NextRequestWithDevUserAuth & NextRequestWithApiT
     const targetAccount = !!userId
       ? await developersUserAccountModel.findUnique({ where: { id: userId }, select: { id: true } })
       : await developerAccountModel.findUnique({ where: { id: developerId }, select: { id: true } });
+
     const { account } = await getAccountInstance(!!userId ? { userId: targetAccount.id } : { developerId: targetAccount.id });
+
     if (targetFunction.type === "read") {
       const contract = new Contract(contractsInterfaces[contractName].abi, smartContract?.address);
       contract.connect(account);

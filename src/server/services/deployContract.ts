@@ -13,7 +13,7 @@ const deployContract = async ({ contractName, constructorArgs, classHash }: Depl
   throwErrorForWrongContractName(contractName);
   const account = new Account(provider, process.env.OPERATOR_WALLET_ADDR as string, process.env.OPERATOR_PRIVATE_KEY as string);
   const contractCallData: CallData = new CallData(contractsInterfaces[contractName].abi as any);
-
+  
   // 🏗️ TODO: move it to separate fn - overwriteConstructor or sth like that
   let finalArgs = constructorArgs;
   if (contractName === "ticket") {
@@ -26,7 +26,7 @@ const deployContract = async ({ contractName, constructorArgs, classHash }: Depl
   }
 
   const contractConstructor: Calldata = contractCallData.compile("constructor", finalArgs);
-
+  
   const deployResponse = await account.deployContract({
     classHash: classHash,
     constructorCalldata: contractConstructor,

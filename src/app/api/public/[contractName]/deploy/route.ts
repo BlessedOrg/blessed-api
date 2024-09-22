@@ -19,12 +19,20 @@ async function postHandler(req: NextRequestWithApiTokenAuth, { params: { contrac
         { status: StatusCodes.BAD_REQUEST }
       );
     }
-    const constructorArgs = getContractsConstructorsNames(contractName);
-
     const body = await req.json();
     const { metadata, ...constructor } = body;
 
-    if (!isEqual(sortBy(constructorArgs), sortBy(Object.keys(constructor))) || isEmpty(body)) {
+    const constructorArgs = getContractsConstructorsNames(contractName);
+
+    let finalConstructor = constructor;
+    if (contractName === "ticket" && constructor.ticket_type === "free") {
+      finalConstructor = {
+        ...finalConstructor,
+        erc20_address: "0x3e5654865fc27ead8ea32557b30717e241314f7f6b74e328b83b89ea927c33c"
+      }
+    }
+
+    if (!isEqual(sortBy(constructorArgs), sortBy(Object.keys(finalConstructor))) || isEmpty(body)) {
       return NextResponse.json(
         { error: `Invalid constructor arguments for contract ${contractName}. The proper arguments are: ${constructorArgs} (in this particular order)` },
         { status: StatusCodes.BAD_REQUEST }
@@ -64,7 +72,7 @@ async function postHandler(req: NextRequestWithApiTokenAuth, { params: { contrac
 
     const deployResponse = await deployContract({
       contractName,
-      constructorArgs: constructor,
+      constructorArgs: finalConstructor,
       classHash
     });
 
