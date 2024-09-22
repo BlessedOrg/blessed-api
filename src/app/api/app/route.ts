@@ -7,7 +7,7 @@ import z from "zod";
 const postSchema = z.object({
   name: z.string().min(3),
   description: z.string().optional(),
-  imageUrl: z.string().optional(),
+  imageUrl: z.string().optional()
 });
 
 async function postHandler(req: NextRequestWithDevAuth) {
@@ -19,8 +19,8 @@ async function postHandler(req: NextRequestWithDevAuth) {
       name,
       developerId: req.developerId,
       ...(description && { description }),
-      ...(imageUrl && { imageUrl }),
-    },
+      ...(imageUrl && { imageUrl })
+    }
   });
 
   if (!parsedBody.success) {
@@ -36,8 +36,8 @@ async function postHandler(req: NextRequestWithDevAuth) {
 async function getHandler(req: NextRequestWithDevAuth) {
   const apps = await appModel.findMany({
     where: {
-      developerId: req.developerId,
-    },
+      developerId: req.developerId
+    }
   });
 
   return NextResponse.json(apps, { status: StatusCodes.OK });

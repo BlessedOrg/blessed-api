@@ -15,9 +15,7 @@ async function postHandler(req: NextRequestWithApiTokenAuth, { params: { contrac
     const classHash = getContractClassHash(contractName);
     if (!classHash) {
       return NextResponse.json(
-        {
-          error: `Class hash for the contract ${contractName} not found! Are you sure you are passing correct contract's name? Check list of available contracts at /api/public/contracts`,
-        },
+        { error: `Class hash for the contract ${contractName} not found! Are you sure you are passing correct contract's name? Check list of available contracts at /api/public/contracts` },
         { status: StatusCodes.BAD_REQUEST }
       );
     }
@@ -28,44 +26,36 @@ async function postHandler(req: NextRequestWithApiTokenAuth, { params: { contrac
 
     if (!isEqual(sortBy(constructorArgs), sortBy(Object.keys(constructor))) || isEmpty(body)) {
       return NextResponse.json(
-        {
-          error: `Invalid constructor arguments for contract ${contractName}. The proper arguments are: ${constructorArgs} (in this particular order)`,
-        },
+        { error: `Invalid constructor arguments for contract ${contractName}. The proper arguments are: ${constructorArgs} (in this particular order)` },
         { status: StatusCodes.BAD_REQUEST }
       );
     }
 
     const MetadataSchema = z.object({
-      metadata: z
-        .object({
-          name: z.string().min(1),
-          description: z.string().min(1),
-          image: z.string().min(1),
-          symbol: z.string().min(1),
-        })
-        .required(),
+      metadata: z.object({
+        name: z.string().min(1),
+        description: z.string().min(1),
+        image: z.string().min(1),
+        symbol: z.string().min(1)
+      }).required()
     });
 
     const parsedBody = MetadataSchema.safeParse(body);
 
     if (!parsedBody.success) {
       return NextResponse.json(
-        {
-          error: `Invalid request body. The proper fields are: metadata { name (string), description (string), image (base64 string), symbol (string) }`,
-        },
+        { error: `Invalid request body. The proper fields are: metadata { name (string), description (string), image (base64 string), symbol (string) }` },
         { status: StatusCodes.BAD_REQUEST }
       );
     }
 
     const {
-      metadata: { name, description, image, symbol },
+      metadata: { name, description, image, symbol }
     } = parsedBody.data;
 
     if (!name || !description || !image || !symbol) {
       return NextResponse.json(
-        {
-          error: `Invalid metadata fields. The proper fields are: name (string), description (string), image (base64 string)`,
-        },
+        { error: `Invalid metadata fields. The proper fields are: name (string), description (string), image (base64 string)` },
         { status: StatusCodes.BAD_REQUEST }
       );
     }
@@ -75,17 +65,17 @@ async function postHandler(req: NextRequestWithApiTokenAuth, { params: { contrac
     const deployResponse = await deployContract({
       contractName,
       constructorArgs: constructor,
-      classHash,
+      classHash
     });
 
     const maxId = await smartContractModel.aggregate({
       where: {
         developerId: req.developerId,
-        name: contractName,
+        name: contractName
       },
       _max: {
-        version: true,
-      },
+        version: true
+      }
     });
 
     const nextId = (maxId._max.version || 0) + 1;
@@ -98,8 +88,8 @@ async function postHandler(req: NextRequestWithApiTokenAuth, { params: { contrac
         version: nextId,
         metadataUrl,
         metadataPayload: body.metadata,
-        appId: req.appId,
-      },
+        appId: req.appId
+      }
     });
 
     return NextResponse.json(
@@ -108,7 +98,7 @@ async function postHandler(req: NextRequestWithApiTokenAuth, { params: { contrac
         version: smartContractRecord?.version,
         databaseId: smartContractRecord?.id,
         metadataUrl,
-        ...deployResponse,
+        ...deployResponse
       },
       { status: StatusCodes.OK }
     );

@@ -8,8 +8,8 @@ export async function GET(req: NextRequestWithDevAuth, { params: { id } }) {
   }
   const app = await appModel.findUnique({
     where: {
-      id,
-    },
+      id
+    }
   });
 
   if (!app) {

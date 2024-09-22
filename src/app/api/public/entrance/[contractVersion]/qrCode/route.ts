@@ -10,24 +10,20 @@ async function handler(req: NextRequestWithApiTokenAuth, { params: { contractVer
   const { developerId } = req;
   console.log(`contractVersion:`, +contractVersion);
   const contractData = await smartContractModel.findFirst({
-    where: { developerId, name: "EntranceChecker", version: +contractVersion },
+    where: { developerId, name: "EntranceChecker", version: +contractVersion }
   });
 
   if (!contractData?.address) {
     return NextResponse.json(
       { error: `EntranceChecker contract not found for dev: ${developerId}` },
-      {
-        status: StatusCodes.NOT_FOUND,
-      }
+      { status: StatusCodes.NOT_FOUND }
     );
   }
 
   const qrCode = await generateQrCode(`${req.nextUrl.origin}/entrance?contractAddress=${contractData.address}`);
   return NextResponse.json(
     { qrCode },
-    {
-      status: StatusCodes.OK,
-    }
+    { status: StatusCodes.OK }
   );
 }
 
