@@ -4,35 +4,26 @@ import { generateOTP } from "@/utils/generateOtp";
 import { emailVerificationCodeModel } from "@/prisma/models";
 import { createMailTransport } from "@/server/api/email";
 
+
 type VerificationEmailParams = {
   to: string;
-  expirationTimeMinutes?: number;
+  url: string;
   isLocalhost: boolean;
 };
 
-export async function sendVerificationEmailCode({ to, expirationTimeMinutes, isLocalhost }: VerificationEmailParams) {
+export async function sendEmailForTicketReceiver({ to, url, isLocalhost }: VerificationEmailParams) {
   const transport = await createMailTransport(isLocalhost);
-
-  const code = generateOTP();
-
-  const createCodeRecord = await emailVerificationCodeModel.create({
-    data: {
-      code,
-      email: to,
-      expiresAt: !!expirationTimeMinutes
-        ? new Date(Date.now() + expirationTimeMinutes * 60 * 1000)
-        : new Date(Date.now() + 15 * 60 * 1000), // 15 minutes
-    },
-  });
-  if (createCodeRecord) {
-    console.log(`📧 Created verification code record:`, createCodeRecord.code);
+  const testResult = await transport.verify();
+  if (!testResult) {
+    throw new Error("Email service is not ready");
   }
+
   try {
     const sendResult = await transport.sendMail({
       from: process.env.SMTP_EMAIL || "test@blessed.fan",
       to,
       subject: "Verification code",
-      html: verificationCodeTemplate(`${code}`),
+      html: ""
     });
 
     if (isLocalhost) {
@@ -114,3 +105,5 @@ const verificationCodeTemplate = (code: string) => `
     </body>
     </html>
   `;
+
+

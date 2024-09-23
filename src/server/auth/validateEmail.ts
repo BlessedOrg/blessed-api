@@ -19,5 +19,9 @@ export async function validateEmail(email: string, accountType?: sessionType) {
       ? await developerAccountModel.findFirst({ where: { email } })
       : await developersUserAccountModel.findFirst({ where: { email } });
 
+  // if (isEmailTaken) {
+  //   throw new Error("Email already taken")
+  // }
+
   return !!isEmailTaken;
 }
