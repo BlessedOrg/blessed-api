@@ -10,7 +10,7 @@ import z from "zod";
 import provider from "@/contracts/provider";
 import { getAccountInstance } from "@/server/api/accounts/getAccountInstance";
 import connectToContract from "@/server/services/connectToContract";
-import { gaslessTransaction, getGaslessTransactionCallData } from "@/server/services/gaslessTransaction";
+import { gaslessTransactionWithFallback } from "@/server/gaslessTransactionWithFallback";
 
 export const maxDuration = 300;
 
@@ -86,19 +86,17 @@ async function postHandler(req: NextRequestWithApiTokenAuth, { params: { contrac
         name: contractName
       });
       const { account } = await getAccountInstance({ developerId: req.developerId } );
-
-      const calldata = getGaslessTransactionCallData({
-        method: "set_base_uri",
-        contractAddress: contract.address,
-        body: { "base_uri": metadataUrl },
-        abiFunctions: getContractsFunctions(contractName),
-      });
-
-      console.log("🌳 calldata: ", calldata)
-
-      const { transactionHash } = await gaslessTransaction(account, calldata);
-      const txReceipt = !!transactionHash
-        ? await provider.waitForTransaction(transactionHash)
+      
+      const transactionResult = await gaslessTransactionWithFallback(
+        account,
+        "set_base_uri",
+        contract,
+        { "base_uri": metadataUrl },
+        getContractsFunctions(contractName),
+        false
+      );
+      const txReceipt = !!transactionResult?.txHash
+        ? await provider.waitForTransaction(transactionResult?.txHash)
         : null;
 
       console.log("🔮 txReceipt: ", txReceipt)
