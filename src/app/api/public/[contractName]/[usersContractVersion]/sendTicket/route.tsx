@@ -20,7 +20,7 @@ import { render } from "@react-email/components";
 import nodeMailer from "nodemailer";
 
 const schema = z.object({
-  email: z.string().email(),
+  email: z.string().email()
 });
 
 async function postHandler(req: NextRequestWithApiTokenAuth, { params: { contractName, usersContractVersion } }) {
@@ -37,13 +37,13 @@ async function postHandler(req: NextRequestWithApiTokenAuth, { params: { contrac
     where: {
       developerId: req.developerId,
       version: Number(usersContractVersion),
-      name: contractName,
-    },
+      name: contractName
+    }
   });
   if (!smartContract) {
     return NextResponse.json(
       {
-        error: `Wrong parameters. Smart contract ${contractName} v${usersContractVersion} from User ${req.userId} not found.`,
+        error: `Wrong parameters. Smart contract ${contractName} v${usersContractVersion} from User ${req.userId} not found.`
       },
       { status: StatusCodes.BAD_REQUEST }
     );
@@ -51,7 +51,7 @@ async function postHandler(req: NextRequestWithApiTokenAuth, { params: { contrac
 
   const contract = connectToContract({
     address: smartContract?.address,
-    name: contractName,
+    name: contractName
   });
 
   const isEmailTaken: any = await validateEmail(email, sessionType.user);
@@ -64,8 +64,8 @@ async function postHandler(req: NextRequestWithApiTokenAuth, { params: { contrac
     data: {
       email,
       developerId: req.developerId,
-      appId: req.appId,
-    },
+      appId: req.appId
+    }
   });
 
   await createSessionTokens({ id: createdUser?.id });
@@ -99,7 +99,7 @@ async function postHandler(req: NextRequestWithApiTokenAuth, { params: { contrac
     from: process.env.SMTP_EMAIL || "test@blessed.fan",
     to: createdUser.email,
     subject: "Your ticket!",
-    html: emailHtml,
+    html: emailHtml
   };
 
   const sendResult = await transporter.sendMail(options);
