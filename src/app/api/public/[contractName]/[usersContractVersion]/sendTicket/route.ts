@@ -20,6 +20,7 @@ const schema = z.object({
 });
 
 async function postHandler(req: NextRequestWithApiTokenAuth, { params: { contractName, usersContractVersion } }) {
+  const isLocalhost = req.nextUrl.hostname === "localhost"
   const validBody = schema.safeParse(await req.json());
   if (!validBody.success) {
     throw new Error(`${validBody.error}`);
@@ -83,6 +84,27 @@ async function postHandler(req: NextRequestWithApiTokenAuth, { params: { contrac
   );
 
   await provider.waitForTransaction(transactionResult?.txHash);
+
+  // 🏗️ TODO: send email to ticket's receiver
+  // const transporter = await createMailTransport(isLocalhost);
+  // const testResult = await transporter.verify();
+  // if (!testResult) {
+  //   throw new Error("Email service is not ready");
+  // }
+  // const emailHtml = await render(<EmailSample />);
+  //
+  // const options = {
+  //   from: process.env.SMTP_EMAIL || "test@blessed.fan",
+  //   to: 'leeszczuu@gmail.com',
+  //   subject: "Your ticket!",
+  //   html: emailHtml,
+  // };
+  //
+  // const sendResult = await transporter.sendMail(options);
+  //
+  // if (isLocalhost) {
+  //   console.log(`📨 Email sent. Preview URL: ${nodeMailer.getTestMessageUrl(sendResult)}`);
+  // }
 
   if (!!transactionResult.error) {
     return NextResponse.json(
