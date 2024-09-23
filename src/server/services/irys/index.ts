@@ -23,13 +23,14 @@ const uploadImage = async (base64String) => {
   }
 };
 
-export const uploadFile = async ({ name, description, image }: Metadata) => {
+export const uploadFile = async ({ name, description, symbol, image }: Metadata) => {
   const irys = await getIrysUploader();
   try {
     const receipt = await irys.upload(
       JSON.stringify({
         name,
         description,
+        symbol,
         image
       }),
       {

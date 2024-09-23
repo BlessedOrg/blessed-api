@@ -29,7 +29,6 @@ export async function gaslessTransaction(
   calls: Call[],
 ): Promise<{ transactionHash?: string; error?: any }> {
   try {
-    console.log(`🔮 Gasless transaction for ${account.address}`);
     const typedData = await fetchBuildTypedData(
       account.address,
       calls,

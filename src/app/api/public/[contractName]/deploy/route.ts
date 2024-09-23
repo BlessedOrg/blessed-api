@@ -2,11 +2,15 @@ import { NextResponse } from "next/server";
 import { isEmpty, isEqual, sortBy } from "lodash-es";
 import { StatusCodes } from "http-status-codes";
 import deployContract from "@/server/services/deployContract";
-import { getContractClassHash, getContractsConstructorsNames } from "@/contracts/interfaces";
+import { getContractClassHash, getContractsConstructorsNames, getContractsFunctions } from "@/contracts/interfaces";
 import { smartContractModel } from "@/prisma/models";
 import { withDeveloperApiToken } from "@/app/middleware/withDeveloperApiToken";
 import { uploadMetadata } from "@/server/services/irys";
 import z from "zod";
+import provider from "@/contracts/provider";
+import { getAccountInstance } from "@/server/api/accounts/getAccountInstance";
+import connectToContract from "@/server/services/connectToContract";
+import { gaslessTransactionWithFallback } from "@/server/gaslessTransactionWithFallback";
 
 export const maxDuration = 300;
 
@@ -25,12 +29,6 @@ async function postHandler(req: NextRequestWithApiTokenAuth, { params: { contrac
     const constructorArgs = getContractsConstructorsNames(contractName);
 
     let finalConstructor = constructor;
-    if (contractName === "ticket" && constructor.ticket_type === "free") {
-      finalConstructor = {
-        ...finalConstructor,
-        erc20_address: "0x3e5654865fc27ead8ea32557b30717e241314f7f6b74e328b83b89ea927c33c"
-      }
-    }
 
     if (!isEqual(sortBy(constructorArgs), sortBy(Object.keys(finalConstructor))) || isEmpty(body)) {
       return NextResponse.json(
@@ -69,6 +67,22 @@ async function postHandler(req: NextRequestWithApiTokenAuth, { params: { contrac
     }
 
     const metadataUrl = await uploadMetadata({ name, description, symbol, image });
+
+    finalConstructor = {
+      ...finalConstructor,
+      base_uri: metadataUrl
+    }
+
+    // 🏗️. TODO: create a filter function called overwrites() for following cases
+    if (contractName === "ticket") {
+      if (constructor.ticket_type === "free") {
+        finalConstructor = {
+          ...finalConstructor,
+          // 🏗️ TODO: replace it with 0 address if possible?
+          erc20_address: "0x3e5654865fc27ead8ea32557b30717e241314f7f6b74e328b83b89ea927c33c"
+        }
+      }
+    }
 
     const deployResponse = await deployContract({
       contractName,
