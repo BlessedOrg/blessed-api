@@ -29,9 +29,6 @@ export async function gaslessTransaction(
   calls: Call[],
 ): Promise<{ transactionHash?: string; error?: any }> {
   try {
-    console.log(`🔮 Gasless transaction for ${account.address}`);
-    console.log("🔥 account.address: ", account.address)
-    console.log("🔮 calls: ", calls)
     const typedData = await fetchBuildTypedData(
       account.address,
       calls,
@@ -42,8 +39,6 @@ export async function gaslessTransaction(
         baseUrl: SEPOLIA_BASE_URL,
       },
     );
-
-    console.log("🔮 typedData: ", typedData)
 
     let signature = await account.signMessage(typedData);
 

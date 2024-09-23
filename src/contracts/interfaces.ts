@@ -55,7 +55,7 @@ export function getContractClassHash(name: string) {
     case contractsNames().entrance_checker:
       return "0x037059dd76cb7df102862b83cb07e338c084c38c2eef707e1700892c8aaac83c";
     case contractsNames().ticket:
-      return "0x02faf6dce6e57f51815a5d688304a26357fba76cdddabef104cb1237304d22b6";
+      return "0x023303ac5e5527b4b133075e53fa4517d4573575dde465a9dec6147817ae24f0";
     case contractsNames().token:
       return "0x009b9c1d9acddafd3da6e0a2d57733f539ef2e5d7cdbb917cef7af6cfc051638";
     default:
@@ -98,7 +98,12 @@ export const getContractsFunctions = (contractName: any, convertFunctionTypesFro
 export const getContractsConstructorsNames = (contractName: any) => {
   throwErrorForWrongContractName(contractName);
   const constructorInterface = contractsInterfaces[contractName].abi.find((i: any) => i.type === "constructor");
-  return constructorInterface.inputs.map((i: any) => i.name);
+  let constructorArgs = constructorInterface.inputs.map((i: any) => i.name);
+  // 🏗️. TODO: create a filter function called overwrites() for following cases
+  if (contractName === "ticket") {
+    constructorArgs = constructorArgs.filter(arg => arg !== "base_uri")
+  }
+  return constructorArgs;
 };
 
 export const getAllContractsDetails = () => {

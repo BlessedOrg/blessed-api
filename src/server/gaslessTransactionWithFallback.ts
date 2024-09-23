@@ -19,11 +19,7 @@ export async function gaslessTransactionWithFallback(
     abiFunctions
   });
 
-  console.log("🌳 calldata: ", calldata)
-
   const gaslessTransactionResult = await gaslessTransaction(account, calldata);
-  
-  console.log("🔮 gaslessTransactionResult: ", gaslessTransactionResult)
 
   if (!!gaslessTransactionResult?.transactionHash) {
     return { txHash: gaslessTransactionResult.transactionHash, type: "gasless" };

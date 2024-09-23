@@ -29,12 +29,6 @@ async function postHandler(req: NextRequestWithApiTokenAuth, { params: { contrac
     const constructorArgs = getContractsConstructorsNames(contractName);
 
     let finalConstructor = constructor;
-    if (contractName === "ticket" && constructor.ticket_type === "free") {
-      finalConstructor = {
-        ...finalConstructor,
-        erc20_address: "0x3e5654865fc27ead8ea32557b30717e241314f7f6b74e328b83b89ea927c33c"
-      }
-    }
 
     if (!isEqual(sortBy(constructorArgs), sortBy(Object.keys(finalConstructor))) || isEmpty(body)) {
       return NextResponse.json(
@@ -74,33 +68,27 @@ async function postHandler(req: NextRequestWithApiTokenAuth, { params: { contrac
 
     const metadataUrl = await uploadMetadata({ name, description, symbol, image });
 
+    finalConstructor = {
+      ...finalConstructor,
+      base_uri: metadataUrl
+    }
+
+    // 🏗️. TODO: create a filter function called overwrites() for following cases
+    if (contractName === "ticket") {
+      if (constructor.ticket_type === "free") {
+        finalConstructor = {
+          ...finalConstructor,
+          // 🏗️ TODO: replace it with 0 address if possible?
+          erc20_address: "0x3e5654865fc27ead8ea32557b30717e241314f7f6b74e328b83b89ea927c33c"
+        }
+      }
+    }
+
     const deployResponse = await deployContract({
       contractName,
       constructorArgs: finalConstructor,
       classHash
     });
-
-    if (contractName === "ticket") {
-      const contract = connectToContract({
-        address: deployResponse.contract_address,
-        name: contractName
-      });
-      const { account } = await getAccountInstance({ developerId: req.developerId } );
-      
-      const transactionResult = await gaslessTransactionWithFallback(
-        account,
-        "set_base_uri",
-        contract,
-        { "base_uri": metadataUrl },
-        getContractsFunctions(contractName),
-        false
-      );
-      const txReceipt = !!transactionResult?.txHash
-        ? await provider.waitForTransaction(transactionResult?.txHash)
-        : null;
-
-      console.log("🔮 txReceipt: ", txReceipt)
-    }
 
     const maxId = await smartContractModel.aggregate({
       where: {
