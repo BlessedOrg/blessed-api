@@ -1,6 +1,7 @@
 "use server";
 import { Abi, Account, Contract } from "starknet";
 import { gaslessTransaction, getGaslessTransactionCallData } from "@/server/services/gaslessTransaction";
+import { getExplorerUrl } from "@/utils/getExplorerUrl";
 
 export async function gaslessTransactionWithFallback(
   account: Account,
@@ -22,7 +23,11 @@ export async function gaslessTransactionWithFallback(
   const gaslessTransactionResult = await gaslessTransaction(account, calldata);
 
   if (!!gaslessTransactionResult?.transactionHash) {
-    return { txHash: gaslessTransactionResult.transactionHash, type: "gasless" };
+    return {
+      txHash: gaslessTransactionResult.transactionHash,
+      url: getExplorerUrl(gaslessTransactionResult.transactionHash, "hash"),
+      type: "gasless"
+    };
   } else if (withUserWalletFallback) {
     try {
       contract.connect(account);

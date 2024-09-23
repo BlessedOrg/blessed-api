@@ -22,5 +22,9 @@ export async function validateEmail(email: string, accountType?: sessionType) {
     throw new Error("Email already taken")
   }
 
+  // if (isEmailTaken) {
+  //   throw new Error("Email already taken")
+  // }
+
   return !!isEmailTaken;
 }

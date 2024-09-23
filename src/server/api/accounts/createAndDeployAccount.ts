@@ -5,12 +5,13 @@ import { ethers } from "ethers";
 import { createVaultPrivateKeyItem } from "@/server/api/vault/vaultApi";
 import { gaslessTransaction } from "@/server/services/gaslessTransaction";
 import { bigIntToHex } from "@/utils/numberConverts";
+import { developersUserAccountModel } from "@/prisma/models";
+
+const provider = new RpcProvider({
+  nodeUrl: constants.NetworkName.SN_SEPOLIA
+});
 
 export async function createAndDeployAccount(email: string) {
-  const provider = new RpcProvider({
-    nodeUrl: constants.NetworkName.SN_SEPOLIA
-  });
-
   // Argent
   const argentXaccountClassHash = process.env.NEXT_PUBLIC_ARGENT_ACCOUNT_CLASS_HASH!;
 
@@ -61,6 +62,7 @@ export async function createAndDeployAccount(email: string) {
     constructorCalldata: AXConstructorCallData,
     contractAddress: AXcontractAddress
   });
+
   console.log(`💰 Suggested max fee ETH: ${ethers.formatEther(suggestedMaxFee)} | BigInt: ${suggestedMaxFee}`);
 
   ethContract.connect(operatorAccount);
@@ -100,9 +102,7 @@ export async function createAndDeployAccount(email: string) {
 
   console.log(`🔄 Waiting for transaction confirmation...`);
 
-  const confirmation = await provider.waitForTransaction(
-    transferInitialFundsTx
-  );
+  const confirmation = await provider.waitForTransaction(transferInitialFundsTx);
 
   if (confirmation.statusReceipt === "success") {
     console.log("🚀 Successfully transfer initial funds to the ArgentX account");
@@ -130,6 +130,7 @@ const deployAccountAndCreateVaultItem = async (
       transaction_hash: AXdAth,
       contract_address: AXcontractFinalAddress
     } = await accountAX.deployAccount(deployAccountPayload);
+    await provider.waitForTransaction(AXdAth);
 
     if (AXcontractFinalAddress) {
       console.log(`✅ ArgentX wallet created & deployed: \n  - Final contract address: ${AXcontractFinalAddress}`);
@@ -165,3 +166,25 @@ const deployAccountAndCreateVaultItem = async (
     };
   }
 };
+
+export const updateAccountModel = async (email: string, deployedUserAccount: any): Promise<string> => {
+  if (deployedUserAccount?.contractAddress) {
+    const dev = await developersUserAccountModel.update({
+      where: { email },
+      data: {
+        walletAddress: deployedUserAccount.contractAddress,
+        accountDeployed: true,
+        vaultKey: deployedUserAccount.vaultKey,
+      },
+    });
+    return dev?.id;
+  } else {
+    const devUser = await developersUserAccountModel.update({
+      where: { email },
+      data: {
+        vaultKey: deployedUserAccount.vaultKey,
+      },
+    });
+    return devUser?.id;
+  }
+}

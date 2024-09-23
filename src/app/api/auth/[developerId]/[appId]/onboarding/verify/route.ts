@@ -4,14 +4,13 @@ import { developersUserAccountModel } from "@/prisma/models";
 import { verifyEmailOtp } from "@/server/auth/verifyEmailOtp";
 import { createSessionTokens } from "@/server/auth/createSessionTokens";
 import { createOrUpdateSession } from "@/server/auth/session";
-import { createAndDeployAccount } from "@/server/api/accounts/createAndDeployAccount";
+import { createAndDeployAccount, updateAccountModel } from "@/server/api/accounts/createAndDeployAccount";
 import { withExistingDevAccount } from "@/app/middleware/withExistingDevAccount";
 import { sessionType } from "@prisma/client";
 
 export const maxDuration = 300;
 
 async function handler(req: Request, { params: { developerId, appId } }) {
-  console.log("🔥 appId: ", appId)
   const body = await req.json();
   const { code } = body;
 
@@ -47,30 +46,7 @@ async function handler(req: Request, { params: { developerId, appId } }) {
     const deployedUserAccount: any = await createAndDeployAccount(createdUser?.email);
     console.log(`🚀 Deployed user account:`, deployedUserAccount);
 
-    let newRecordId: string;
-    if (deployedUserAccount?.contractAddress) {
-      const dev = await developersUserAccountModel.update({
-        where: {
-          email,
-        },
-        data: {
-          walletAddress: deployedUserAccount.contractAddress,
-          accountDeployed: true,
-          vaultKey: deployedUserAccount.vaultKey,
-        },
-      });
-      newRecordId = dev?.id;
-    } else {
-      const devUser = await developersUserAccountModel.update({
-        where: {
-          email,
-        },
-        data: {
-          vaultKey: deployedUserAccount.vaultKey,
-        },
-      });
-      newRecordId = devUser?.id;
-    }
+    const newRecordId = await updateAccountModel(email, deployedUserAccount);
 
     return NextResponse.json(
       {
