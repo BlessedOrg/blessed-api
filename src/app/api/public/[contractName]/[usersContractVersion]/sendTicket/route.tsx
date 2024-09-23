@@ -89,10 +89,6 @@ async function postHandler(req: NextRequestWithApiTokenAuth, { params: { contrac
   await provider.waitForTransaction(transactionResult?.txHash);
 
   const transporter = await createMailTransport(isLocalhost);
-  const testResult = await transporter.verify();
-  if (!testResult) {
-    throw new Error("Email service is not ready");
-  }
   const emailHtml = await render(<TicketReceiveEmail />);
 
   const options = {
