@@ -4,7 +4,7 @@ import z from "zod";
 import { sessionType } from "@prisma/client";
 
 const schema = z.object({
-  email: z.string().email()
+  email: z.string().email(),
 });
 
 export async function validateEmail(email: string, accountType?: sessionType) {
@@ -14,13 +14,10 @@ export async function validateEmail(email: string, accountType?: sessionType) {
     throw new Error(`${validBody.error}`);
   }
 
-  const isEmailTaken = accountType === "dev"
-    ? await developerAccountModel.findFirst({ where: { email } })
-    : await developersUserAccountModel.findFirst({ where: { email } });
-  
-  if (isEmailTaken) {
-    throw new Error("Email already taken")
-  }
+  const isEmailTaken =
+    accountType === "dev"
+      ? await developerAccountModel.findFirst({ where: { email } })
+      : await developersUserAccountModel.findFirst({ where: { email } });
 
   return !!isEmailTaken;
 }
