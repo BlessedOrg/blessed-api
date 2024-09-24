@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Body, Button, Html } from "@react-email/components";
+import { Body, Html, Link } from "@react-email/components";
 import { TailwindWrapper } from "@/emailTemplates/TailwindWrapper";
 
 export function VerificationCodeEmail({ code }) {
@@ -19,13 +19,15 @@ export function VerificationCodeEmail({ code }) {
               <div className="text-sm text-gray-500 text-center mt-8">
                 <p>If you didn't ask for this code, please ignore this message.</p>
               </div>
+              <div className="w-full">
+                <Link
+                  href="https://blessed.fan"
+                  className="mx-auto w-fit block bg-green-500 px-6 py-2 rounded-full font-medium leading-4 text-white text-black"
+                >
+                  Blessed.fan
+                </Link>
+              </div>
             </div>
-            <Button
-              href="https://blessed.fan"
-              className="bg-green-500 px-6 py-2 rounded-full font-medium leading-4 text-white text-black"
-            >
-              Blessed.fan
-            </Button>
           </div>
         </TailwindWrapper>
       </Body>
