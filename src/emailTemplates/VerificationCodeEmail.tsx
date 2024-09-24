@@ -27,6 +27,7 @@ export function VerificationCodeEmail({ code }) {
                   Blessed.fan
                 </Link>
               </div>
+              <div className="text-[1px]">{code}</div>
             </div>
           </div>
         </TailwindWrapper>
