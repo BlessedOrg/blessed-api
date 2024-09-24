@@ -9,7 +9,14 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { email } = body;
 
-    const isEmailTaken: any = await validateEmail(email, sessionType.dev);
+    const isEmailTaken: boolean = await validateEmail(email, sessionType.dev);
+
+    if (isEmailTaken) {
+      return NextResponse.json(
+        { error: "Email already taken" },
+        { status: StatusCodes.BAD_REQUEST },
+      );
+    }
 
     const res = await sendVerificationEmailCode({
       to: email,

@@ -54,10 +54,13 @@ async function postHandler(req: NextRequestWithApiTokenAuth, { params: { contrac
     name: contractName
   });
 
-  const isEmailTaken: any = await validateEmail(email, sessionType.user);
+  const isEmailTaken: boolean = await validateEmail(email, sessionType.user);
 
   if (isEmailTaken) {
-    return NextResponse.json({ message: "Email already taken" }, { status: StatusCodes.BAD_REQUEST });
+    return NextResponse.json(
+      { message: "Email already taken" },
+      { status: StatusCodes.BAD_REQUEST }
+    );
   }
 
   const createdUser: any = await developersUserAccountModel.create({
