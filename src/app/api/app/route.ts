@@ -1,7 +1,7 @@
-import { withDeveloperAccessToken } from "@/app/middleware/withDeveloperAccessToken";
+import { appModel } from "@/prisma/models";
 import { NextResponse } from "next/server";
 import { StatusCodes } from "http-status-codes";
-import { appModel } from "@/prisma/models";
+import { withDeveloperAccessToken } from "@/app/middleware/withDeveloperAccessToken";
 import z from "zod";
 
 const postSchema = z.object({
@@ -33,15 +33,4 @@ async function postHandler(req: NextRequestWithDevAuth) {
   return NextResponse.json(app, { status: StatusCodes.OK });
 }
 
-async function getHandler(req: NextRequestWithDevAuth) {
-  const apps = await appModel.findMany({
-    where: {
-      developerId: req.developerId
-    }
-  });
-
-  return NextResponse.json(apps, { status: StatusCodes.OK });
-}
-
 export const POST = withDeveloperAccessToken(postHandler);
-export const GET = withDeveloperAccessToken(getHandler);
