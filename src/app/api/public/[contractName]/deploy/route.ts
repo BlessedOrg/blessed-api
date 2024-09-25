@@ -2,15 +2,11 @@ import { NextResponse } from "next/server";
 import { isEmpty, isEqual, sortBy } from "lodash-es";
 import { StatusCodes } from "http-status-codes";
 import deployContract from "@/server/services/deployContract";
-import { getContractClassHash, getContractsConstructorsNames, getContractsFunctions } from "@/contracts/interfaces";
+import { getContractClassHash, getContractsConstructorsNames } from "@/contracts/interfaces";
 import { smartContractModel } from "@/prisma/models";
 import { withDeveloperApiToken } from "@/app/middleware/withDeveloperApiToken";
 import { uploadMetadata } from "@/server/services/irys";
 import z from "zod";
-import provider from "@/contracts/provider";
-import { getAccountInstance } from "@/server/api/accounts/getAccountInstance";
-import connectToContract from "@/server/services/connectToContract";
-import { gaslessTransactionWithFallback } from "@/server/gaslessTransactionWithFallback";
 
 export const maxDuration = 300;
 
@@ -77,7 +73,7 @@ async function postHandler(req: NextRequestWithApiTokenAuth, { params: { contrac
       );
     }
 
-    const metadataUrl = await uploadMetadata({ name, description, symbol, image });
+    const { metadataUrl, metadataImageUrl } = await uploadMetadata({ name, description, symbol, image });
 
     finalConstructor = {
       ...finalConstructor,
@@ -109,7 +105,10 @@ async function postHandler(req: NextRequestWithApiTokenAuth, { params: { contrac
         developerId: req.developerId,
         version: nextId,
         metadataUrl,
-        metadataPayload: body.metadata,
+        metadataPayload: {
+          ...body.metadata,
+          ...metadataImageUrl && { metadataImageUrl }
+        },
         appId: req.appId
       }
     });

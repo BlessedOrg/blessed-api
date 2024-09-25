@@ -14,10 +14,10 @@ import { createOrUpdateSession } from "@/server/auth/session";
 import { sessionType } from "@prisma/client";
 import { createAndDeployAccount, updateAccountModel } from "@/server/api/accounts/createAndDeployAccount";
 import { validateEmail } from "@/server/auth/validateEmail";
-import { TicketReceiveEmail } from "@/emailTemplates/TicketReceiveEmail";
 import { createMailTransport } from "@/server/api/email";
 import { render } from "@react-email/components";
 import nodeMailer from "nodemailer";
+import TicketReceiverEmail from "@/emailTemplates/TicketReceiverEmail";
 
 const schema = z.object({
   email: z.string().email()
@@ -38,6 +38,9 @@ async function postHandler(req: NextRequestWithApiTokenAuth, { params: { contrac
       developerId: req.developerId,
       version: Number(usersContractVersion),
       name: contractName
+    },
+    include: {
+      App: true
     }
   });
   if (!smartContract) {
@@ -56,35 +59,42 @@ async function postHandler(req: NextRequestWithApiTokenAuth, { params: { contrac
 
   const isEmailTaken: boolean = await validateEmail(email, sessionType.user);
 
+  let user;
   if (isEmailTaken) {
-    return NextResponse.json(
-      { message: "Email already taken" },
-      { status: StatusCodes.BAD_REQUEST }
-    );
+    user = await developersUserAccountModel.findUnique({
+      where: {
+        email
+      },
+      select: {
+        email: true,
+        walletAddress: true
+      }
+    });
+  } else {
+    user = await developersUserAccountModel.create({
+      data: {
+        email,
+        developerId: req.developerId,
+        appId: req.appId
+      },
+      select: {
+        email: true,
+        walletAddress: true
+      }
+    });
+    await createSessionTokens({ id: user?.id });
+    await createOrUpdateSession(email, sessionType.user);
+    const deployedUserAccount: any = await createAndDeployAccount(user?.email);
+    console.log(`🚀 Deployed user account:`, deployedUserAccount);
+    await updateAccountModel(email, deployedUserAccount);
+    user.walletAddress = deployedUserAccount.contractAddress
   }
-
-  const createdUser: any = await developersUserAccountModel.create({
-    data: {
-      email,
-      developerId: req.developerId,
-      appId: req.appId
-    }
-  });
-
-  await createSessionTokens({ id: createdUser?.id });
-
-  await createOrUpdateSession(email, sessionType.user);
-
-  const deployedUserAccount: any = await createAndDeployAccount(createdUser?.email);
-  console.log(`🚀 Deployed user account:`, deployedUserAccount);
-
-  await updateAccountModel(email, deployedUserAccount);
 
   const transactionResult = await gaslessTransactionWithFallback(
     account,
     "send",
     contract,
-    { to: deployedUserAccount.contractAddress },
+    { to: user.walletAddress },
     getContractsFunctions(contractName),
     false
   );
@@ -92,17 +102,20 @@ async function postHandler(req: NextRequestWithApiTokenAuth, { params: { contrac
   await provider.waitForTransaction(transactionResult?.txHash);
 
   const transporter = await createMailTransport(isLocalhost);
-  const emailHtml = await render(<TicketReceiveEmail />);
-
+  const emailHtml = await render(
+    <TicketReceiverEmail
+      eventName={smartContract?.App?.name}
+      ticketUrl={transactionResult?.txHash}
+      imageUrl={(smartContract.metadataPayload as { metadataImageUrl?: string })?.metadataImageUrl ?? null}
+    />
+  );
   const options = {
     from: process.env.SMTP_EMAIL || "test@blessed.fan",
-    to: createdUser.email,
-    subject: "Your ticket!",
+    to: user.email,
+    subject: `Your ticket to ${smartContract?.App?.name}!`,
     html: emailHtml
   };
-
   const sendResult = await transporter.sendMail(options);
-
   if (isLocalhost) {
     console.log(`📨 Email sent. Preview URL: ${nodeMailer.getTestMessageUrl(sendResult)}`);
   }
