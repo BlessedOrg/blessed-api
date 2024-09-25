@@ -1,24 +1,51 @@
 import z from "zod";
 import { convertDenominationToNumber } from "@/utils/convertDenominationToNumber";
+import { extractCairoArraySingleTypes } from "@/utils/extractCairoArraySingleTypes";
 
 export function generateSchemaForContractBody(functionObject: any) {
   const inputSchema: Record<string, z.ZodTypeAny> = {};
 
   functionObject.inputs.forEach((input: any) => {
     const { name, type } = input;
-    if (type === "core::array::Array::<(core::starknet::contract_address::ContractAddress, core::integer::u8)>") {
-      inputSchema[name] = z
-        .array(
-          z
-            .array(
-              z.union([
-                z.string().regex(/^0x[a-fA-F0-9]{60,65}$/, "Invalid Starknet address"),
-                z.number().int().min(0).max(99)
-              ])
-            )
-            .length(2)
-        )
-        .min(1);
+    if (type.includes("core::array")) {
+      const [expectedType] = extractCairoArraySingleTypes(type, true) as ["string" | "number" | "boolean"];
+      let elementSchema: z.ZodTypeAny;
+
+      switch (expectedType) {
+        case "number":
+          elementSchema = z
+            .union([
+              z.number(),
+              z.string().refine(
+                (val) => {
+                  try {
+                    Number(val);
+                    return true;
+                  } catch {
+                    return false;
+                  }
+                },
+                {
+                  message: "Invalid number format. Expected a number or 'number[u|c]'"
+                }
+              )
+            ])
+            .transform((val) => {
+              if (typeof val === "number") return val;
+              return Number(val);
+            });
+          break;
+        case "string":
+          elementSchema = z.string();
+          break;
+        case "boolean":
+          elementSchema = z.boolean();
+          break;
+        default:
+          elementSchema = z.any();
+      }
+
+      inputSchema[name] = z.union([elementSchema, z.array(elementSchema)]).transform((value) => (Array.isArray(value) ? value : [value]));
     } else if (type.includes("integer")) {
       inputSchema[name] = z
         .union([

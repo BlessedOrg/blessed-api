@@ -12,7 +12,7 @@ import { withDeveloperUserAccessToken } from "@/app/middleware/withDeveloperUser
 import { difference, isEmpty, keys, map, size } from "lodash-es";
 import { gaslessTransactionWithFallback } from "@/server/gaslessTransactionWithFallback";
 import { getAccountInstance } from "@/server/api/accounts/getAccountInstance";
-import formatCairoFunctionResult from "@/utils/formatCairoFunctionResult";
+import { formatCairoReadFunctionResult } from "@/utils/formatCairoReadFunctionResult";
 import { convertDenominationToNumber } from "@/utils/convertDenominationToNumber";
 
 export const maxDuration = 300;
@@ -37,6 +37,7 @@ async function postHandler(
     const body = await req.json();
     const functions = getContractsFunctions(contractName);
     const targetFunction = functions.find((f: any) => f.name === functionName);
+
     if (!targetFunction) {
       return NextResponse.json(
         {
@@ -47,13 +48,6 @@ async function postHandler(
     }
 
     const inputsExists = targetFunction.inputs.every((input) => body[input.name] !== undefined);
-    const inputNumberTypes = map(cairoInputsFormat(targetFunction.inputs)).filter((i) => i.type === "number");
-
-    if (!isEmpty(inputNumberTypes)) {
-      console.log("Provided number value", body[inputNumberTypes[0].name]);
-      console.log("Formatted number value", convertDenominationToNumber(body[inputNumberTypes[0].name]));
-      body[inputNumberTypes[0].name] = convertDenominationToNumber(body[inputNumberTypes[0].name]);
-    }
 
     if (!inputsExists) {
       const requiredInputNames = map(cairoInputsFormat(targetFunction.inputs), "name");
@@ -67,6 +61,12 @@ async function postHandler(
         },
         { status: StatusCodes.BAD_REQUEST }
       );
+    }
+
+    const inputNumberTypes = map(cairoInputsFormat(targetFunction.inputs)).filter((i) => i.type === "number");
+
+    if (!isEmpty(inputNumberTypes)) {
+      body[inputNumberTypes[0].name] = convertDenominationToNumber(body[inputNumberTypes[0].name]);
     }
 
     const smartContract = await smartContractModel.findFirst({
@@ -114,7 +114,7 @@ async function postHandler(
       const initialType = typeof result;
       return NextResponse.json(
         {
-          result: formatCairoFunctionResult(result, targetFunction),
+          result: formatCairoReadFunctionResult(result, targetFunction),
           type: initialType
         },
         { status: StatusCodes.OK }
