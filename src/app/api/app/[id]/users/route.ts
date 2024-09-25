@@ -3,7 +3,7 @@ import { StatusCodes } from "http-status-codes";
 import { developersUserAccountModel } from "@/prisma/models";
 import { withDeveloperAccessToken } from "@/app/middleware/withDeveloperAccessToken";
 
-async function getHandler(req: NextRequestWithDevAuth, { params: { id } }) {
+async function getHandler(req: NextRequestWithDeveloperAccessToken, { params: { id } }) {
   if (!id) {
     return NextResponse.json({ error: "appId query param is required" }, { status: StatusCodes.BAD_REQUEST });
   }

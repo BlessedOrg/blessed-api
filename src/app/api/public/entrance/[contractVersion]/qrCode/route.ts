@@ -2,11 +2,11 @@ import { NextResponse } from "next/server";
 import { StatusCodes } from "http-status-codes";
 import { smartContractModel } from "@/prisma/models";
 import { generateQrCode } from "@/utils/generateQrCode";
-import { withDeveloperApiToken } from "@/app/middleware/withDeveloperApiToken";
+import { withApiToken } from "@/app/middleware/withApiToken";
 
 export const dynamic = "force-dynamic";
 
-async function handler(req: NextRequestWithApiTokenAuth, { params: { contractVersion } }) {
+async function handler(req: NextRequestWithApiToken, { params: { contractVersion } }) {
   const { developerId } = req;
   console.log(`contractVersion:`, +contractVersion);
   const contractData = await smartContractModel.findFirst({
@@ -27,4 +27,4 @@ async function handler(req: NextRequestWithApiTokenAuth, { params: { contractVer
   );
 }
 
-export const GET = withDeveloperApiToken(handler);
+export const GET = withApiToken(handler);

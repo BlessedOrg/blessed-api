@@ -5,7 +5,7 @@ import jwt from "jsonwebtoken";
 import { apiTokenModel } from "@/prisma/models";
 import { isEqual } from "lodash-es";
 
-export function withDeveloperApiToken(handler: (req: NextRequest, context: { params: any }) => Promise<NextResponse> | NextResponse) {
+export function withApiToken(handler: (req: NextRequest, context: { params: any }) => Promise<NextResponse> | NextResponse) {
   return async (request: NextRequest, context: { params: any }) => {
     try {
       const token = request.headers.get("apiToken");

@@ -5,12 +5,12 @@ import { verifyEmailOtp } from "@/server/auth/verifyEmailOtp";
 import { createSessionTokens } from "@/server/auth/createSessionTokens";
 import { createOrUpdateSession } from "@/server/auth/session";
 import { createAndDeployAccount, updateAccountModel } from "@/server/api/accounts/createAndDeployAccount";
-import { withExistingDevAccount } from "@/app/middleware/withExistingDevAccount";
 import { sessionType } from "@prisma/client";
+import { withApiToken } from "@/app/middleware/withApiToken";
 
 export const maxDuration = 300;
 
-async function handler(req: Request, { params: { developerId, appId } }) {
+async function handler(req: NextRequestWithApiToken) {
   const body = await req.json();
   const { code } = body;
 
@@ -33,8 +33,8 @@ async function handler(req: Request, { params: { developerId, appId } }) {
   const createdUser: any = await developersUserAccountModel.create({
     data: {
       email,
-      developerId: developerId,
-      appId
+      developerId: req.developerId,
+      appId: req.appId
     },
   });
 
@@ -54,7 +54,7 @@ async function handler(req: Request, { params: { developerId, appId } }) {
         refreshToken,
         user: {
           email,
-          developerId,
+          developerId: req.developerId,
           isDeployed: deployedUserAccount?.contractAddress,
           walletAddress: deployedUserAccount?.contractAddress,
           vaultKey: deployedUserAccount?.vaultKey,
@@ -71,4 +71,4 @@ async function handler(req: Request, { params: { developerId, appId } }) {
     { status: StatusCodes.INTERNAL_SERVER_ERROR },
   );
 }
-export const POST = withExistingDevAccount(handler);
+export const POST = withApiToken(handler);

@@ -1,19 +1,19 @@
 import { NextRequest } from "next/server";
 
 declare global {
-  type NextRequestWithApiTokenAuth = NextRequest & {
+  type NextRequestWithApiToken = NextRequest & {
     developerId: string;
     appId: string;
     userId: string;
   };
 
-  type NextRequestWithDevAuth = NextRequest & {
+  type NextRequestWithDeveloperAccessToken = NextRequest & {
     developerId: string;
     developerWalletAddress: string;
     isDevAccountDeployed: boolean;
   };
 
-  type NextRequestWithDevUserAuth = NextRequest & {
+  type NextRequestWithDeveloperUserAccessToken = NextRequest & {
     developerId: string;
     userId: string;
   };
