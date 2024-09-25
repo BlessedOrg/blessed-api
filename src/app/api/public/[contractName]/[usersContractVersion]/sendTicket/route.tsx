@@ -57,7 +57,7 @@ async function postHandler(req: NextRequestWithApiTokenAuth, { params: { contrac
     name: contractName
   });
 
-  const isEmailTaken: any = await validateEmail(email, sessionType.user);
+  const isEmailTaken: boolean = await validateEmail(email, sessionType.user);
 
   let user;
   if (isEmailTaken) {

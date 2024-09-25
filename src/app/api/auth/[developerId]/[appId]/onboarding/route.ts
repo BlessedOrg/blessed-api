@@ -1,17 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
 import { StatusCodes } from "http-status-codes";
 import { validateEmail } from "@/server/auth/validateEmail";
-import { withExistingDevAccount } from "@/app/middleware/withExistingDevAccount";
 import { sendVerificationEmailCode } from "@/server/auth/sendVerificationEmailCode";
 import { sessionType } from "@prisma/client";
 
-async function handler(req: NextRequest) {
+async function postHandler(req: NextRequest) {
   try {
     const body = await req.json();
     const { email } = body;
 
-    const isEmailTaken: any = await validateEmail(email, sessionType.user);
-    
+    const isEmailTaken: boolean = await validateEmail(email, sessionType.user);
+
+    if (isEmailTaken) {
+      return NextResponse.json(
+        { error: "Email already taken" },
+        { status: StatusCodes.BAD_REQUEST },
+      );
+    }
+
     const res = await sendVerificationEmailCode({
       to: email,
       isLocalhost: req.nextUrl.hostname === "localhost",
@@ -34,5 +40,4 @@ async function handler(req: NextRequest) {
   }
 }
 
-// export const POST = withExistingDevAccount(handler);
-export const POST = handler;
+export const POST = postHandler;
