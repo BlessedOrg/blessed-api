@@ -26,6 +26,8 @@ export function withDeveloperAccessToken(
         },
       });
 
+      console.log("🔮 session: ", session)
+
       if (!session?.developerId) {
         return NextResponse.json({ error: "Unauthorized" }, { status: StatusCodes.UNAUTHORIZED });
       }

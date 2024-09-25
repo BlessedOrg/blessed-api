@@ -10,7 +10,7 @@ const postSchema = z.object({
   imageUrl: z.string().optional()
 });
 
-async function postHandler(req: NextRequestWithDeveloperAccessToken) {
+async function createNewApp(req: NextRequestWithDeveloperAccessToken) {
   const parsedBody = postSchema.safeParse(await req.json());
   const { name, description, imageUrl } = parsedBody.data;
 
@@ -33,9 +33,9 @@ async function postHandler(req: NextRequestWithDeveloperAccessToken) {
   return NextResponse.json(app, { status: StatusCodes.OK });
 }
 
-export const POST = withDeveloperAccessToken(postHandler);
+export const POST = withDeveloperAccessToken(createNewApp);
 
-async function getHandler(req: NextRequestWithDeveloperAccessToken) {
+async function getAllMyApps(req: NextRequestWithDeveloperAccessToken) {
   const apps = await appModel.findMany({
     where: {
       developerId: req.developerId
@@ -54,4 +54,4 @@ async function getHandler(req: NextRequestWithDeveloperAccessToken) {
   return NextResponse.json(apps, { status: StatusCodes.OK });
 }
 
-export const GET = withDeveloperAccessToken(getHandler);
+export const GET = withDeveloperAccessToken(getAllMyApps);
