@@ -54,6 +54,10 @@ interface Metadata {
 }
 
 export const uploadMetadata = async ({ name, symbol, description, image }: Metadata) => {
-  const imageUrl = await uploadImage(image);
-  return uploadFile({ name, symbol, description, image: imageUrl });
+  const metadataImageUrl = await uploadImage(image);
+  const metadataUrl = await uploadFile({ name, symbol, description, image: metadataImageUrl })
+  return {
+    metadataImageUrl,
+    metadataUrl
+  }
 };
