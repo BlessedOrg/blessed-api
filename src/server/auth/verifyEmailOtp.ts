@@ -16,11 +16,11 @@ export async function verifyEmailOtp(code: string) {
   }
 
   if (new Date(existingCodeData.expiresAt).getTime() < new Date().getTime()) {
-    await emailVerificationCodeModel.delete({
-      where: {
-        id: existingCodeData.id,
-      },
-    });
+    // await emailVerificationCodeModel.delete({
+    //   where: {
+    //     id: existingCodeData.id,
+    //   },
+    // });
     return {
       accepted: false,
       email: undefined,
@@ -28,11 +28,11 @@ export async function verifyEmailOtp(code: string) {
     };
   }
 
-  await emailVerificationCodeModel.delete({
-    where: {
-      id: existingCodeData.id,
-    },
-  });
+  // await emailVerificationCodeModel.delete({
+  //   where: {
+  //     id: existingCodeData.id,
+  //   },
+  // });
 
   return {
     accepted: true,

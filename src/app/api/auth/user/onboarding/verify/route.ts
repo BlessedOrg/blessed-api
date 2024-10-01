@@ -4,9 +4,9 @@ import { developersUserAccountModel } from "@/prisma/models";
 import { verifyEmailOtp } from "@/server/auth/verifyEmailOtp";
 import { createSessionTokens } from "@/server/auth/createSessionTokens";
 import { createOrUpdateSession } from "@/server/auth/session";
-import { createAndDeployAccount, updateAccountModel } from "@/server/api/accounts/createAndDeployAccount";
 import { sessionType } from "@prisma/client";
 import { withApiToken } from "@/app/middleware/withApiToken";
+import { importUserToPrivy } from "@/server/auth/importUserToPrivy";
 
 export const maxDuration = 300;
 
@@ -29,12 +29,13 @@ async function handler(req: NextRequestWithApiToken) {
       { status: StatusCodes.BAD_REQUEST },
     );
   }
-
+  const privyUser = await importUserToPrivy(email)
   const createdUser: any = await developersUserAccountModel.create({
     data: {
       email,
       developerId: req.developerId,
-      appId: req.appId
+      appId: req.appId,
+      walletAddress: privyUser.wallet.address,
     },
   });
 
@@ -43,11 +44,6 @@ async function handler(req: NextRequestWithApiToken) {
 
     await createOrUpdateSession(email, sessionType.user);
 
-    const deployedUserAccount: any = await createAndDeployAccount(createdUser?.email);
-    console.log(`🚀 Deployed user account:`, deployedUserAccount);
-
-    const newRecordId = await updateAccountModel(email, deployedUserAccount);
-
     return NextResponse.json(
       {
         accessToken,
@@ -55,11 +51,10 @@ async function handler(req: NextRequestWithApiToken) {
         user: {
           email,
           developerId: req.developerId,
-          isDeployed: deployedUserAccount?.contractAddress,
-          walletAddress: deployedUserAccount?.contractAddress,
-          vaultKey: deployedUserAccount?.vaultKey,
+          walletAddress: privyUser.wallet.address,
           verifyEmailResult,
-          id: newRecordId
+          id: createdUser.id,
+          appId: req.appId
         },
       },
       { status: StatusCodes.OK },

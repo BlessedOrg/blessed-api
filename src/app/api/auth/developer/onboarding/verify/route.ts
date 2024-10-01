@@ -3,9 +3,9 @@ import { StatusCodes } from "http-status-codes";
 import { developerAccountModel } from "@/prisma/models";
 import { verifyEmailOtp } from "@/server/auth/verifyEmailOtp";
 import { createSessionTokens } from "@/server/auth/createSessionTokens";
-import { createAndDeployAccount } from "@/server/api/accounts/createAndDeployAccount";
 import { createOrUpdateSession } from "@/server/auth/session";
 import { sessionType } from "@prisma/client";
+import { importUserToPrivy } from "@/server/auth/importUserToPrivy";
 
 export const maxDuration = 300;
 
@@ -28,13 +28,16 @@ export async function POST(req: Request) {
       { status: StatusCodes.BAD_REQUEST }
     );
   }
-
+  console.log(1)
+  const privyUser = await importUserToPrivy(email)
+  console.log(2)
   const createdUser: any = await developerAccountModel.create({
     data: {
       email,
+      walletAddress: privyUser.wallet.address
     },
   });
-
+console.log(3)
   if (createdUser) {
     const {
       accessToken,
@@ -43,45 +46,15 @@ export async function POST(req: Request) {
 
     await createOrUpdateSession(email, sessionType.dev);
 
-    const deployedUserAccount: any = await createAndDeployAccount(createdUser.email);
-    console.log(`🚀 Deployed user account:`, deployedUserAccount);
-
-    let newRecordId: string;
-    if (deployedUserAccount?.contractAddress) {
-      const dev = await developerAccountModel.update({
-        where: {
-          email,
-        },
-        data: {
-          walletAddress: deployedUserAccount.contractAddress,
-          accountDeployed: true,
-          vaultKey: deployedUserAccount.vaultKey,
-        },
-      });
-      newRecordId = dev?.id;
-    } else {
-      const devUser = await developerAccountModel.update({
-        where: {
-          email,
-        },
-        data: {
-          vaultKey: deployedUserAccount.vaultKey,
-        },
-      });
-      newRecordId = devUser?.id;
-    }
-
     return NextResponse.json(
       {
         accessToken,
         refreshToken,
         user: {
           email,
-          isDeployed: !!deployedUserAccount?.contractAddress,
-          walletAddress: deployedUserAccount?.contractAddress,
-          vaultKey: deployedUserAccount?.vaultKey,
+          walletAddress: privyUser.wallet.address,
           verifyEmailResult,
-          id: newRecordId
+          id: createdUser.id
         },
       },
       { status: StatusCodes.OK },

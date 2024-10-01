@@ -14,20 +14,19 @@ datasource db {
 }
 
 model DeveloperAccount {
-  id              String                  @id @default(cuid())
-  email           String                  @unique
-  walletAddress   String?                 @unique
-  Otps            AccountOtp[]
-  Sessions        Session[]
-  accountDeployed Boolean                 @default(false)
-  vaultKey        String?
-  Users           DevelopersUserAccount[]
-  ApiTokens       ApiToken[]
-  Erc20Tokens     Erc20Token[]
-  SmartContract   SmartContract[]
-  Apps            App[]
-  createdAt       DateTime                @default(now())
-  updatedAt       DateTime                @updatedAt
+  id            String                  @id @default(cuid())
+  email         String                  @unique
+  walletAddress String?                 @unique
+  Otps          AccountOtp[]
+  Sessions      Session[]
+  vaultKey      String?
+  Users         DevelopersUserAccount[]
+  ApiTokens     ApiToken[]
+  Erc20Tokens   Erc20Token[]
+  SmartContract SmartContract[]
+  Apps          App[]
+  createdAt     DateTime                @default(now())
+  updatedAt     DateTime                @updatedAt
 }
 
 model DevelopersUserAccount {
@@ -41,8 +40,6 @@ model DevelopersUserAccount {
   sessionId                 String?
   DeveloperAccount          DeveloperAccount           @relation(fields: [developerId], references: [id])
   developerId               String
-  accountDeployed           Boolean                    @default(false)
-  vaultKey                  String?
   SmartContractInteractions SmartContractInteraction[]
   createdAt                 DateTime                   @default(now())
   updatedAt                 DateTime                   @updatedAt
@@ -167,3 +164,4 @@ model App {
   createdAt        DateTime                @default(now())
   updatedAt        DateTime                @updatedAt
 }
+
