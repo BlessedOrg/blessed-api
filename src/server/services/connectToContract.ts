@@ -1,5 +1,5 @@
-import provider from "@/contracts/provider";
-import { contractsInterfaces } from "@/contracts/interfaces";
+import provider from "@/contracts/cairo/provider";
+import { contractsInterfaces } from "@/contracts/cairo/interfaces";
 import { Contract } from "starknet";
 
 interface ConnectToContractParams {

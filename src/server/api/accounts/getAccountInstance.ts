@@ -3,7 +3,7 @@ import { developerAccountModel, developersUserAccountModel } from "@/prisma/mode
 import { getVaultItem } from "@/server/api/vault/vaultApi";
 import { retrieveWalletCredentials } from "@/utils/retrieveWalletCredentials";
 import { Account } from "starknet";
-import provider from "@/contracts/provider";
+import provider from "@/contracts/cairo/provider";
 
 type GetAccountInstanceProps = { developerId: string; userId?: never } | { developerId?: never; userId: string };
 

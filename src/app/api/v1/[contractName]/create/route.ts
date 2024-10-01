@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { isEmpty, isEqual, sortBy } from "lodash-es";
 import { StatusCodes } from "http-status-codes";
 import deployContract from "@/server/services/deployContract";
-import { getContractClassHash, getContractsConstructorsNames } from "@/contracts/interfaces";
+import { getContractClassHash, getContractsConstructorsNames } from "@/contracts/cairo/interfaces";
 import { smartContractModel } from "@/prisma/models";
 import { withApiToken } from "@/app/middleware/withApiToken";
 import { uploadMetadata } from "@/server/services/irys";

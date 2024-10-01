@@ -1,6 +1,6 @@
 import { Account, cairo, Calldata, CallData } from "starknet";
-import { contractsInterfaces, throwErrorForWrongContractName } from "@/contracts/interfaces";
-import provider from "@/contracts/provider";
+import { contractsInterfaces, throwErrorForWrongContractName } from "@/contracts/cairo/interfaces";
+import provider from "@/contracts/cairo/provider";
 import { getExplorerUrl } from "@/utils/getExplorerUrl";
 
 interface DeployContractParams {

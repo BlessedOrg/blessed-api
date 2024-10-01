@@ -4,7 +4,7 @@ import { updateVaultItem } from "@/server/api/vault/vaultApi";
 import { Account, CallData, constants, Contract, hash, RpcProvider } from "starknet";
 import { ethers } from "ethers";
 import { gaslessTransaction } from "@/server/services/gaslessTransaction";
-import ethAbi from "@/contracts/abis/ethAbi.json";
+import ethAbi from "@/contracts/cairo/abis/ethAbi.json";
 import { bigIntToHex } from "@/utils/numberConverts";
 import { getAccountInstance } from "@/server/api/accounts/getAccountInstance";
 

@@ -6,7 +6,7 @@ import connectToContract from "@/server/services/connectToContract";
 import interactWithContract from "@/server/services/interactWithContract";
 import { smartContractInteractionModel, smartContractModel } from "@/prisma/models";
 import { gaslessTransactionWithFallback } from "@/server/gaslessTransactionWithFallback";
-import { contractsNames } from "@/contracts/interfaces";
+import { contractsNames } from "@/contracts/cairo/interfaces";
 
 export async function entranceEntry(enteredEmail, entranceContractAddress) {
   try {
