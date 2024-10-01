@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@avnu/gasless-sdk": "^0.1.4",
+    "@ethersproject/experimental": "^5.7.0",
     "@irys/upload": "^0.0.1",
     "@irys/upload-ethereum": "^0.0.1",
     "@prisma/client": "5.17.0",
@@ -19,7 +20,7 @@
     "@starknet-react/chains": "^0.1.7",
     "@types/qrcode": "^1.5.5",
     "bcryptjs": "^2.4.3",
-    "ethers": "^6.13.2",
+    "ethers": "5.7.2",
     "jsonwebtoken": "^9.0.2",
     "lodash-es": "^4.17.21",
     "next": "14.2.5",
@@ -33,6 +34,7 @@
     "starknet": "^6.12.1",
     "starknetkit": "^2.2.7",
     "uuid": "^10.0.0",
+    "viem": "^2.21.16",
     "zod": "^3.23.8"
   },
   "devDependencies": {
