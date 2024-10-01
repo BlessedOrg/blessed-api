@@ -2,17 +2,18 @@ import { NextResponse } from "next/server";
 import { StatusCodes } from "http-status-codes";
 import { verifyEmailOtp } from "@/server/auth/verifyEmailOtp";
 import { createOrUpdateSession } from "@/server/auth/session";
-import { withExistingDevAccount } from "@/app/middleware/withExistingDevAccount";
 import { sessionType } from "@prisma/client";
+import { withApiToken } from "@/app/middleware/withApiToken";
 
-async function handler(req: Request) {
+async function handler(req: NextRequestWithApiToken) {
   const body = await req.json();
   const { code } = body;
 
   if (!code) {
-    return NextResponse.json({ error: "Invalid code format" }, {
-      status: StatusCodes.BAD_REQUEST,
-    } as any);
+    return NextResponse.json(
+      { error: "Invalid code format" },
+      { status: StatusCodes.BAD_REQUEST }
+    );
   }
 
   const verifyEmailResult = await verifyEmailOtp(code);
@@ -25,27 +26,21 @@ async function handler(req: Request) {
       return NextResponse.json(
         {
           error: "Failed to create or update session",
-          message: newSessionData.error,
+          message: newSessionData.error
         },
-        {
-          status: StatusCodes.INTERNAL_SERVER_ERROR,
-        },
+        { status: StatusCodes.INTERNAL_SERVER_ERROR }
       );
     }
 
     return NextResponse.json(
       { message: "Verified successfully", newSessionData },
-      {
-        status: StatusCodes.OK,
-      },
+      { status: StatusCodes.OK }
     );
   } else {
     return NextResponse.json(
       { error: "Invalid code", message: verifyEmailResult.message },
-      {
-        status: StatusCodes.BAD_REQUEST,
-      },
+      { status: StatusCodes.BAD_REQUEST }
     );
   }
 }
-export const POST = withExistingDevAccount(handler);
+export const POST = withApiToken(handler);

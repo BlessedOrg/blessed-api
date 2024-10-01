@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
+import { withDeveloperUserAccessToken } from "@/app/middleware/withDeveloperUserAccessToken";
 import { redeployDevAccount } from "@/server/api/accounts/redeployAccount";
 import { StatusCodes } from "http-status-codes";
-import {withDeveloperUserAccessToken} from "@/app/middleware/withDeveloperUserAccessToken";
 
-async function handler(req: NextRequestWithDevUserAuth) {
+async function handler(req: NextRequestWithDeveloperUserAccessToken) {
   const result = await redeployDevAccount(req.userId, 'user');
 
   return NextResponse.json(

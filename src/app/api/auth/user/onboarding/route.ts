@@ -1,10 +1,11 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { StatusCodes } from "http-status-codes";
 import { validateEmail } from "@/server/auth/validateEmail";
 import { sendVerificationEmailCode } from "@/server/auth/sendVerificationEmailCode";
 import { sessionType } from "@prisma/client";
+import { withApiToken } from "@/app/middleware/withApiToken";
 
-async function postHandler(req: NextRequest) {
+async function postHandler(req: NextRequestWithApiToken) {
   try {
     const body = await req.json();
     const { email } = body;
@@ -40,4 +41,4 @@ async function postHandler(req: NextRequest) {
   }
 }
 
-export const POST = postHandler;
+export const POST = withApiToken(postHandler);

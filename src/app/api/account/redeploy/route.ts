@@ -3,7 +3,7 @@ import { withDeveloperAccessToken } from "@/app/middleware/withDeveloperAccessTo
 import { redeployDevAccount } from "@/server/api/accounts/redeployAccount";
 import { StatusCodes } from "http-status-codes";
 
-async function handler(req: NextRequestWithDevAuth) {
+async function handler(req: NextRequestWithDeveloperAccessToken) {
   const result = await redeployDevAccount(req.developerId);
 
   return NextResponse.json(

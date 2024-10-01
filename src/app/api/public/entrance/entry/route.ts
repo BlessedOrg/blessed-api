@@ -4,7 +4,7 @@ import { entranceEntry } from "@/server/api/entranceChecker/entranceEntry";
 import { withDeveloperUserAccessToken } from "@/app/middleware/withDeveloperUserAccessToken";
 import { smartContractModel } from "@/prisma/models";
 
-async function handler(req: NextRequestWithDevAuth) {
+async function handler(req: NextRequestWithDeveloperAccessToken) {
   const searchParams = req.nextUrl.searchParams;
   const contractAddress = searchParams.get("contractAddress");
 

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { withDeveloperApiToken } from "@/app/middleware/withDeveloperApiToken";
+import { withApiToken } from "@/app/middleware/withApiToken";
 import { StatusCodes } from "http-status-codes";
 import connectToContract from "@/server/services/connectToContract";
 import { developerAccountModel, developersUserAccountModel, smartContractInteractionModel, smartContractModel } from "@/prisma/models";
@@ -26,13 +26,12 @@ export interface EventsPerFunctionName {
   [key: string]: EventConfig[];
 }
 const eventsPerFunctionName: EventsPerFunctionName = {
-  get_ticket: [{ eventName: "TransferSingle", value: "id", saveValue: "token_id" }]
+  get_ticket: [
+    { eventName: "TransferSingle", value: "id", saveValue: "token_id" }
+  ]
 };
 
-async function postHandler(
-  req: NextRequestWithDevUserAuth & NextRequestWithApiTokenAuth,
-  { params: { contractName, usersContractVersion, functionName } }
-) {
+async function postHandler(req: NextRequestWithDeveloperUserAccessToken & NextRequestWithApiToken, { params: { contractName, usersContractVersion, functionName } }) {
   try {
     const body = await req.json();
     const functions = getContractsFunctions(contractName);
@@ -40,14 +39,12 @@ async function postHandler(
 
     if (!targetFunction) {
       return NextResponse.json(
-        {
-          error: `Function ${functionName} for contract ${contractName} not found. Supported contracts and corresponding functions can be checked by calling endpoint /api/public/contracts`
-        },
+        { error: `Function ${functionName} for contract ${contractName} not found. Supported contracts and corresponding functions can be checked by calling endpoint /api/public/contracts` },
         { status: StatusCodes.BAD_REQUEST }
       );
     }
 
-    const inputsExists = targetFunction.inputs.every((input) => body[input.name] !== undefined);
+    const inputsExists = targetFunction.inputs.every(input => body[input.name] !== undefined);
 
     if (!inputsExists) {
       const requiredInputNames = map(cairoInputsFormat(targetFunction.inputs), "name");
@@ -79,9 +76,7 @@ async function postHandler(
 
     if (!smartContract) {
       return NextResponse.json(
-        {
-          error: `Wrong parameters. Smart contract ${contractName} v${usersContractVersion} from User ${req.userId} not found.`
-        },
+        { error: `Wrong parameters. Smart contract ${contractName} v${usersContractVersion} from User ${req.userId} not found.` },
         { status: StatusCodes.BAD_REQUEST }
       );
     }
@@ -90,7 +85,10 @@ async function postHandler(
     const bodyValidation = schema.safeParse(body);
 
     if (!bodyValidation.success) {
-      return NextResponse.json({ error: bodyValidation.error }, { status: StatusCodes.BAD_REQUEST });
+      return NextResponse.json(
+        { error: bodyValidation.error },
+        { status: StatusCodes.BAD_REQUEST }
+      );
     }
     const validBody: any = bodyValidation.data;
 
@@ -121,10 +119,17 @@ async function postHandler(
       );
     } else {
       const transactionResult = await gaslessTransactionWithFallback(account, functionName, contract, body, functions);
-      const txReceipt = !!transactionResult?.txHash ? ((await provider.waitForTransaction(transactionResult?.txHash)) as any) : null;
+      const txReceipt = !!transactionResult?.txHash
+        ? ((await provider.waitForTransaction(
+          transactionResult?.txHash
+        )) as any)
+        : null;
 
       if (!!transactionResult.error) {
-        return NextResponse.json({ result: transactionResult }, { status: StatusCodes.BAD_REQUEST });
+        return NextResponse.json(
+          { result: transactionResult },
+          { status: StatusCodes.BAD_REQUEST }
+        );
       }
 
       const fee = parseInt((txReceipt as any)?.actual_fee?.amount, 16);
@@ -151,12 +156,18 @@ async function postHandler(
         });
       }
 
-      return NextResponse.json({ result: transactionResult }, { status: StatusCodes.OK });
+      return NextResponse.json(
+        { result: transactionResult },
+        { status: StatusCodes.OK }
+      );
     }
   } catch (error) {
     console.log("🚨 Error while interacting with Smart Contract:", error.message);
-    return NextResponse.json({ error: error.message }, { status: StatusCodes.BAD_REQUEST });
+    return NextResponse.json(
+      { error: error.message },
+      { status: StatusCodes.BAD_REQUEST }
+    );
   }
 }
 
-export const POST = withDeveloperApiToken(withDeveloperUserAccessToken(postHandler));
+export const POST = withApiToken(withDeveloperUserAccessToken(postHandler));
