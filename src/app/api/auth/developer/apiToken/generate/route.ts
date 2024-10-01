@@ -14,6 +14,7 @@ async function postHandler(req: NextRequestWithDeveloperAccessToken) {
     return NextResponse.json({ error: "appId is required" }, { status: StatusCodes.BAD_REQUEST });
   }
 
+  console.log(parsedParams.data, req.developerId)
   const apiTokenRecord = await apiTokenModel.create({
     data: {
       developerId: req.developerId,
