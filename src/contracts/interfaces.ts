@@ -2,7 +2,7 @@ import fs from "fs";
 import path from "path";
 import { Abi, Contract, GetTransactionReceiptResponse } from "starknet";
 import { cairoInputsFormat } from "@/utils/cairoInputsFormat";
-import { EventsPerFunctionName } from "@/app/api/[contractName]/[usersContractVersion]/[functionName]/route";
+import { EventsPerFunctionName } from "@/app/api/v1/[contractName]/[usersContractVersion]/[functionName]/route";
 import { formatParsedEventsArray } from "@/utils/contractEvents/formatParsedEventsArray";
 import { getTargetEventData } from "@/utils/contractEvents/getTargetEventData";
 
