@@ -9,10 +9,11 @@ import provider from "@/contracts/provider";
 import { generateSchemaForContractBody } from "@/utils/generateSchemaForContractBody";
 import { cairoInputsFormat } from "@/utils/cairoInputsFormat";
 import { withDeveloperUserAccessToken } from "@/app/middleware/withDeveloperUserAccessToken";
-import { difference, keys, map, size } from "lodash-es";
+import { difference, isEmpty, keys, map, size } from "lodash-es";
 import { gaslessTransactionWithFallback } from "@/server/gaslessTransactionWithFallback";
 import { getAccountInstance } from "@/server/api/accounts/getAccountInstance";
-import formatCairoFunctionResult from "@/utils/formatCairoFunctionResult";
+import { formatCairoReadFunctionResult } from "@/utils/formatCairoReadFunctionResult";
+import { convertDenominationToNumber } from "@/utils/convertDenominationToNumber";
 
 export const maxDuration = 300;
 
@@ -57,6 +58,12 @@ async function postHandler(req: NextRequestWithDeveloperUserAccessToken & NextRe
         },
         { status: StatusCodes.BAD_REQUEST }
       );
+    }
+
+    const inputNumberTypes = map(cairoInputsFormat(targetFunction.inputs)).filter((i) => i.type === "number");
+
+    if (!isEmpty(inputNumberTypes)) {
+      body[inputNumberTypes[0].name] = convertDenominationToNumber(body[inputNumberTypes[0].name]);
     }
 
     const smartContract = await smartContractModel.findFirst({
@@ -105,7 +112,7 @@ async function postHandler(req: NextRequestWithDeveloperUserAccessToken & NextRe
       const initialType = typeof result;
       return NextResponse.json(
         {
-          result: formatCairoFunctionResult(result, targetFunction),
+          result: formatCairoReadFunctionResult(result, targetFunction),
           type: initialType
         },
         { status: StatusCodes.OK }
