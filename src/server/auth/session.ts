@@ -8,6 +8,9 @@ export async function createOrUpdateSession(email: string, accountType: sessionT
     accountType === "dev"
       ? await developerAccountModel.findUnique({ where: { email } })
       : await developersUserAccountModel.findUnique({ where: { email } });
+  
+  
+  console.log("🐬 existingUser: ", existingUser)
 
   if (!existingUser) {
     throw new Error(`User with email ${email} not found`);
@@ -16,6 +19,8 @@ export async function createOrUpdateSession(email: string, accountType: sessionT
   const { hashedRefreshToken, hashedAccessToken, accessToken, refreshToken } = await createSessionTokens({
     id: existingUser?.id,
   });
+
+  console.log({ hashedRefreshToken, hashedAccessToken, accessToken, refreshToken });
 
   const connectUser =
     accountType === "dev"
@@ -52,6 +57,8 @@ export async function createOrUpdateSession(email: string, accountType: sessionT
     },
   });
 
+  console.log("🎄 existingSession: ", existingSession)
+
   if (existingSession) {
     const updatedSession = await sessionModel.update({
       where: {
@@ -65,6 +72,8 @@ export async function createOrUpdateSession(email: string, accountType: sessionT
       },
     });
 
+    console.log("🔥 updatedSession: ", updatedSession)
+
     if (!updatedSession) {
       return { error: "Session not updated, something went wrong ⛑️" };
     }
@@ -75,7 +84,7 @@ export async function createOrUpdateSession(email: string, accountType: sessionT
     };
   }
 
-  await sessionModel.create({
+  const newSession = await sessionModel.create({
     data: {
       accessToken: hashedAccessToken,
       refreshToken: hashedRefreshToken,
@@ -89,8 +98,16 @@ export async function createOrUpdateSession(email: string, accountType: sessionT
       },
     },
   });
+  
+  console.log("🐥 newSession: ", newSession)
 
   console.log("🔑 accessToken: ", accessToken);
+
+  console.log({
+    accessToken,
+    refreshToken,
+    walletAddress: existingUser.walletAddress,
+  });
 
   return {
     accessToken,

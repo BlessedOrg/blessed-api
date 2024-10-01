@@ -1,16 +1,18 @@
 import { developersUserAccountModel } from "@/prisma/models";
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { StatusCodes } from "http-status-codes";
 import { sendVerificationEmailCode } from "@/server/auth/sendVerificationEmailCode";
-import { withExistingDevAccount } from "@/app/middleware/withExistingDevAccount";
+import { withApiToken } from "@/app/middleware/withApiToken";
 
-async function handler(req: NextRequest) {
+async function handler(req: NextRequestWithApiToken) {
   const body = await req.json();
   const { email } = body;
 
   const userData = await developersUserAccountModel.findUnique({
     where: {
       email,
+      appId: req.appId,
+      developerId: req.developerId
     },
   });
 
@@ -37,4 +39,4 @@ async function handler(req: NextRequest) {
   }
 }
 
-export const POST = withExistingDevAccount(handler);
+export const POST = withApiToken(handler);

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { withDeveloperApiToken } from "@/app/middleware/withDeveloperApiToken";
+import { withApiToken } from "@/app/middleware/withApiToken";
 import { StatusCodes } from "http-status-codes";
 import connectToContract from "@/server/services/connectToContract";
 import { developerAccountModel, developersUserAccountModel, smartContractInteractionModel, smartContractModel } from "@/prisma/models";
@@ -30,7 +30,7 @@ const eventsPerFunctionName: EventsPerFunctionName = {
   ]
 };
 
-async function postHandler(req: NextRequestWithDevUserAuth & NextRequestWithApiTokenAuth, { params: { contractName, usersContractVersion, functionName } }) {
+async function postHandler(req: NextRequestWithDeveloperUserAccessToken & NextRequestWithApiToken, { params: { contractName, usersContractVersion, functionName } }) {
   try {
     const body = await req.json();
     const functions = getContractsFunctions(contractName);
@@ -163,4 +163,4 @@ async function postHandler(req: NextRequestWithDevUserAuth & NextRequestWithApiT
   }
 }
 
-export const POST = withDeveloperApiToken(withDeveloperUserAccessToken(postHandler));
+export const POST = withApiToken(withDeveloperUserAccessToken(postHandler));

@@ -10,7 +10,7 @@ const postSchema = z.object({
   imageUrl: z.string().optional()
 });
 
-async function postHandler(req: NextRequestWithDevAuth) {
+async function createNewApp(req: NextRequestWithDeveloperAccessToken) {
   const parsedBody = postSchema.safeParse(await req.json());
   const { name, description, imageUrl } = parsedBody.data;
 
@@ -33,4 +33,25 @@ async function postHandler(req: NextRequestWithDevAuth) {
   return NextResponse.json(app, { status: StatusCodes.OK });
 }
 
-export const POST = withDeveloperAccessToken(postHandler);
+export const POST = withDeveloperAccessToken(createNewApp);
+
+async function getAllMyApps(req: NextRequestWithDeveloperAccessToken) {
+  const apps = await appModel.findMany({
+    where: {
+      developerId: req.developerId
+    },
+    include: {
+      _count: {
+        select: {
+          SmartContracts: true,
+          ApiTokens: true,
+          Users: true
+        },
+      },
+    },
+  });
+
+  return NextResponse.json(apps, { status: StatusCodes.OK });
+}
+
+export const GET = withDeveloperAccessToken(getAllMyApps);

@@ -4,13 +4,13 @@ import { StatusCodes } from "http-status-codes";
 import deployContract from "@/server/services/deployContract";
 import { getContractClassHash, getContractsConstructorsNames } from "@/contracts/interfaces";
 import { smartContractModel } from "@/prisma/models";
-import { withDeveloperApiToken } from "@/app/middleware/withDeveloperApiToken";
+import { withApiToken } from "@/app/middleware/withApiToken";
 import { uploadMetadata } from "@/server/services/irys";
 import z from "zod";
 
 export const maxDuration = 300;
 
-async function postHandler(req: NextRequestWithApiTokenAuth, { params: { contractName } }): Promise<NextResponse> {
+async function postHandler(req: NextRequestWithApiToken, { params: { contractName } }): Promise<NextResponse> {
   try {
     const classHash = getContractClassHash(contractName);
     if (!classHash) {
@@ -88,6 +88,7 @@ async function postHandler(req: NextRequestWithApiTokenAuth, { params: { contrac
 
     const maxId = await smartContractModel.aggregate({
       where: {
+        appId: req.appId,
         developerId: req.developerId,
         name: contractName
       },
@@ -129,4 +130,4 @@ async function postHandler(req: NextRequestWithApiTokenAuth, { params: { contrac
   }
 }
 
-export const POST = withDeveloperApiToken(postHandler);
+export const POST = withApiToken(postHandler);
