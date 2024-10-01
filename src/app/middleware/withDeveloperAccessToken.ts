@@ -38,7 +38,6 @@ export function withDeveloperAccessToken(
       Object.assign(request, {
         developerId: session.developerId,
         developerWalletAddress: session.DeveloperAccount.walletAddress,
-        isDevAccountDeployed: session.DeveloperAccount.accountDeployed,
       });
 
       return handler(request, context);
