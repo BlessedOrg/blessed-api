@@ -23,7 +23,7 @@
     "ethers": "5.7.2",
     "jsonwebtoken": "^9.0.2",
     "lodash-es": "^4.17.21",
-    "next": "14.2.5",
+    "next": "latest",
     "nodemailer": "^6.9.14",
     "otp-generator": "^4.0.1",
     "qrcode": "^1.5.4",
