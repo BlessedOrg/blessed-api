@@ -1,77 +1,108 @@
 import { NextResponse } from "next/server";
 import { StatusCodes } from "http-status-codes";
-import { client, contractArtifacts, deployContract, getExplorerUrl, writeContractWithNonceGuard } from "@/viem";
+import { client, deployContract, getExplorerUrl } from "@/viem";
 import { smartContractModel } from "@/prisma/models";
 import z from "zod";
 import { uploadMetadata } from "@/server/services/irys";
-
-// const deployTicket = async () => {
-//   const params = {
-//     owner: client.account.address,
-//     baseURI: "https://api.example.com/metadata/",
-//     name: "Free Ticket",
-//     symbol: "FTK",
-//     initialSupply: 100,
-//     maxSupply: 10000,
-//     transferable: true,
-//     whitelistOnly: false
-//   };
-//
-//   const args = Object.values(params);
-//   return deployContract("tickets", args);
-// };
+import { getAppIdBySlug } from "@/server/api/app";
 
 const TicketSchema = z.object({
-  name: z.string(),
-  symbol: z.string(),
+  name: z.string().min(1, "Name is required"),
   description: z.string(),
-  initialSupply: z.number().int().positive(),
-  maxSupply: z.number().int().positive(),
+  symbol: z.string().min(1, "Symbol is required").max(10, "Symbol must be 10 characters or less"),
+  initialSupply: z.number().int().positive("Initial supply must be a positive integer"),
+  maxSupply: z.number().int().positive("Max supply must be a positive integer"),
   transferable: z.boolean(),
   whitelistOnly: z.boolean()
+}).refine(data => data.initialSupply <= data.maxSupply, {
+  message: "Initial supply must be less than or equal to max supply",
+  path: ["initialSupply"]
 });
 
-type TicketSchema = z.infer<typeof TicketSchema>
-
-async function postHandler(req: NextRequestWithDeveloperUserAccessToken & NextRequestWithApiToken) {
+async function postHandler(req: NextRequestWithDeveloperUserAccessToken & NextRequestWithApiToken, { params: { appSlug } }) {
   try {
-    const body = await req.json();
-    const validatedData: TicketSchema = TicketSchema.parse(body);
-
-    const { metadataUrl } = await uploadMetadata({
-      name: validatedData.name,
-      symbol: validatedData.symbol,
-      description: validatedData.description,
-      image: "",
+    const app = await getAppIdBySlug(appSlug);
+    if (!app) {
+      return NextResponse.json(
+        { error: `App not found` },
+        { status: StatusCodes.NOT_FOUND }
+      );
+    }
+    const validBody = TicketSchema.safeParse(await req.json());
+    if (!validBody.success) {
+      return NextResponse.json(
+        { error: `Validation failed: ${validBody.error}` },
+        { status: StatusCodes.NOT_FOUND }
+      );
+    }
+    const { metadataUrl, metadataImageUrl } = await uploadMetadata({
+      name: validBody.data.name,
+      symbol: validBody.data.symbol,
+      description: validBody.data.description,
+      image: ""
     });
 
+
+    const contractName = "tickets";
     const args = {
       // 🏗️ TODO: replace with developer's client
       owner: client.account.address,
       baseURI: metadataUrl,
-      name: validatedData.name,
-      symbol: validatedData.symbol,
-      initialSupply: validatedData.initialSupply,
-      maxSupply: validatedData.maxSupply,
-      transferable: validatedData.transferable,
-      whitelistOnly: validatedData.whitelistOnly,
-    }
+      name: validBody.data.name,
+      symbol: validBody.data.symbol,
+      initialSupply: validBody.data.initialSupply,
+      maxSupply: validBody.data.maxSupply,
+      transferable: validBody.data.transferable,
+      whitelistOnly: validBody.data.whitelistOnly
+    };
 
-    const contract = await deployContract("tickets", Object.values(args))
+    const contract = await deployContract(contractName, Object.values(args));
+    console.log("🔮 contract: ", contract)
     console.log("⛓️ Contract Explorer URL: ", getExplorerUrl(contract.contractAddr));
+
+    const maxId = await smartContractModel.aggregate({
+      where: {
+        appId: req.appId,
+        developerId: req.developerId,
+        name: contractName
+      },
+      _max: {
+        version: true
+      }
+    });
+
+    const nextId = (maxId._max.version || 0) + 1;
+
+    const smartContractRecord = await smartContractModel.create({
+      data: {
+        address: contract.contractAddr,
+        name: contractName,
+        developerId: req.developerId,
+        version: nextId,
+        metadataUrl,
+        metadataPayload: {
+          name: validBody.data.name,
+          symbol: validBody.data.symbol,
+          description: validBody.data.description,
+          ...metadataImageUrl && { metadataImageUrl }
+        },
+        appId: app.id
+      }
+    });
 
     return NextResponse.json(
       {
         success: true,
         contract,
+        smartContractRecord,
         explorerUrls: {
-          contract: getExplorerUrl(contract.contractAddr),
+          contract: getExplorerUrl(contract.contractAddr)
         }
       },
       { status: StatusCodes.OK }
     );
   } catch (error) {
-    console.log("🔮 error: ", error.message);
+    console.log("🚨 error on tickets/deploy: ", error.message);
     return NextResponse.json(
       { error },
       { status: StatusCodes.BAD_REQUEST }

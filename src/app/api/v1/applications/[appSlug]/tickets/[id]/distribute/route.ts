@@ -1,69 +1,69 @@
 import { NextResponse } from "next/server";
 import { StatusCodes } from "http-status-codes";
-import { client, contractArtifacts, deployContract, getExplorerUrl, writeContractWithNonceGuard } from "@/viem";
+import { contractArtifacts, getExplorerUrl, writeContractWithNonceGuard } from "@/viem";
 import { smartContractModel } from "@/prisma/models";
+import { getAppIdBySlug } from "@/server/api/app";
+import z from "zod";
+import { createMissingAccounts } from "@/server/api/accounts/createMissingAccounts";
 
-const deployTicket = async () => {
-  const owner = client.account.address;
-  const baseURI = 'https://api.example.com/metadata/';
-  const name = 'Free Ticket';
-  const symbol = 'FTK';
-  const initialSupply = 100;
-  const maxSupply = 10000;
-  const transferable = true;
-  const whitelistOnly = false;
-
-  const args = [
-    owner,
-    baseURI,
-    name,
-    symbol,
-    initialSupply,
-    maxSupply,
-    transferable,
-    whitelistOnly
-  ];
-  return deployContract("tickets", args);
-}
+const DistributeSchema = z.object({
+  distributions: z.array(
+    z.object({
+      email: z.string().email(),
+      amount: z.number().int().positive()
+    })
+  )
+});
 
 async function postHandler(req: NextRequestWithDeveloperUserAccessToken & NextRequestWithApiToken, { params: { appSlug, id } }) {
-  // 🚧 for now just use http://localhost:3000/api/v1/applications/1/tickets/1/distribute
   try {
-    // const smartContract = await smartContractModel.findUnique({
-    //   where: {
-    //     appSlug,
-    //     id,
-    //     developerId: req.developerId,
-    //     name: "tickets"
-    //   }
-    // });
-    //
-    // if (!smartContract) {
-    //   return NextResponse.json(
-    //     { error: `Wrong parameters. Smart contract tickets from User ${req.userId} not found.` },
-    //     { status: StatusCodes.BAD_REQUEST }
-    //   );
-    // }
+    const validBody = DistributeSchema.safeParse(await req.json());
+    if (!validBody.success) {
+      return NextResponse.json(
+        { error: `Validation failed: ${validBody.error}` },
+        { status: StatusCodes.NOT_FOUND }
+      );
+    }
 
-    // const contract = "0xbfd7177ff99e1011ab3abd4ffe5f3a24f63ef430"
-    const contract = await deployTicket()
-    console.log("🔮 contract: ", contract)
-    console.log("⛓️ Contract Explorer URL: ", getExplorerUrl(contract.contractAddr))
+    const app = await getAppIdBySlug(appSlug);
+    if (!app) {
+      return NextResponse.json(
+        { error: `App not found` },
+        { status: StatusCodes.NOT_FOUND }
+      );
+    }
 
-    const args = [
-      [
-        ['0xb9449446c82b2f2A184D3bAD2C0faFc5F21eEB73', 1],
-        ["0x91EBf8f65905AE435301F72b61037C558EBe4972", 2]
-      ]
-    ];
+    const smartContract = await smartContractModel.findUnique({
+      where: {
+        id,
+        developerId: req.developerId,
+        name: "tickets",
+        appId: app.id
+      }
+    });
+    if (!smartContract) {
+      return NextResponse.json(
+        { error: `Wrong parameters. Smart contract tickets from User ${req.userId} not found.` },
+        { status: StatusCodes.BAD_REQUEST }
+      );
+    }
 
-    console.log("🐥 args: ", args)
+    const { newAccounts, existingAccounts } = await createMissingAccounts(validBody.data.distributions.map(distribution => distribution.email));
+    const accounts = [...newAccounts, ...existingAccounts];
+    const emailToWalletMap = new Map(accounts.map(account => [account.email, account.walletAddress]));
+    const distributionMap = validBody.data.distributions.map(distribution => {
+      const walletAddress = emailToWalletMap.get(distribution.email);
+      if (walletAddress) {
+        return [walletAddress, distribution.amount] as [string, number];
+      }
+      return null;
+    })
+      .filter((item): item is [string, number] => item !== null);
 
     const result = await writeContractWithNonceGuard(
-      contract.contractAddr,
-      // contract,
+      smartContract.address,
       "distribute",
-      args,
+      [distributionMap],
       contractArtifacts["tickets"].abi,
       req.userId
     );
@@ -71,17 +71,16 @@ async function postHandler(req: NextRequestWithDeveloperUserAccessToken & NextRe
     return NextResponse.json(
       {
         success: true,
-        contract,
         distributionBlockHash: result.blockHash,
+        distributionMap,
         explorerUrls: {
-          contract: getExplorerUrl(contract.contractAddr),
           distributionTx: getExplorerUrl(result.transactionHash)
         }
       },
       { status: StatusCodes.OK }
     );
   } catch(error) {
-    console.log("🔮 error: ", error.message)
+    console.log("🚨 error on tickets/{id}/distribute: ", error.message)
     return NextResponse.json(
       { error },
       { status: StatusCodes.BAD_REQUEST }

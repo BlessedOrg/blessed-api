@@ -4,7 +4,7 @@ import { developerAccountModel } from "@/prisma/models";
 
 export async function createMissingAccounts(emails: string[]) {
   try {
-    const registeredAccounts = await developerAccountModel.findMany({
+    const existingAccounts = await developerAccountModel.findMany({
       where: {
         email: {
           in: emails
@@ -16,17 +16,17 @@ export async function createMissingAccounts(emails: string[]) {
       }
     });
 
-    const registeredEmails = registeredAccounts.map(account => account.email);
+    const registeredEmails = existingAccounts.map(account => account.email);
     const nonRegisteredEmails = emails.filter(email => !registeredEmails.includes(email));
 
     if (nonRegisteredEmails.length === 0) {
       return {
-        createdAccounts: [],
-        registeredAccounts: registeredAccounts
+        newAccounts: [],
+        existingAccounts: existingAccounts
       };
     }
 
-    const createdAccounts = await Promise.all(nonRegisteredEmails.map(async (email) => {
+    const newAccounts = await Promise.all(nonRegisteredEmails.map(async (email) => {
       const privyUser = await importUserToPrivy(email);
       return developerAccountModel.create({
         data: {
@@ -41,8 +41,8 @@ export async function createMissingAccounts(emails: string[]) {
     }));
 
     return {
-      createdAccounts,
-      registeredAccounts
+      newAccounts,
+      existingAccounts
     };
 
   } catch (error) {

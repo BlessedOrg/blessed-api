@@ -2,21 +2,13 @@ import { NextResponse } from "next/server";
 import { StatusCodes } from "http-status-codes";
 import { appModel, smartContractInteractionModel, smartContractModel } from "@/prisma/models";
 import { withDeveloperAccessToken } from "@/app/middleware/withDeveloperAccessToken";
+import { getAppIdBySlug } from "@/server/api/app";
 
 async function getHandler(req: NextRequestWithDeveloperAccessToken, { params: { appSlug } }) {
   if (!appSlug) {
     return NextResponse.json({ error: "appId query param is required" }, { status: StatusCodes.BAD_REQUEST });
   }
-
-  const app = await appModel.findUnique({
-    where: {
-      slug: appSlug
-    },
-    select: {
-      id: true
-    }
-  });
-
+  const app = await getAppIdBySlug(appSlug)
   if (!app) {
     return NextResponse.json(
       { error: `App not found` },
