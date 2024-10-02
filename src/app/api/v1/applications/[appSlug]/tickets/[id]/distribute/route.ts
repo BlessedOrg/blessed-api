@@ -29,23 +29,25 @@ const deployTicket = async () => {
 async function postHandler(req: NextRequestWithDeveloperUserAccessToken & NextRequestWithApiToken, { params: { appSlug, id } }) {
   // 🚧 for now just use http://localhost:3000/api/v1/applications/1/tickets/1/distribute
   try {
-    const smartContract = await smartContractModel.findUnique({
-      where: {
-        appSlug,
-        id,
-        developerId: req.developerId,
-        name: "tickets"
-      }
-    });
+    // const smartContract = await smartContractModel.findUnique({
+    //   where: {
+    //     appSlug,
+    //     id,
+    //     developerId: req.developerId,
+    //     name: "tickets"
+    //   }
+    // });
+    //
+    // if (!smartContract) {
+    //   return NextResponse.json(
+    //     { error: `Wrong parameters. Smart contract tickets from User ${req.userId} not found.` },
+    //     { status: StatusCodes.BAD_REQUEST }
+    //   );
+    // }
 
-    if (!smartContract) {
-      return NextResponse.json(
-        { error: `Wrong parameters. Smart contract tickets from User ${req.userId} not found.` },
-        { status: StatusCodes.BAD_REQUEST }
-      );
-    }
-
+    // const contract = "0xbfd7177ff99e1011ab3abd4ffe5f3a24f63ef430"
     const contract = await deployTicket()
+    console.log("🔮 contract: ", contract)
     console.log("⛓️ Contract Explorer URL: ", getExplorerUrl(contract.contractAddr))
 
     const args = [
@@ -55,8 +57,11 @@ async function postHandler(req: NextRequestWithDeveloperUserAccessToken & NextRe
       ]
     ];
 
+    console.log("🐥 args: ", args)
+
     const result = await writeContractWithNonceGuard(
       contract.contractAddr,
+      // contract,
       "distribute",
       args,
       contractArtifacts["tickets"].abi,

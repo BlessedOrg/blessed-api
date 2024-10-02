@@ -10,8 +10,7 @@
     "vercel-build": "prisma generate && prisma migrate deploy && next build"
   },
   "dependencies": {
-    "@avnu/gasless-sdk": "^0.1.4",
-    "@ethersproject/experimental": "^5.7.0",
+    "@ethersproject/experimental": "5.7.0",
     "@irys/upload": "^0.0.1",
     "@irys/upload-ethereum": "^0.0.1",
     "@prisma/client": "5.17.0",

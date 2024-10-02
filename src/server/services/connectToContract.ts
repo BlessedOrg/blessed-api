@@ -1,5 +1,5 @@
 import provider from "@/contracts/cairo/provider";
-import { contractsInterfaces } from "@/contracts/cairo/interfaces";
+// import { contractsInterfaces } from "@/contracts/cairo/interfaces";
 import { Contract } from "starknet";
 
 interface ConnectToContractParams {
@@ -8,7 +8,8 @@ interface ConnectToContractParams {
 }
 
 const connectToContract = ({ address, name }: ConnectToContractParams): Contract => {
-  return new Contract(contractsInterfaces[name].abi, address, provider);
+  // return new Contract(contractsInterfaces[name].abi, address, provider);
+  return { contract: true } as any;
 };
 
 export default connectToContract;

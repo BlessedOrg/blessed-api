@@ -7,9 +7,26 @@ async function getHandler(req: NextRequestWithDeveloperAccessToken, { params: { 
   if (!appSlug) {
     return NextResponse.json({ error: "appId query param is required" }, { status: StatusCodes.BAD_REQUEST });
   }
-  const app = await appModel.findUnique({
+
+  const targetApp = await appModel.findUnique({
     where: {
       slug: appSlug
+    },
+    select: {
+      id: true
+    }
+  });
+
+  if (!targetApp) {
+    return NextResponse.json(
+      { error: `App not found` },
+      { status: StatusCodes.NOT_FOUND }
+    );
+  }
+
+  const app = await appModel.findUnique({
+    where: {
+      id: targetApp.id
     },
     include: {
       _count: {

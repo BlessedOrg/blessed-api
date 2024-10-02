@@ -17,7 +17,11 @@ export async function POST(req: Request) {
     } as any);
   }
 
+  console.log("🔮 code: ", code)
+
   const verifyEmailResult = await verifyEmailOtp(code);
+
+  console.log("🔮 verifyEmailResult: ", verifyEmailResult)
   const { accepted, email } = verifyEmailResult;
   if (!accepted || !email) {
     return NextResponse.json(
