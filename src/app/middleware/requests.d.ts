@@ -10,7 +10,6 @@ declare global {
   type NextRequestWithDeveloperAccessToken = NextRequest & {
     developerId: string;
     developerWalletAddress: string;
-    isDevAccountDeployed: boolean;
   };
 
   type NextRequestWithDeveloperUserAccessToken = NextRequest & {
