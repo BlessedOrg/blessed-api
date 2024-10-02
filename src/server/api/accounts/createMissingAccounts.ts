@@ -1,5 +1,4 @@
 "use server";
-
 import { importUserToPrivy } from "@/server/auth/importUserToPrivy";
 import { developerAccountModel } from "@/prisma/models";
 
@@ -29,7 +28,7 @@ export async function createMissingAccounts(emails: string[]) {
 
     const createdAccounts = await Promise.all(nonRegisteredEmails.map(async (email) => {
       const privyUser = await importUserToPrivy(email);
-      const createdDeveloperAccount = await developerAccountModel.create({
+      return developerAccountModel.create({
         data: {
           email,
           walletAddress: privyUser.wallet.address
@@ -39,7 +38,6 @@ export async function createMissingAccounts(emails: string[]) {
           walletAddress: true
         }
       });
-      return createdDeveloperAccount;
     }));
 
     return {
@@ -47,10 +45,8 @@ export async function createMissingAccounts(emails: string[]) {
       registeredAccounts
     };
 
-  } catch (e) {
-    console.error("Error occurred while creating account:", e);
-    return {
-      error: e instanceof Error ? e.message : "An unknown error occurred"
-    };
+  } catch (error) {
+    console.error("🚨 Error while creating account:", error.message);
+    return error;
   }
 }
