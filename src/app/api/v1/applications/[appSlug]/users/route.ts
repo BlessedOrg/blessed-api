@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { StatusCodes } from "http-status-codes";
-import { appModel, developersUserAccountModel } from "@/prisma/models";
+import { appModel, developersUserAccountModel } from "@/models";
 import { withDeveloperAccessToken } from "@/app/middleware/withDeveloperAccessToken";
-import { getAppIdBySlug } from "@/server/api/app";
+import { getAppIdBySlug } from "@/lib/app";
 
 async function getHandler(req: NextRequestWithDeveloperAccessToken, { params: { appSlug } }) {
   if (!appSlug) {

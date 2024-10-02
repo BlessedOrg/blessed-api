@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { StatusCodes } from "http-status-codes";
-import { sendVerificationEmailCode } from "@/server/auth/sendVerificationEmailCode";
+import { sendVerificationEmailCode } from "@/lib/emails/auth/sendVerificationEmailCode";
 
 export async function POST(req: NextRequest) {
   const body = await req.json();

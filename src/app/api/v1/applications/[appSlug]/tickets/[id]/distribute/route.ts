@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
 import { StatusCodes } from "http-status-codes";
 import { contractArtifacts, getExplorerUrl, writeContractWithNonceGuard } from "@/lib/viem";
-import { smartContractModel } from "@/prisma/models";
-import { getAppIdBySlug } from "@/server/api/app";
+import { smartContractModel } from "@/models";
+import { getAppIdBySlug } from "@/lib/app";
 import z from "zod";
-import { createMissingAccounts } from "@/server/api/accounts/createMissingAccounts";
+import { createMissingAccounts } from "@/lib/auth/accounts/createMissingAccounts";
 
 const DistributeSchema = z.object({
   distributions: z.array(

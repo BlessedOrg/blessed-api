@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
 import { StatusCodes } from "http-status-codes";
-import { smartContractModel } from "@/prisma/models";
+import { smartContractModel } from "@/models";
 import z from "zod";
-import { uploadMetadata } from "@/server/services/irys";
-import { getAppIdBySlug } from "@/server/api/app";
+import { uploadMetadata } from "../../../../../../../lib/irys";
+import { getAppIdBySlug } from "@/lib/app";
 import { account, deployContract, getExplorerUrl } from "@/lib/viem";
 
 const TicketSchema = z.object({

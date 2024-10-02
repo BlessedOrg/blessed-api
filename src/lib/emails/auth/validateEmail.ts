@@ -1,5 +1,5 @@
 "use server";
-import { developerAccountModel, developersUserAccountModel } from "@/prisma/models";
+import { developerAccountModel, developersUserAccountModel } from "@/models";
 import z from "zod";
 import { sessionType } from "@prisma/client";
 

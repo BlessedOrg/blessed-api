@@ -1,4 +1,4 @@
-import { appModel } from "@/prisma/models";
+import { appModel } from "@/models";
 
 const getAppIdBySlug = (slug) => {
   return appModel.findUnique({

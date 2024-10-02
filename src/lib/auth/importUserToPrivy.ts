@@ -1,10 +1,10 @@
 "use server";
 
-import { privy } from "@/privy/privyClient";
+import { privy } from "@/lib/privy";
 
 export const importUserToPrivy = async(email: string)=> {
   try {
-    const privyUser = await privy.importUser({
+    return privy.importUser({
       linkedAccounts: [
         {
           type: 'email',
@@ -13,7 +13,6 @@ export const importUserToPrivy = async(email: string)=> {
       ],
       createEthereumWallet: true,
     })
-    return privyUser
   } catch(e){
     console.log("Error occured while importing user to privy:", e)
   }

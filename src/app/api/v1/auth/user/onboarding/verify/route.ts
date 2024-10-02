@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
 import { StatusCodes } from "http-status-codes";
-import { developersUserAccountModel } from "@/prisma/models";
-import { verifyEmailOtp } from "@/server/auth/verifyEmailOtp";
-import { createSessionTokens } from "@/server/auth/createSessionTokens";
-import { createOrUpdateSession } from "@/server/auth/session";
+import { developersUserAccountModel } from "@/models";
+import { verifyEmailOtp } from "@/lib/emails/auth/verifyEmailOtp";
+import { createSessionTokens } from "@/lib/auth/createSessionTokens";
+import { createOrUpdateSession } from "@/lib/auth/session";
 import { sessionType } from "@prisma/client";
 import { withApiToken } from "@/app/middleware/withApiToken";
-import { importUserToPrivy } from "@/server/auth/importUserToPrivy";
+import { importUserToPrivy } from "@/lib/auth/importUserToPrivy";
 
 export const maxDuration = 300;
 

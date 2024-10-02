@@ -1,6 +1,6 @@
 import { ethers } from "ethers";
 import { NonceManager } from "@ethersproject/experimental";
-import { importAllJsonContractsArtifacts } from "@/contracts/interfaces";
+import { importAllJsonContractsArtifacts } from "@/lib/contracts/interfaces";
 import { createPublicClient, createWalletClient, http } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 

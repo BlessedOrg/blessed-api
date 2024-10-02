@@ -1,4 +1,4 @@
-import { appModel } from "@/prisma/models";
+import { appModel } from "@/models";
 import { NextResponse } from "next/server";
 import { StatusCodes } from "http-status-codes";
 import { withDeveloperAccessToken } from "@/app/middleware/withDeveloperAccessToken";
