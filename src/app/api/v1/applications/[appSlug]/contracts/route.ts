@@ -32,4 +32,4 @@ async function getHandler(req: NextRequestWithDeveloperAccessToken, { params: { 
   return NextResponse.json(smartContracts, { status: StatusCodes.OK });
 }
 
-export const GET = withDeveloperAccessToken(getHandler);
+export const GET = withDeveloperAccessToken(getHandler as any);
