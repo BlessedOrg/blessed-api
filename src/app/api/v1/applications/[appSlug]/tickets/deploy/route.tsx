@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
 import { StatusCodes } from "http-status-codes";
-import { client, deployContract, getExplorerUrl } from "@/viem";
 import { smartContractModel } from "@/prisma/models";
 import z from "zod";
 import { uploadMetadata } from "@/server/services/irys";
 import { getAppIdBySlug } from "@/server/api/app";
+import { account, deployContract, getExplorerUrl } from "@/lib/viem";
 
 const TicketSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -42,11 +42,10 @@ async function postHandler(req: NextRequestWithDeveloperUserAccessToken & NextRe
       image: ""
     });
 
-
     const contractName = "tickets";
     const args = {
       // 🏗️ TODO: replace with developer's client
-      owner: client.account.address,
+      owner: account.address,
       baseURI: metadataUrl,
       name: validBody.data.name,
       symbol: validBody.data.symbol,

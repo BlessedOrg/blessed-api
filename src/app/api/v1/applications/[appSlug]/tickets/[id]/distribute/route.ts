@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { StatusCodes } from "http-status-codes";
-import { contractArtifacts, getExplorerUrl, writeContractWithNonceGuard } from "@/viem";
+import { contractArtifacts, getExplorerUrl, writeContractWithNonceGuard } from "@/lib/viem";
 import { smartContractModel } from "@/prisma/models";
 import { getAppIdBySlug } from "@/server/api/app";
 import z from "zod";
