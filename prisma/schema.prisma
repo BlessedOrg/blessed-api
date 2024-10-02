@@ -29,12 +29,30 @@ model DeveloperAccount {
   updatedAt     DateTime                @updatedAt
 }
 
+model App {
+  id               String                  @id @default(cuid())
+  slug             String                  @unique
+  name             String                  @unique
+  description      String?
+  imageUrl         String?
+  SmartContracts   SmartContract[]
+  ApiTokens        ApiToken[]
+  DeveloperAccount DeveloperAccount        @relation(fields: [developerId], references: [id])
+  developerId      String
+  Users            DevelopersUserAccount[]
+  createdAt        DateTime                @default(now())
+  updatedAt        DateTime                @updatedAt
+
+  @@unique([id, slug])
+}
+
 model DevelopersUserAccount {
   id                        String                     @id @default(cuid())
   email                     String                     @unique
   walletAddress             String?                    @unique
-  App                       App                        @relation(fields: [appId], references: [id])
+  App                       App                        @relation(fields: [appId, appSlug], references: [id, slug])
   appId                     String
+  appSlug                   String
   Otps                      AccountOtp[]
   Sessions                  Session[]
   sessionId                 String?
@@ -89,8 +107,9 @@ model ApiToken {
   vaultKey         String
   DeveloperAccount DeveloperAccount? @relation(fields: [developerId], references: [id])
   developerId      String?
-  App              App               @relation(fields: [appId], references: [id])
+  App              App               @relation(fields: [appId, appSlug], references: [id, slug])
   appId            String
+  appSlug          String
   revoked          Boolean           @default(false)
   expiresAt        DateTime?
   createdAt        DateTime          @default(now())
@@ -121,8 +140,9 @@ model SmartContract {
   developerId               String?
   metadataUrl               String
   metadataPayload           Json
-  App                       App                        @relation(fields: [appId], references: [id])
+  App                       App                        @relation(fields: [appId, appSlug], references: [id, slug])
   appId                     String
+  appSlug                   String
   Erc20Token                Erc20Token[]
   SmartContractInteractions SmartContractInteraction[]
   createdAt                 DateTime                   @default(now())
@@ -150,18 +170,3 @@ enum SmartContractInteractionType {
   operator
   wallet
 }
-
-model App {
-  id               String                  @id @default(cuid())
-  name             String
-  description      String?
-  imageUrl         String?
-  SmartContracts   SmartContract[]
-  ApiTokens        ApiToken[]
-  DeveloperAccount DeveloperAccount        @relation(fields: [developerId], references: [id])
-  developerId      String
-  Users            DevelopersUserAccount[]
-  createdAt        DateTime                @default(now())
-  updatedAt        DateTime                @updatedAt
-}
-

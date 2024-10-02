@@ -3,14 +3,14 @@ import { StatusCodes } from "http-status-codes";
 import { smartContractInteractionModel, smartContractModel } from "@/prisma/models";
 import { withDeveloperAccessToken } from "@/app/middleware/withDeveloperAccessToken";
 
-async function getHandler(req: NextRequestWithDeveloperAccessToken, { params: { id } }) {
-  if (!id) {
+async function getHandler(req: NextRequestWithDeveloperAccessToken, { params: { appSlug } }) {
+  if (!appSlug) {
     return NextResponse.json({ error: "appId query param is required" }, { status: StatusCodes.BAD_REQUEST });
   }
 
   const smartContracts = await smartContractModel.findMany({
     where: {
-      appId: id
+      appSlug
     },
     select: {
       id: true

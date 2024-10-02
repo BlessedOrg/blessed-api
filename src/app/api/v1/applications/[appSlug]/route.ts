@@ -3,13 +3,13 @@ import { StatusCodes } from "http-status-codes";
 import { appModel } from "@/prisma/models";
 import { withDeveloperAccessToken } from "@/app/middleware/withDeveloperAccessToken";
 
-async function getHandler(req: NextRequestWithDeveloperAccessToken, { params: { id } }) {
-  if (!id) {
+async function getHandler(req: NextRequestWithDeveloperAccessToken, { params: { appSlug } }) {
+  if (!appSlug) {
     return NextResponse.json({ error: "appId query param is required" }, { status: StatusCodes.BAD_REQUEST });
   }
   const app = await appModel.findUnique({
     where: {
-      id
+      slug: appSlug
     },
     include: {
       _count: {

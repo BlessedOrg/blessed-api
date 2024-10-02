@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { StatusCodes } from "http-status-codes";
 import { client, contractArtifacts, deployContract, getExplorerUrl, writeContractWithNonceGuard } from "@/viem";
+import { smartContractModel } from "@/prisma/models";
 
 const deployTicket = async () => {
   const owner = client.account.address;
@@ -25,9 +26,25 @@ const deployTicket = async () => {
   return deployContract("tickets", args);
 }
 
-async function postHandler(req: NextRequestWithDeveloperUserAccessToken & NextRequestWithApiToken) {
+async function postHandler(req: NextRequestWithDeveloperUserAccessToken & NextRequestWithApiToken, { params: { appSlug, id } }) {
   // 🚧 for now just use http://localhost:3000/api/v1/applications/1/tickets/1/distribute
   try {
+    const smartContract = await smartContractModel.findUnique({
+      where: {
+        appSlug,
+        id,
+        developerId: req.developerId,
+        name: "tickets"
+      }
+    });
+
+    if (!smartContract) {
+      return NextResponse.json(
+        { error: `Wrong parameters. Smart contract tickets from User ${req.userId} not found.` },
+        { status: StatusCodes.BAD_REQUEST }
+      );
+    }
+
     const contract = await deployTicket()
     console.log("⛓️ Contract Explorer URL: ", getExplorerUrl(contract.contractAddr))
 
