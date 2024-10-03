@@ -82,9 +82,9 @@ export async function createVaultApiTokenItem(apiToken: string, userId: string) 
             id: vaultId,
           },
           // 🏗️ TODO: use title with real user's wallet/id
-          title: `Access Token for user ${userId}`,
+          title: `API Token for user ${userId}`,
           category: "API_CREDENTIAL",
-          tags: ["accessToken"],
+          tags: ["apiToken"],
           fields: [
             {
               id: "userId",
@@ -93,19 +93,24 @@ export async function createVaultApiTokenItem(apiToken: string, userId: string) 
               value: userId,
             },
             {
-              id: "accessToken",
-              label: "Access Token",
+              id: "apiToken",
+              label: "API Token",
               type: "CONCEALED",
               value: apiToken,
+              // generate: true,
+              // recipe: {
+              //   length: 64,
+              //   characterSets: ["LETTERS", "DIGITS"],
+              // },
             },
           ],
         }),
       },
     );
-    console.log(`🔑 Created Access Token in Vault for User: ${userId}`);
+    console.log(`🔑 Created API Token in Vault for User: ${userId}`);
     return await createdItem.json();
   } catch (error: any) {
-    console.log(`⛑️🔑 Failed to create Access Token in Vault for User: ${userId} \n ${error?.message}`);
+    console.log(`⛑️🔑 Failed to create API Token in Vault for User: ${userId} \n ${error?.message}`);
   }
 }
 
@@ -125,16 +130,16 @@ export async function getVaultItem(id: string, type?: "apiKey" | "privateKey") {
   );
   const vaultItem = await createdItem.json();
   if (vaultItem?.status !== 400) {
-    console.log(`🔑 Retrieved Access Token from Vault`);
+    console.log(`🔑 Retrieved API Token from Vault`);
   } else {
-    const errMsg = `Failed to retrieve Access Token from Vault: ${vaultItem?.message}`;
+    const errMsg = `Failed to retrieve API Token from Vault: ${vaultItem?.message}`;
     console.error(`⛑️🔑 ${errMsg}`);
     throw new Error(errMsg);
   }
   return vaultItem;
 }
 
-export async function replaceVaultItemFields(
+export async function replaceVaultItem(
   id: string,
   newData: any,
   type?: "apiKey" | "privateKey"
@@ -155,10 +160,7 @@ export async function replaceVaultItemFields(
         },
         body: JSON.stringify({
           ...currentItemData,
-          fields: [
-            ...currentItemData.fields,
-            ...newData,
-          ]
+          ...newData,
         }),
       },
     );

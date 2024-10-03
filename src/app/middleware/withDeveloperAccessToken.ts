@@ -13,21 +13,20 @@ export function withDeveloperAccessToken(
         return NextResponse.json({ error: "Bearer token not provided" }, { status: StatusCodes.UNAUTHORIZED });
       }
       const token = authHeader.split(" ")[1];
-      // const decoded: any = jwt.verify(token, process.env.JWT_SECRET);
-
-      // const itemFromVault = await getVaultItem(decoded?.vaultKey, "apiKey");
 
       const session = await sessionModel.findFirst({
         where: {
-          accessToken: token
+          accessToken: token,
         },
         orderBy: {
-          updatedAt: "desc"
+          updatedAt: "desc",
         },
         include: {
-          DeveloperAccount: true
-        }
+          DeveloperAccount: true,
+        },
       });
+
+      console.log("🔮 session: ", session)
 
       if (!session?.developerId) {
         return NextResponse.json({ error: "Unauthorized" }, { status: StatusCodes.UNAUTHORIZED });
@@ -38,7 +37,7 @@ export function withDeveloperAccessToken(
 
       Object.assign(request, {
         developerId: session.developerId,
-        developerWalletAddress: session.DeveloperAccount.walletAddress
+        developerWalletAddress: session.DeveloperAccount.walletAddress,
       });
 
       return handler(request, context);
