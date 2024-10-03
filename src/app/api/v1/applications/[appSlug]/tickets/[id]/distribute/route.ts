@@ -5,6 +5,9 @@ import { smartContractModel } from "@/models";
 import { getAppIdBySlug } from "@/lib/app";
 import z from "zod";
 import { createMissingAccounts } from "@/lib/auth/accounts/createMissingAccounts";
+import { withDeveloperAccessToken } from "@/app/middleware/withDeveloperAccessToken";
+import renderTicketReceiverEmail from "@/lib/emails/templates/TicketReceiverEmail";
+import { sendBatchEmails } from "@/lib/emails/sendBatch";
 
 const DistributeSchema = z.object({
   distributions: z.array(
@@ -65,6 +68,20 @@ async function postHandler(req: NextRequestWithDeveloperUserAccessToken & NextRe
       contractArtifacts["tickets"].abi,
     );
 
+    const emailsToSend = await Promise.all(
+      validBody.data.distributions.map(async (receiver: any) => ({
+        recipientEmail: receiver.email,
+        subject: `Your ticket to ${app.name}!`,
+        html: await renderTicketReceiverEmail({
+          eventName: app.name,
+          // 🏗️ TODO: remove this `is any` once the schema id updated
+          ticketUrl: (smartContract as any)?.metadataImgUrl ?? app?.imageUrl ?? null,
+          imageUrl: app?.imageUrl ?? null
+        })
+      }))
+    );
+    await sendBatchEmails(emailsToSend, req.nextUrl.hostname === "localhost");
+
     return NextResponse.json(
       {
         success: true,
@@ -85,6 +102,4 @@ async function postHandler(req: NextRequestWithDeveloperUserAccessToken & NextRe
   }
 }
 export const maxDuration = 300;
-// TODO: 🏗️ restrict this endpoint!
-export const POST = postHandler;
-
+export const POST = withDeveloperAccessToken(postHandler);

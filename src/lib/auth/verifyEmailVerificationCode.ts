@@ -1,7 +1,7 @@
 "use server";
 import { emailVerificationCodeModel } from "@/models";
 
-export async function verifyEmailOtp(code: string) {
+export async function verifyEmailVerificationCode(code: string) {
   const existingCodeData = await emailVerificationCodeModel.findFirst({
     where: {
       code,
