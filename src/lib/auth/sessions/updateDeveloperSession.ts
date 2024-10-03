@@ -39,7 +39,7 @@ export const updateDeveloperSession = async (email: string) => {
       }
     ], "accessToken");
     if (!vaultItem?.id) {
-      console.log("❌VAULT ITEM VALUE NOT UPDATED");
+      throw new Error("❌VAULT ITEM NOT UPDATED");
     } else {
       console.log("✅UPDATED VAULT ITEM VALUE");
     }
@@ -54,7 +54,7 @@ export const updateDeveloperSession = async (email: string) => {
     //wait for vault to be created
     await new Promise((resolve) => setTimeout(resolve, 2000));
     if (!vaultItem?.id) {
-      console.log("❌VAULT ITEM NOT CREATED");
+      throw new Error("❌VAULT ITEM NOT CREATED");
     } else {
       await developerAccountModel.update({
         where: { id: developer.id },

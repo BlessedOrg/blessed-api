@@ -5,7 +5,10 @@ const vaultApiUrl = process.env.OP_VAULT_SERVER_HOST!;
 const vaultToken = process.env.OP_API_TOKEN!;
 const vaultCapsuleTokensId = process.env.OP_CAPSULE_KEY_VAULT_ID!;
 const vaultAccessTokensId = process.env.OP_ACCESS_TOKEN_VAULT_ID!;
-
+const headers = {
+  Authorization: `Bearer ${vaultToken}`,
+  "Content-Type": "application/json"
+};
 type IdPerType = {
   [K in VaultItemType]: string
 };
@@ -26,10 +29,7 @@ export async function createVaultCapsuleKeyItem(
       `${vaultApiUrl}/v1/vaults/${vaultId}/items`,
       {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${vaultToken}`,
-          "Content-Type": "application/json"
-        },
+        headers,
         body: JSON.stringify({
           vault: {
             id: vaultId
@@ -76,15 +76,11 @@ export async function createVaultAccessTokenItem(apiToken: string, developerId: 
       `${vaultApiUrl}/v1/vaults/${vaultId}/items`,
       {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${vaultToken}`,
-          "Content-Type": "application/json"
-        },
+        headers,
         body: JSON.stringify({
           vault: {
             id: vaultId
           },
-          // 🏗️ TODO: use title with real user's wallet/id
           title: `Access Token for developer ${developerId}`,
           category: "API_CREDENTIAL",
           tags: ["accessToken"],
@@ -148,10 +144,7 @@ export async function replaceVaultItemFields(
       `${vaultApiUrl}/v1/vaults/${vaultId}/items/${id}`,
       {
         method: "PUT",
-        headers: {
-          Authorization: `Bearer ${vaultToken}`,
-          "Content-Type": "application/json"
-        },
+        headers,
         body: JSON.stringify({
           ...currentItemData,
           fields: [
@@ -179,10 +172,7 @@ export async function updateVaultItem(
       `${vaultApiUrl}/v1/vaults/${vaultId}/items/${id}`,
       {
         method: "PATCH",
-        headers: {
-          Authorization: `Bearer ${vaultToken}`,
-          "Content-Type": "application/json"
-        },
+        headers,
         body: JSON.stringify(newData)
       }
     );

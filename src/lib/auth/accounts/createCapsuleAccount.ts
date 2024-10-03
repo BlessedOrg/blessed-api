@@ -1,13 +1,15 @@
 import { capsule } from "@/lib/capsule";
 import { createVaultCapsuleKeyItem } from "@/lib/1pwd-vault";
 import { StatusCodes } from "http-status-codes";
+import { PregenIdentifierType, WalletType } from "@usecapsule/server-sdk";
 
 export const createCapsuleAccount = async (email: string, type: AccountType) => {
   const hasWallet = await capsule.hasPregenWallet(email);
   if (!hasWallet) {
     try {
-      //@ts-ignore
-      const { address } = await capsule.createWalletPreGen("EVM", email, "EMAIL");
+      const walletType = "EVM" as WalletType;
+      const pregenIdentifierType = "EMAIL" as PregenIdentifierType;
+      const { address } = await capsule.createWalletPreGen(walletType, email, pregenIdentifierType);
       const userShare = capsule.getUserShare();
       const vaultItem = await createVaultCapsuleKeyItem(userShare, address, email, type);
       const data = {

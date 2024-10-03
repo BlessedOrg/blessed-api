@@ -55,8 +55,6 @@ export const updateUserSession = async (email: string, appId) => {
       }
     });
 
-    console.log(`New session id: ${newSession.id}`);
-
     return {
       accessToken,
       refreshToken,

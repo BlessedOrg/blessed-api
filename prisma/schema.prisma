@@ -130,7 +130,7 @@ model SmartContract {
   version                   Int
   DevelopersAccount         DeveloperAccount?          @relation(fields: [developerId], references: [id])
   developerId               String?
-  metadataImgUrl            String?
+  metadataUrl               String?
   metadataPayload           Json
   App                       App                        @relation(fields: [appId], references: [id])
   appId                     String

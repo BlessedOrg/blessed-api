@@ -77,7 +77,7 @@ async function postHandler(req: NextRequestWithUserAccessToken, { params: { appS
         name: contractName,
         developerId: req.developerId,
         version: nextId,
-        metadataImgUrl: metadataUrl,
+        metadataUrl,
         metadataPayload: {
           name: validBody.data.name,
           symbol: validBody.data.symbol,

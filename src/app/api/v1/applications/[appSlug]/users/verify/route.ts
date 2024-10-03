@@ -11,9 +11,7 @@ export async function POST(req: Request, { params: { appSlug } }) {
   const { code } = body;
 
   if (!code) {
-    return NextResponse.json({ error: "Invalid code format" }, {
-      status: StatusCodes.BAD_REQUEST
-    } as any);
+    return NextResponse.json({ error: "Invalid code format" }, { status: StatusCodes.BAD_REQUEST } as any);
   }
   const { id: appId } = await getAppIdBySlug(appSlug);
   const verifyEmailResult = await verifyEmailOtp(code);
