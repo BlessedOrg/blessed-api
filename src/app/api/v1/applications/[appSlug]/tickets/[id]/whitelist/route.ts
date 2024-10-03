@@ -5,6 +5,7 @@ import { smartContractModel } from "@/models";
 import { getAppIdBySlug } from "@/lib/app";
 import z from "zod";
 import { createMissingAccounts } from "@/lib/auth/accounts/createMissingAccounts";
+import { withDeveloperAccessToken } from "@/app/middleware/withDeveloperAccessToken";
 
 const WhitelistSchema = z.object({
   addEmails: z.array(z.string().email()).min(1),
@@ -86,6 +87,4 @@ async function postHandler(req: NextRequestWithDeveloperUserAccessToken & NextRe
   }
 }
 export const maxDuration = 300;
-// TODO: 🏗️ restrict this endpoint!
-export const POST = postHandler;
-
+export const POST = withDeveloperAccessToken(postHandler);

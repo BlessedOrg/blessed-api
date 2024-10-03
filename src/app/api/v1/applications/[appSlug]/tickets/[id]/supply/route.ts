@@ -4,6 +4,7 @@ import { contractArtifacts, getExplorerUrl, writeContract } from "@/lib/viem";
 import { smartContractModel } from "@/models";
 import { getAppIdBySlug } from "@/lib/app";
 import z from "zod";
+import { withDeveloperAccessToken } from "@/app/middleware/withDeveloperAccessToken";
 
 const DistributeSchema = z.object({
   additionalSupply: z.number().int().positive()
@@ -68,6 +69,4 @@ async function postHandler(req: NextRequestWithDeveloperUserAccessToken & NextRe
   }
 }
 export const maxDuration = 300;
-// TODO: 🏗️ restrict this endpoint!
-export const POST = postHandler;
-
+export const POST = withDeveloperAccessToken(postHandler);
