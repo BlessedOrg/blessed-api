@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
 import { StatusCodes } from "http-status-codes";
-import { verifyEmailOtp } from "@/lib/emails/auth/verifyEmailOtp";
 import { userModel } from "@/models";
 import { refreshAccountSession } from "@/lib/auth/accounts/refreshAccountSession";
 import { getAppIdBySlug } from "@/lib/app";
 import { createUserAccount } from "@/lib/auth/accounts/createUserAccount";
+import { verifyEmailVerificationCode } from "@/lib/auth/verifyEmailVerificationCode";
 
 export async function POST(req: Request, { params: { appSlug } }) {
   const body = await req.json();
@@ -14,7 +14,7 @@ export async function POST(req: Request, { params: { appSlug } }) {
     return NextResponse.json({ error: "Invalid code format" }, { status: StatusCodes.BAD_REQUEST } as any);
   }
   const { id: appId } = await getAppIdBySlug(appSlug);
-  const verifyEmailResult = await verifyEmailOtp(code);
+  const verifyEmailResult = await verifyEmailVerificationCode(code);
 
   const { accepted, email } = verifyEmailResult;
   if (!accepted || !email) {
