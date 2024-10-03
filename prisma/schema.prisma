@@ -14,50 +14,57 @@ datasource db {
 }
 
 model DeveloperAccount {
-  id            String                  @id @default(cuid())
-  email         String                  @unique
-  walletAddress String?                 @unique
+  id            String          @id @default(cuid())
+  email         String          @unique
+  walletAddress String?         @unique
   Otps          AccountOtp[]
   Sessions      Session[]
   vaultKey      String?
-  Users         DevelopersUserAccount[]
   ApiTokens     ApiToken[]
   Erc20Tokens   Erc20Token[]
   SmartContract SmartContract[]
   Apps          App[]
-  createdAt     DateTime                @default(now())
-  updatedAt     DateTime                @updatedAt
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
 }
 
 model App {
-  id               String                  @id @default(cuid())
-  slug             String                  @unique
-  name             String                  @unique
+  id               String           @id @default(cuid())
+  slug             String           @unique
+  name             String           @unique
   description      String?
   imageUrl         String?
   SmartContracts   SmartContract[]
   ApiTokens        ApiToken[]
-  DeveloperAccount DeveloperAccount        @relation(fields: [developerId], references: [id])
+  DeveloperAccount DeveloperAccount @relation(fields: [developerId], references: [id])
   developerId      String
-  Users            DevelopersUserAccount[]
-  createdAt        DateTime                @default(now())
-  updatedAt        DateTime                @updatedAt
+  Users            AppUser[]
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
 }
 
 model DevelopersUserAccount {
   id                        String                     @id @default(cuid())
   email                     String                     @unique
   walletAddress             String?                    @unique
-  App                       App                        @relation(fields: [appId], references: [id])
-  appId                     String
+  Apps                      AppUser[]
   Otps                      AccountOtp[]
   Sessions                  Session[]
   sessionId                 String?
-  DeveloperAccount          DeveloperAccount           @relation(fields: [developerId], references: [id])
-  developerId               String
   SmartContractInteractions SmartContractInteraction[]
   createdAt                 DateTime                   @default(now())
   updatedAt                 DateTime                   @updatedAt
+}
+
+model AppUser {
+  app       App                   @relation(fields: [appId], references: [id])
+  appId     String
+  user      DevelopersUserAccount @relation(fields: [userId], references: [id])
+  userId    String
+  createdAt DateTime              @default(now())
+
+  @@id([appId, userId])
+  @@unique([appId, userId])
 }
 
 model AccountOtp {
