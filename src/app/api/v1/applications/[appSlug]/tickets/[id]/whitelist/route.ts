@@ -45,8 +45,8 @@ async function postHandler(req: NextRequestWithDeveloperUserAccessToken & NextRe
     }
 
     const allEmails = [...validBody.data.addEmails, ...(validBody.data.removeEmails || [])];
-    const { newAccounts, existingAccounts } = await createMissingAccounts(allEmails);
-    const accounts = [...newAccounts, ...existingAccounts];
+    const TODO = await createMissingAccounts(allEmails, app.id);
+    const accounts = [];
     const emailToWalletMap = new Map(accounts.map(account => [account.email, account.walletAddress]));
 
     const whitelistUpdates = [

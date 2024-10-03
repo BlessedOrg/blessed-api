@@ -1,7 +1,7 @@
 "use server";
 
-import { developersUserAccountModel, prisma } from "@/prisma/models";
 import { importUserToPrivy } from "@/lib/auth/importUserToPrivy";
+import { developersUserAccountModel, prisma } from "@/models";
 
 export async function createMissingAccounts(emails: string[], appId: string) {
   try {

@@ -170,25 +170,25 @@ export async function replaceVaultItemFields(
 }
 
 export async function updateVaultItem(
-    id: string,
-    newData: {op: "replace" | "add" | "remove", path: string, value: any}[],
-    type?: "apiKey" | "privateKey",
+  id: string,
+  newData: {op: "replace" | "add" | "remove", path: string, value: any}[],
+  type?: "apiKey" | "privateKey",
 ) {
   const vaultId =
-      type === "privateKey"
-          ? process.env.OP_PRIVATE_KEY_VAULT_ID!
-          : process.env.OP_API_TOKEN_VAULT_ID!;
+    type === "privateKey"
+      ? process.env.OP_PRIVATE_KEY_VAULT_ID!
+      : process.env.OP_API_TOKEN_VAULT_ID!;
   try {
     const updatedItem = await fetch(
-        `${vaultApiUrl}/v1/vaults/${vaultId}/items/${id}`,
-        {
-          method: "PATCH",
-          headers: {
-            Authorization: `Bearer ${vaultToken}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(newData),
+      `${vaultApiUrl}/v1/vaults/${vaultId}/items/${id}`,
+      {
+        method: "PATCH",
+        headers: {
+          Authorization: `Bearer ${vaultToken}`,
+          "Content-Type": "application/json",
         },
+        body: JSON.stringify(newData),
+      },
     );
     console.log(`✅🔑 Updated Vault item`);
     return await updatedItem.json();
