@@ -1,95 +1,52 @@
 "use server";
-
-import { developersUserAccountModel, prisma } from "@/prisma/models";
 import { importUserToPrivy } from "@/server/auth/importUserToPrivy";
+import { developerAccountModel } from "@/prisma/models";
 
-export async function createUsersAccounts(emails: string[], appId: string) {
+export async function createMissingAccounts(emails: string[]) {
   try {
-    const existingAccounts = await developersUserAccountModel.findMany({
+    const registeredAccounts = await developerAccountModel.findMany({
       where: {
         email: {
           in: emails
         }
       },
-      include: {
-        Apps: {
-          where: {
-            appId: appId
-          }
-        }
+      select: {
+        email: true,
+        walletAddress: true
       }
     });
 
-    const accountsToAssign = existingAccounts.filter(account => account.Apps.length === 0);
-    const alreadyAssignedAccounts = existingAccounts.filter(account => account.Apps.length > 0);
-    const nonExistingEmails = emails.filter(email => !existingAccounts.some(account => account.email === email));
+    const registeredEmails = registeredAccounts.map(account => account.email);
+    const nonRegisteredEmails = emails.filter(email => !registeredEmails.includes(email));
 
-    const privyAccounts = await createPrivyAccounts(nonExistingEmails);
+    if (nonRegisteredEmails.length === 0) {
+      return {
+        createdAccounts: [],
+        registeredAccounts: registeredAccounts
+      };
+    }
 
-    const result = await prisma.$transaction(async (tx) => {
-      const assignExistingAccounts = await tx.appUser.createMany({
-        data: accountsToAssign.map(account => ({
-          appId: appId,
-          userId: account.id
-        })),
-        skipDuplicates: true
-      });
-
-      const createNewAccounts = await tx.developersUserAccount.createMany({
-        data: privyAccounts.map(account => ({
-          email: account.email,
-          walletAddress: account.walletAddress
-        })),
-        skipDuplicates: true
-      });
-
-      const newAccounts = await tx.developersUserAccount.findMany({
-        where: {
-          email: {
-            in: privyAccounts.map(account => account.email)
-          }
+    const createdAccounts = await Promise.all(nonRegisteredEmails.map(async (email) => {
+      const privyUser = await importUserToPrivy(email);
+      return developerAccountModel.create({
+        data: {
+          email,
+          walletAddress: privyUser.wallet.address
+        },
+        select: {
+          email: true,
+          walletAddress: true
         }
       });
-
-      const assignNewAccounts = await tx.appUser.createMany({
-        data: newAccounts.map(account => ({
-          appId: appId,
-          userId: account.id
-        })),
-        skipDuplicates: true
-      });
-
-      return {
-        assignedExisting: assignExistingAccounts.count,
-        createdNew: createNewAccounts.count,
-        assignedNew: assignNewAccounts.count
-      };
-    });
+    }));
 
     return {
-      assigned: result.assignedExisting,
-      created: result.createdNew,
-      alreadyAssigned: alreadyAssignedAccounts.length,
-      total: emails.length
+      createdAccounts,
+      registeredAccounts
     };
-  } catch (e) {
-    console.error("Error occurred while creating account:", e);
-    return {
-      error: e instanceof Error ? e.message : "An unknown error occurred"
-    };
+
+  } catch (error) {
+    console.error("🚨 Error while creating account:", error.message);
+    return error;
   }
 }
-
-const createPrivyAccounts = async (emails: string[]): Promise<{ email: string, walletAddress: string }[]> => {
-  let privyAccounts = [];
-  for (const email of emails) {
-    const privyUser = await importUserToPrivy(email);
-    if (privyUser) {
-      privyAccounts.push({
-        email: email,
-        walletAddress: privyUser.wallet.address
-      });
-    }
-  }
-  return privyAccounts;
-};
