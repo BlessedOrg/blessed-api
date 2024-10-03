@@ -137,4 +137,18 @@ export const writeContractWithNonceGuard = async (contractAddr, functionName, ar
   }
 };
 
+export const writeContract = async (contractAddr, functionName, args, abi) => {
+  await initializeNonce();
+  const hash = await client.writeContract({
+    address: contractAddr,
+    functionName: functionName,
+    args,
+    abi,
+    account,
+    nonce,
+  } as any);
+  console.log(`📟 ${functionName}TxHash: ${getExplorerUrl(hash)} 📟 Nonce: ${nonce}`);
+  return waitForTransactionReceipt(hash);
+}
+
 export const contractArtifacts = importAllJsonContractsArtifacts();

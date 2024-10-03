@@ -4,15 +4,9 @@ import { contractArtifacts, getExplorerUrl, writeContract } from "@/lib/viem";
 import { smartContractModel } from "@/models";
 import { getAppIdBySlug } from "@/lib/app";
 import z from "zod";
-import { createMissingAccounts } from "@/lib/auth/accounts/createMissingAccounts";
 
 const DistributeSchema = z.object({
-  distributions: z.array(
-    z.object({
-      email: z.string().email(),
-      amount: z.number().int().positive()
-    })
-  )
+  additionalSupply: z.number().int().positive()
 });
 
 async function postHandler(req: NextRequestWithDeveloperUserAccessToken & NextRequestWithApiToken, { params: { appSlug, id } }) {
@@ -48,37 +42,25 @@ async function postHandler(req: NextRequestWithDeveloperUserAccessToken & NextRe
       );
     }
 
-    const { newAccounts, existingAccounts } = await createMissingAccounts(validBody.data.distributions.map(distribution => distribution.email));
-    const accounts = [...newAccounts, ...existingAccounts];
-    const emailToWalletMap = new Map(accounts.map(account => [account.email, account.walletAddress]));
-    const distributionMap = validBody.data.distributions.map(distribution => {
-      const walletAddress = emailToWalletMap.get(distribution.email);
-      if (walletAddress) {
-        return [walletAddress, distribution.amount] as [string, number];
-      }
-      return null;
-    }).filter((item): item is [string, number] => item !== null);
-
     const result = await writeContract(
       smartContract.address,
-      "distribute",
-      [distributionMap],
+      "updateSupply",
+      [validBody.data.additionalSupply],
       contractArtifacts["tickets"].abi,
     );
 
     return NextResponse.json(
       {
         success: true,
-        distributionBlockHash: result.blockHash,
-        distributionMap,
+        updateSupplyBlockHash: result.blockHash,
         explorerUrls: {
-          distributionTx: getExplorerUrl(result.transactionHash)
+          updateSupplyTx: getExplorerUrl(result.transactionHash)
         }
       },
       { status: StatusCodes.OK }
     );
-  } catch(error) {
-    console.log("🚨 error on tickets/{id}/distribute: ", error.message)
+  } catch (error) {
+    console.log("🚨 error on tickets/{id}/supply: ", error.message);
     return NextResponse.json(
       { success: false, error: error.message },
       { status: StatusCodes.BAD_REQUEST }

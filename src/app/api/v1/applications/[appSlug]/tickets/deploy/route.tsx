@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { StatusCodes } from "http-status-codes";
 import { smartContractModel } from "@/models";
 import z from "zod";
-import { uploadMetadata } from "../../../../../../../lib/irys";
+import { uploadMetadata } from "@/lib/irys";
 import { getAppIdBySlug } from "@/lib/app";
 import { account, deployContract, getExplorerUrl } from "@/lib/viem";
 
@@ -56,7 +56,6 @@ async function postHandler(req: NextRequestWithDeveloperUserAccessToken & NextRe
     };
 
     const contract = await deployContract(contractName, Object.values(args));
-    console.log("🔮 contract: ", contract)
     console.log("⛓️ Contract Explorer URL: ", getExplorerUrl(contract.contractAddr));
 
     const maxId = await smartContractModel.aggregate({
@@ -109,5 +108,6 @@ async function postHandler(req: NextRequestWithDeveloperUserAccessToken & NextRe
   }
 }
 export const maxDuration = 300;
+// TODO: 🏗️ restrict this endpoint!
 export const POST = postHandler;
 
