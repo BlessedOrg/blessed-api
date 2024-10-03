@@ -3,10 +3,10 @@ import { developerAccountModel, userModel } from "@/models";
 import z from "zod";
 
 const schema = z.object({
-  email: z.string().email()
+  email: z.string().email(),
 });
 
-export async function validateEmail(email: string, accountType?: AccountType) {
+export async function checkForEmailDuplicate(email: string, accountType?: AccountType) {
   const validBody = schema.safeParse({ email });
 
   if (!validBody.success) {

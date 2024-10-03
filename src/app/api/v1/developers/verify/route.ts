@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { StatusCodes } from "http-status-codes";
-import { verifyEmailOtp } from "@/lib/emails/auth/verifyEmailOtp";
+import { verifyEmailVerificationCode } from "@/lib/auth/verifyEmailVerificationCode";
 import { developerAccountModel } from "@/models";
 import { createDeveloperAccount } from "@/lib/auth/accounts/createDeveloperAccount";
 import { refreshAccountSession } from "@/lib/auth/accounts/refreshAccountSession";
@@ -15,7 +15,7 @@ export async function POST(req: Request) {
     } as any);
   }
 
-  const verifyEmailResult = await verifyEmailOtp(code);
+  const verifyEmailResult = await verifyEmailVerificationCode(code);
 
   const { accepted, email } = verifyEmailResult;
   if (!accepted || !email) {
@@ -47,4 +47,5 @@ export async function POST(req: Request) {
       );
     }
   }
+
 }

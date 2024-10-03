@@ -5,6 +5,7 @@ import z from "zod";
 import { uploadMetadata } from "@/lib/irys";
 import { getAppIdBySlug } from "@/lib/app";
 import { account, deployContract, getExplorerUrl } from "@/lib/viem";
+import { withDeveloperAccessToken } from "@/app/middleware/withDeveloperAccessToken";
 
 const TicketSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -108,6 +109,4 @@ async function postHandler(req: NextRequestWithUserAccessToken, { params: { appS
   }
 }
 export const maxDuration = 300;
-// TODO: 🏗️ restrict this endpoint!
-export const POST = postHandler;
-
+export const POST = withDeveloperAccessToken(postHandler);
