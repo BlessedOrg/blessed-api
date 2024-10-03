@@ -1,6 +1,6 @@
 import * as React from "react";
 import { Body, Html, Link } from "@react-email/components";
-import { TailwindWrapper } from "@/emailTemplates/TailwindWrapper";
+import { TailwindWrapper } from "@/lib/emails/templates/TailwindWrapper";
 
 export function VerificationCodeEmail({ code }) {
   return (

@@ -1,7 +1,7 @@
-import { developersUserAccountModel } from "@/prisma/models";
+import { developersUserAccountModel } from "@/models";
 import { NextResponse } from "next/server";
 import { StatusCodes } from "http-status-codes";
-import { sendVerificationEmailCode } from "@/server/auth/sendVerificationEmailCode";
+import { sendVerificationEmailCode } from "@/lib/emails/auth/sendVerificationEmailCode";
 import { withApiToken } from "@/app/middleware/withApiToken";
 
 async function handler(req: NextRequestWithApiToken) {

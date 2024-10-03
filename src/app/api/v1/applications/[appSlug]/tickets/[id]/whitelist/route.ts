@@ -6,18 +6,14 @@ import { getAppIdBySlug } from "@/lib/app";
 import z from "zod";
 import { createMissingAccounts } from "@/lib/auth/accounts/createMissingAccounts";
 
-const DistributeSchema = z.object({
-  distributions: z.array(
-    z.object({
-      email: z.string().email(),
-      amount: z.number().int().positive()
-    })
-  )
+const WhitelistSchema = z.object({
+  addEmails: z.array(z.string().email()).min(1),
+  removeEmails: z.array(z.string().email()).optional()
 });
 
 async function postHandler(req: NextRequestWithDeveloperUserAccessToken & NextRequestWithApiToken, { params: { appSlug, id } }) {
   try {
-    const validBody = DistributeSchema.safeParse(await req.json());
+    const validBody = WhitelistSchema.safeParse(await req.json());
     if (!validBody.success) {
       return NextResponse.json(
         { error: `Validation failed: ${validBody.error}` },
@@ -48,37 +44,41 @@ async function postHandler(req: NextRequestWithDeveloperUserAccessToken & NextRe
       );
     }
 
-    const { newAccounts, existingAccounts } = await createMissingAccounts(validBody.data.distributions.map(distribution => distribution.email));
+    const allEmails = [...validBody.data.addEmails, ...(validBody.data.removeEmails || [])];
+    const { newAccounts, existingAccounts } = await createMissingAccounts(allEmails);
     const accounts = [...newAccounts, ...existingAccounts];
     const emailToWalletMap = new Map(accounts.map(account => [account.email, account.walletAddress]));
-    const distributionMap = validBody.data.distributions.map(distribution => {
-      const walletAddress = emailToWalletMap.get(distribution.email);
-      if (walletAddress) {
-        return [walletAddress, distribution.amount] as [string, number];
-      }
-      return null;
-    }).filter((item): item is [string, number] => item !== null);
+
+    const whitelistUpdates = [
+      ...validBody.data.addEmails.map(email => {
+        const walletAddress = emailToWalletMap.get(email);
+        return walletAddress ? [walletAddress, true] : null;
+      }),
+      ...(validBody.data.removeEmails || []).map(email => {
+        const walletAddress = emailToWalletMap.get(email);
+        return walletAddress ? [walletAddress, false] : null;
+      })
+    ].filter((item): item is [string, boolean] => item !== null);
 
     const result = await writeContract(
       smartContract.address,
-      "distribute",
-      [distributionMap],
+      "updateWhitelist",
+      [whitelistUpdates],
       contractArtifacts["tickets"].abi,
     );
 
     return NextResponse.json(
       {
         success: true,
-        distributionBlockHash: result.blockHash,
-        distributionMap,
+        updateWhitelistBlockHash: result.blockHash,
         explorerUrls: {
-          distributionTx: getExplorerUrl(result.transactionHash)
+          updateWhitelistTx: getExplorerUrl(result.transactionHash)
         }
       },
       { status: StatusCodes.OK }
     );
-  } catch(error) {
-    console.log("🚨 error on tickets/{id}/distribute: ", error.message)
+  } catch (error) {
+    console.log("🚨 error on tickets/{id}/supply: ", error.message);
     return NextResponse.json(
       { success: false, error: error.message },
       { status: StatusCodes.BAD_REQUEST }

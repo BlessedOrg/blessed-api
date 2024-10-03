@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { StatusCodes } from "http-status-codes";
-import { validateEmail } from "@/server/auth/validateEmail";
-import { sendVerificationEmailCode } from "@/server/auth/sendVerificationEmailCode";
+import { validateEmail } from "@/lib/emails/auth/validateEmail";
+import { sendVerificationEmailCode } from "@/lib/emails/auth/sendVerificationEmailCode";
 import { sessionType } from "@prisma/client";
 import { withApiToken } from "@/app/middleware/withApiToken";
 

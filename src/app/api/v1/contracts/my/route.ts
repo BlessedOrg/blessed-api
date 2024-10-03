@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { StatusCodes } from "http-status-codes";
-import { smartContractModel } from "@/prisma/models";
+import { smartContractModel } from "@/models";
 import { withApiToken } from "@/app/middleware/withApiToken";
 
 export const dynamic = "force-dynamic";
