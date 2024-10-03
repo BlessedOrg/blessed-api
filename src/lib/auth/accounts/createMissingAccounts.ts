@@ -1,9 +1,9 @@
 "use server";
 
 import { developersUserAccountModel, prisma } from "@/prisma/models";
-import { importUserToPrivy } from "@/server/auth/importUserToPrivy";
+import { importUserToPrivy } from "@/lib/auth/importUserToPrivy";
 
-export async function createUsersAccounts(emails: string[], appId: string) {
+export async function createMissingAccounts(emails: string[], appId: string) {
   try {
     const existingAccounts = await developersUserAccountModel.findMany({
       where: {

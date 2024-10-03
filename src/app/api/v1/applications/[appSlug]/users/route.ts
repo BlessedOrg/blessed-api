@@ -3,7 +3,7 @@ import { StatusCodes } from "http-status-codes";
 import { appModel, developersUserAccountModel } from "@/prisma/models";
 import { withDeveloperAccessToken } from "@/app/middleware/withDeveloperAccessToken";
 import { getAppIdBySlug } from "@/lib/app";
-import { createUsersAccounts } from "@/server/api/accounts/createMissingAccounts";
+import { createMissingAccounts } from "@/lib/auth/accounts/createMissingAccounts";
 
 async function getHandler(req: NextRequestWithDeveloperAccessToken, { params: { appSlug } }) {
   if (!appSlug) {
@@ -43,7 +43,7 @@ async function postHandler(req: NextRequestWithDeveloperAccessToken, { params: {
   if (!appSlug) {
     return NextResponse.json({ error: "appSlug query param is required" }, { status: StatusCodes.BAD_REQUEST });
   }
-  const createdUsers = await createUsersAccounts(users.map(i => i.email), appData.id);
+  const createdUsers = await createMissingAccounts(users.map(i => i.email), appData.id);
   return NextResponse.json(createdUsers, { status: StatusCodes.OK });
 }
 
