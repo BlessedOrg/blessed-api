@@ -13,4 +13,5 @@ export const {
   erc20Token: erc20TokenModel,
   smartContract: smartContractModel,
   smartContractInteraction: smartContractInteractionModel,
+  appUser: appUserModel
 } = prisma;

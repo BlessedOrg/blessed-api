@@ -5,7 +5,6 @@ import { createOrUpdateSession } from "@/lib/auth/session";
 import { sessionType } from "@prisma/client";
 import { developerAccountModel } from "@/models";
 import { importUserToPrivy } from "@/lib/auth/importUserToPrivy";
-import { createSessionTokens } from "@/lib/auth/createSessionTokens";
 
 export async function POST(req: Request) {
   const body = await req.json();
@@ -40,12 +39,7 @@ export async function POST(req: Request) {
     });
 
     if (createdDeveloperAccount) {
-      const {
-        accessToken,
-        refreshToken
-      } = await createSessionTokens({ id: createdDeveloperAccount?.id });
-
-      await createOrUpdateSession(email, sessionType.dev);
+      const {accessToken, refreshToken} = await createOrUpdateSession(email, sessionType.dev);
 
       return NextResponse.json(
         {
