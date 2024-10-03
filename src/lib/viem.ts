@@ -5,12 +5,12 @@ import { createPublicClient, createWalletClient, http } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 
 export const rpcUrl = process.env.NEXT_PUBLIC_JSON_RPC_URL || "define RPC URL env ";
-export const chainId = Number(process.env.NEXT_PUBLIC_CHAIN_ID) || 0;
+export const chainId = Number(process.env.NEXT_PUBLIC_CHAIN_ID) || 84532;
 export const ethNativeCurrency = {
   decimals: 18,
   name: "Ether",
-  symbol: "ETH",
-}
+  symbol: "ETH"
+};
 export const baseSepolia = {
   id: chainId,
   name: "Base Sepolia",
@@ -18,16 +18,16 @@ export const baseSepolia = {
   rpcUrls: {
     default: {
       http: [rpcUrl],
-      webSocket: [""],
-    },
+      webSocket: [""]
+    }
   },
   blockExplorers: {
     default: {
       name: "Explorer",
-      url: "https://sepolia.basescan.org",
-    },
-  },
-}
+      url: "https://sepolia.basescan.org"
+    }
+  }
+};
 export const activeChain = baseSepolia;
 
 export const account = privateKeyToAccount(`0x${process.env.OPERATOR_PRIVATE_KEY}`);
@@ -35,12 +35,12 @@ export const account = privateKeyToAccount(`0x${process.env.OPERATOR_PRIVATE_KEY
 const client = createWalletClient({
   chain: activeChain,
   account,
-  transport: http(rpcUrl),
+  transport: http(rpcUrl)
 });
 
 const publicClient = createPublicClient({
   chain: activeChain,
-  transport: http(rpcUrl),
+  transport: http(rpcUrl)
 });
 
 let nonce;
@@ -92,7 +92,7 @@ export const deployContract = async (contractName, args) => {
 
   const receipt = await publicClient.waitForTransactionReceipt({
     confirmations: 5,
-    hash,
+    hash
   });
 
   if (receipt?.contractAddress) {
@@ -105,10 +105,9 @@ export const deployContract = async (contractName, args) => {
 export const waitForTransactionReceipt = async (hash, confirmations = 1) => {
   return publicClient.waitForTransactionReceipt({
     hash,
-    confirmations,
+    confirmations
   });
 };
-
 
 export const writeContractWithNonceGuard = async (contractAddr, functionName, args, abi, sellerId) => {
   await initializeNonce();
@@ -119,7 +118,7 @@ export const writeContractWithNonceGuard = async (contractAddr, functionName, ar
       args,
       abi,
       account,
-      nonce,
+      nonce
     } as any);
     console.log(`📟 ${functionName}TxHash: ${getExplorerUrl(hash)} 📟 Nonce: ${nonce}`);
     return waitForTransactionReceipt(hash);
@@ -131,7 +130,7 @@ export const writeContractWithNonceGuard = async (contractAddr, functionName, ar
       nonce++;
       return await writeContractWithNonceGuard(contractAddr, functionName, args, abi, sellerId);
     } else {
-      console.log("🔮 error: ", error)
+      console.log("🔮 error: ", error);
       // await createErrorLog(sellerId, (error as any).message);
     }
   }
@@ -145,10 +144,10 @@ export const writeContract = async (contractAddr, functionName, args, abi) => {
     args,
     abi,
     account,
-    nonce,
+    nonce
   } as any);
   console.log(`📟 ${functionName}TxHash: ${getExplorerUrl(hash)} 📟 Nonce: ${nonce}`);
   return waitForTransactionReceipt(hash);
-}
+};
 
 export const contractArtifacts = importAllJsonContractsArtifacts();

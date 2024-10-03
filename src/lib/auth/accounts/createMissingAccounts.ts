@@ -37,7 +37,8 @@ export async function createMissingAccounts(emails: string[], appId: string) {
       const createNewAccounts = await tx.user.createMany({
         data: capsuleAccounts.map(account => ({
           email: account.email,
-          walletAddress: account.walletAddress
+          walletAddress: account.walletAddress,
+          capsuleTokenVaultKey: account.capsuleTokenVaultKey
         })),
         skipDuplicates: true
       });
@@ -92,7 +93,7 @@ export async function createMissingAccounts(emails: string[], appId: string) {
   }
 }
 
-const createCapsuleAccounts = async (emails: string[]): Promise<{ email: string, walletAddress: string }[]> => {
+const createCapsuleAccounts = async (emails: string[]): Promise<{ email: string, walletAddress: string, capsuleTokenVaultKey: string }[]> => {
   let capsuleAccounts = [];
   for (const email of emails) {
     const capsuleUser = await createCapsuleAccount(email, "user");
@@ -103,7 +104,8 @@ const createCapsuleAccounts = async (emails: string[]): Promise<{ email: string,
     if (capsuleUser) {
       capsuleAccounts.push({
         email: email,
-        walletAddress: capsuleUser.data.walletAddress
+        walletAddress: capsuleUser.data.walletAddress,
+        capsuleTokenVaultKey: capsuleUser.data.capsuleTokenVaultKey
       });
     }
   }
