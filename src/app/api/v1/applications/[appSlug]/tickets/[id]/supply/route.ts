@@ -10,7 +10,7 @@ const DistributeSchema = z.object({
   additionalSupply: z.number().int().positive()
 });
 
-async function postHandler(req: NextRequestWithDeveloperUserAccessToken & NextRequestWithApiToken, { params: { appSlug, id } }) {
+async function postHandler(req: NextRequestWithUserAccessToken, { params: { appSlug, id } }) {
   try {
     const validBody = DistributeSchema.safeParse(await req.json());
     if (!validBody.success) {
@@ -47,7 +47,7 @@ async function postHandler(req: NextRequestWithDeveloperUserAccessToken & NextRe
       smartContract.address,
       "updateSupply",
       [validBody.data.additionalSupply],
-      contractArtifacts["tickets"].abi,
+      contractArtifacts["tickets"].abi
     );
 
     return NextResponse.json(

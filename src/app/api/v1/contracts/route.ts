@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { StatusCodes } from "http-status-codes";
+import { withDeveloperAccessToken } from "@/app/middleware/withDeveloperAccessToken";
 // import { getAllContractsDetails } from "@/contracts/cairo/interfaces";
-import { withApiToken } from "@/app/middleware/withApiToken";
 
 export const dynamic = "force-dynamic";
 
@@ -12,4 +12,4 @@ async function getHandler() {
   );
 }
 
-export const GET = withApiToken(getHandler);
+export const GET = withDeveloperAccessToken(getHandler);

@@ -4,11 +4,11 @@ export const prisma = new PrismaClient();
 
 export const {
   app: appModel,
-  apiToken: apiTokenModel,
   developerAccount: developerAccountModel,
-  developersUserAccount: developersUserAccountModel,
+  user: userModel,
   accountOtp: accountOtpModel,
-  session: sessionModel,
+  userSession: userSessionModel,
+  developerSession: developerSessionModel,
   emailVerificationCode: emailVerificationCodeModel,
   erc20Token: erc20TokenModel,
   smartContract: smartContractModel,

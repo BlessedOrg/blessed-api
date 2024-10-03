@@ -3,13 +3,13 @@ import { StatusCodes } from "http-status-codes";
 import { withDeveloperAccessToken } from "@/app/middleware/withDeveloperAccessToken";
 import { getAppIdBySlug } from "@/lib/app";
 import { createMissingAccounts } from "@/lib/auth/accounts/createMissingAccounts";
-import { appModel, developersUserAccountModel } from "@/models";
+import { appModel, userModel } from "@/models";
 
 async function getHandler(req: NextRequestWithDeveloperAccessToken, { params: { appSlug } }) {
   if (!appSlug) {
     return NextResponse.json({ error: "appSlug query param is required" }, { status: StatusCodes.BAD_REQUEST });
   }
-  const app = await getAppIdBySlug(appSlug)
+  const app = await getAppIdBySlug(appSlug);
   if (!app) {
     return NextResponse.json(
       { error: `App not found` },
@@ -17,7 +17,7 @@ async function getHandler(req: NextRequestWithDeveloperAccessToken, { params: { 
     );
   }
 
-  const users = await developersUserAccountModel.findMany({
+  const users = await userModel.findMany({
     where: {
       Apps: {
         some: {

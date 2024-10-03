@@ -1,14 +1,14 @@
 import { NextResponse } from "next/server";
 import { StatusCodes } from "http-status-codes";
 import { smartContractModel } from "@/models";
-import { withApiToken } from "@/app/middleware/withApiToken";
+import { withDeveloperAccessToken } from "@/app/middleware/withDeveloperAccessToken";
 
 export const dynamic = "force-dynamic";
 
-async function getHandler(req: NextRequestWithApiToken) {
+async function getHandler(req: NextRequestWithDeveloperAccessToken) {
   const myContracts = await smartContractModel.findMany({
     where: {
-      developerId: req.developerId,
+      developerId: req.developerId
     },
     include: {
       App: {
@@ -23,4 +23,4 @@ async function getHandler(req: NextRequestWithApiToken) {
   return NextResponse.json({ myContracts }, { status: StatusCodes.OK });
 }
 
-export const GET = withApiToken(getHandler);
+export const GET = withDeveloperAccessToken(getHandler);
