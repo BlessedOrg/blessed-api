@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { StatusCodes } from "http-status-codes";
-import { verifyEmailOtp } from "@/lib/emails/auth/verifyEmailOtp";
+import { verifyEmailVerificationCode } from "@/lib/auth/verifyEmailVerificationCode";
 import { createOrUpdateSession } from "@/lib/auth/session";
 import { sessionType } from "@prisma/client";
 import { developerAccountModel } from "@/models";
@@ -16,11 +16,8 @@ export async function POST(req: Request) {
     } as any);
   }
 
-  console.log("🔮 code: ", code)
+  const verifyEmailResult = await verifyEmailVerificationCode(code);
 
-  const verifyEmailResult = await verifyEmailOtp(code);
-
-  console.log("🔮 verifyEmailResult: ", verifyEmailResult)
   const { accepted, email } = verifyEmailResult;
   if (!accepted || !email) {
     return NextResponse.json(
@@ -39,7 +36,7 @@ export async function POST(req: Request) {
     });
 
     if (createdDeveloperAccount) {
-      const {accessToken, refreshToken} = await createOrUpdateSession(email, sessionType.dev);
+      const { accessToken, refreshToken } = await createOrUpdateSession(email, sessionType.dev);
 
       return NextResponse.json(
         {

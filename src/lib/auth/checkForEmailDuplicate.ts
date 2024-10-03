@@ -7,7 +7,7 @@ const schema = z.object({
   email: z.string().email(),
 });
 
-export async function validateEmail(email: string, accountType?: sessionType) {
+export async function checkForEmailDuplicate(email: string, accountType?: sessionType) {
   const validBody = schema.safeParse({ email });
 
   if (!validBody.success) {

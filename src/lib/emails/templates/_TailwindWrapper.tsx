@@ -1,7 +1,7 @@
 import { Tailwind } from "@react-email/components";
 import { ReactNode } from "react";
 
-export const TailwindWrapper = ({ children }: { children: ReactNode }) => {
+export const _TailwindWrapper = ({ children }: { children: ReactNode }) => {
   return (
     <Tailwind
       // @ts-ignore
