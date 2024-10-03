@@ -45,9 +45,8 @@ async function postHandler(req: NextRequestWithDeveloperUserAccessToken & NextRe
     }
 
     const allEmails = [...validBody.data.addEmails, ...(validBody.data.removeEmails || [])];
-    const TODO = await createMissingAccounts(allEmails, app.id);
-    const accounts = [];
-    const emailToWalletMap = new Map(accounts.map(account => [account.email, account.walletAddress]));
+    const { users } = await createMissingAccounts(allEmails, app.id);
+    const emailToWalletMap = new Map(users.map(account => [account.email, account.walletAddress]));
 
     const whitelistUpdates = [
       ...validBody.data.addEmails.map(email => {
@@ -70,6 +69,7 @@ async function postHandler(req: NextRequestWithDeveloperUserAccessToken & NextRe
     return NextResponse.json(
       {
         success: true,
+        whitelistUpdatesMap: whitelistUpdates,
         updateWhitelistBlockHash: result.blockHash,
         explorerUrls: {
           updateWhitelistTx: getExplorerUrl(result.transactionHash)

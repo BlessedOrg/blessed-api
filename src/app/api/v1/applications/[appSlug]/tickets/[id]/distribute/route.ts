@@ -48,9 +48,8 @@ async function postHandler(req: NextRequestWithDeveloperUserAccessToken & NextRe
       );
     }
 
-    const TODO = await createMissingAccounts(validBody.data.distributions.map(distribution => distribution.email), app.id);
-    const accounts = [];
-    const emailToWalletMap = new Map(accounts.map(account => [account.email, account.walletAddress]));
+    const { users } = await createMissingAccounts(validBody.data.distributions.map(distribution => distribution.email), app.id);
+    const emailToWalletMap = new Map(users.map(account => [account.email, account.walletAddress]));
     const distributionMap = validBody.data.distributions.map(distribution => {
       const walletAddress = emailToWalletMap.get(distribution.email);
       if (walletAddress) {

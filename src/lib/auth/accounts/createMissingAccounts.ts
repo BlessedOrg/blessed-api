@@ -1,5 +1,4 @@
 "use server";
-
 import { importUserToPrivy } from "@/lib/auth/importUserToPrivy";
 import { developersUserAccountModel, prisma } from "@/models";
 
@@ -66,11 +65,24 @@ export async function createMissingAccounts(emails: string[], appId: string) {
       };
     });
 
+    const allUsers = await developersUserAccountModel.findMany({
+      where: {
+        email: {
+          in: emails
+        }
+      },
+      select: {
+        email: true,
+        walletAddress: true
+      }
+    });
+
     return {
       assigned: result.assignedExisting,
       created: result.createdNew,
       alreadyAssigned: alreadyAssignedAccounts.length,
-      total: emails.length
+      total: emails.length,
+      users: allUsers
     };
   } catch (e) {
     console.error("Error occurred while creating account:", e);
