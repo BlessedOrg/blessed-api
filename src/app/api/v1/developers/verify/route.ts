@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
 import { StatusCodes } from "http-status-codes";
-import { verifyEmailOtp } from "@/server/auth/verifyEmailOtp";
-import { createOrUpdateSession } from "@/server/auth/session";
+import { verifyEmailOtp } from "@/lib/emails/auth/verifyEmailOtp";
+import { createOrUpdateSession } from "@/lib/auth/session";
 import { sessionType } from "@prisma/client";
-import { developerAccountModel } from "@/prisma/models";
-import { importUserToPrivy } from "@/server/auth/importUserToPrivy";
+import { developerAccountModel } from "@/models";
+import { importUserToPrivy } from "@/lib/auth/importUserToPrivy";
 
 export async function POST(req: Request) {
   const body = await req.json();

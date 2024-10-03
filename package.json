@@ -23,7 +23,7 @@
     "ethers": "5.7.2",
     "jsonwebtoken": "^9.0.2",
     "lodash-es": "^4.17.21",
-    "next": "latest",
+    "next": "14.2.14",
     "nodemailer": "^6.9.14",
     "otp-generator": "^4.0.1",
     "qrcode": "^1.5.4",
@@ -50,7 +50,7 @@
     "http-status-codes": "^2.3.0",
     "prisma": "^5.20.0",
     "react-email": "3.0.1",
-    "typescript": "^5.6.2",
+    "typescript": "^5.5.2",
     "zod-to-json-schema": "^3.23.2"
   }
 }

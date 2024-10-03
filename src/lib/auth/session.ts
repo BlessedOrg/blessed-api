@@ -1,6 +1,6 @@
 "use server";
-import { createSessionTokens } from "@/server/auth/createSessionTokens";
-import { developerAccountModel, developersUserAccountModel, sessionModel } from "@/prisma/models";
+import { createSessionTokens } from "@/lib/auth/createSessionTokens";
+import { developerAccountModel, developersUserAccountModel, sessionModel } from "@/models";
 import { sessionType } from "@prisma/client";
 import { createVaultApiTokenItem, updateVaultItem } from "@/server/api/vault/vaultApi";
 

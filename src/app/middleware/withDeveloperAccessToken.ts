@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { StatusCodes } from "http-status-codes";
-import { sessionModel } from "@/prisma/models";
+import { sessionModel } from "@/models";
 
 export function withDeveloperAccessToken(
   handler: (req: NextRequest, context: { params: any }) => Promise<NextResponse> | NextResponse

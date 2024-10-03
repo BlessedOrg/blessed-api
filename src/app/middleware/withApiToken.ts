@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { StatusCodes } from "http-status-codes";
-import { getVaultItem } from "@/server/api/vault/vaultApi";
+import { getVaultItem } from "@/lib/1pwd-vault";
 import jwt from "jsonwebtoken";
-import { apiTokenModel } from "@/prisma/models";
+import { apiTokenModel } from "@/models";
 import { isEqual } from "lodash-es";
 
 export function withApiToken(handler: (req: NextRequest, context: { params: any }) => Promise<NextResponse> | NextResponse) {

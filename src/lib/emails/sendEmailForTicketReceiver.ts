@@ -1,8 +1,8 @@
 "use server";
 import nodeMailer from "nodemailer";
 import { generateOTP } from "@/utils/generateOtp";
-import { emailVerificationCodeModel } from "@/prisma/models";
-import { createMailTransport } from "@/server/api/email";
+import { emailVerificationCodeModel } from "@/models";
+import { createMailTransport } from "@/lib/emails/transporter";
 
 
 type VerificationEmailParams = {

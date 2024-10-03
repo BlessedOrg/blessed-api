@@ -1,10 +1,10 @@
 "use server";
 import nodeMailer from "nodemailer";
 import { generateOTP } from "@/utils/generateOtp";
-import { emailVerificationCodeModel } from "@/prisma/models";
-import { createMailTransport } from "@/server/api/email";
+import { emailVerificationCodeModel } from "@/models";
+import { createMailTransport } from "@/lib/emails/transporter";
 import { render } from "@react-email/components";
-import { VerificationCodeEmail } from "@/emailTemplates/VerificationCodeEmail";
+import { VerificationCodeEmail } from "@/lib/emails/templates/VerificationCodeEmail";
 
 type VerificationEmailParams = {
   to: string;

@@ -1,8 +1,8 @@
-import { privateKeyToAccount } from "viem/accounts";
-import { createPublicClient, createWalletClient, http } from "viem";
 import { ethers } from "ethers";
 import { NonceManager } from "@ethersproject/experimental";
-import { importAllJsonContractsArtifacts } from "@/contracts/interfaces";
+import { importAllJsonContractsArtifacts } from "@/lib/contracts/interfaces";
+import { createPublicClient, createWalletClient, http } from "viem";
+import { privateKeyToAccount } from "viem/accounts";
 
 export const rpcUrl = process.env.NEXT_PUBLIC_JSON_RPC_URL || "define RPC URL env ";
 export const chainId = Number(process.env.NEXT_PUBLIC_CHAIN_ID) || 0;
@@ -11,7 +11,7 @@ export const ethNativeCurrency = {
   name: "Ether",
   symbol: "ETH",
 }
-const baseSepolia = {
+export const baseSepolia = {
   id: chainId,
   name: "Base Sepolia",
   nativeCurrency: ethNativeCurrency,
@@ -29,7 +29,8 @@ const baseSepolia = {
   },
 }
 export const activeChain = baseSepolia;
-const account = privateKeyToAccount(`0x${process.env.OPERATOR_PRIVATE_KEY}`);
+
+export const account = privateKeyToAccount(`0x${process.env.OPERATOR_PRIVATE_KEY}`);
 
 const client = createWalletClient({
   chain: activeChain,
@@ -52,14 +53,15 @@ const incrementNonce = () => {
   nonce += 1;
 };
 
-const fetchNonce = async (address: string | null = null) => {
+export const fetchNonce = async (address: string | null = null) => {
   const provider = new ethers.providers.JsonRpcProvider({
     skipFetchSetup: true,
     fetchOptions: {
-      referrer: process.env.NEXT_PUBLIC_BASE_URL!,
+      referrer: process.env.NEXT_PUBLIC_BASE_URL!
     },
-    url: rpcUrl!,
+    url: rpcUrl!
   });
+
   const signer = provider.getSigner(account?.address);
   const nonceManager = new NonceManager(signer);
   const nonceFromManager = await nonceManager.getTransactionCount("latest");
@@ -67,7 +69,7 @@ const fetchNonce = async (address: string | null = null) => {
   return nonceFromManager;
 };
 
-const getExplorerUrl = (param: string): string => {
+export const getExplorerUrl = (param: string): string => {
   if (param.length === 66) {
     return `${activeChain.blockExplorers.default.url}/tx/${param}`;
   } else if (param.length === 42) {
@@ -77,7 +79,7 @@ const getExplorerUrl = (param: string): string => {
   }
 };
 
-const deployContract = async (contractName, args) => {
+export const deployContract = async (contractName, args) => {
   const contractArtifacts = importAllJsonContractsArtifacts();
   const hash = await client.deployContract({
     abi: contractArtifacts[contractName].abi,
@@ -100,7 +102,7 @@ const deployContract = async (contractName, args) => {
   return { hash, contractAddr };
 };
 
-const waitForTransactionReceipt = async (hash, confirmations = 1) => {
+export const waitForTransactionReceipt = async (hash, confirmations = 1) => {
   return publicClient.waitForTransactionReceipt({
     hash,
     confirmations,
@@ -108,7 +110,7 @@ const waitForTransactionReceipt = async (hash, confirmations = 1) => {
 };
 
 
-const writeContractWithNonceGuard = async (contractAddr, functionName, args, abi, sellerId) => {
+export const writeContractWithNonceGuard = async (contractAddr, functionName, args, abi, sellerId) => {
   await initializeNonce();
   try {
     const hash = await client.writeContract({
@@ -135,17 +137,18 @@ const writeContractWithNonceGuard = async (contractAddr, functionName, args, abi
   }
 };
 
-const contractArtifacts = importAllJsonContractsArtifacts();
-
-
-export {
-  nonce,
-  account,
-  client,
-  contractArtifacts,
-  publicClient,
-  writeContractWithNonceGuard,
-  fetchNonce,
-  getExplorerUrl,
-  deployContract
+export const writeContract = async (contractAddr, functionName, args, abi) => {
+  await initializeNonce();
+  const hash = await client.writeContract({
+    address: contractAddr,
+    functionName: functionName,
+    args,
+    abi,
+    account,
+    nonce,
+  } as any);
+  console.log(`📟 ${functionName}TxHash: ${getExplorerUrl(hash)} 📟 Nonce: ${nonce}`);
+  return waitForTransactionReceipt(hash);
 }
+
+export const contractArtifacts = importAllJsonContractsArtifacts();

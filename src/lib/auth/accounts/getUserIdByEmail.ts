@@ -1,5 +1,5 @@
 "use server";
-import { developersUserAccountModel } from "@/prisma/models";
+import { developersUserAccountModel } from "@/models";
 
 export async function getUserIdByEmail(email: string) {
   const userData = await developersUserAccountModel.findUnique({
