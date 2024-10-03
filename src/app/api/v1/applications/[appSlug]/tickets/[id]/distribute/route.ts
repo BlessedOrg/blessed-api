@@ -15,7 +15,7 @@ const DistributeSchema = z.object({
   )
 });
 
-async function postHandler(req: NextRequestWithDeveloperUserAccessToken & NextRequestWithApiToken, { params: { appSlug, id } }) {
+async function postHandler(req: NextRequestWithUserAccessToken, { params: { appSlug, id } }) {
   try {
     const validBody = DistributeSchema.safeParse(await req.json());
     if (!validBody.success) {
@@ -62,7 +62,7 @@ async function postHandler(req: NextRequestWithDeveloperUserAccessToken & NextRe
       smartContract.address,
       "distribute",
       [distributionMap],
-      contractArtifacts["tickets"].abi,
+      contractArtifacts["tickets"].abi
     );
 
     return NextResponse.json(
@@ -76,8 +76,8 @@ async function postHandler(req: NextRequestWithDeveloperUserAccessToken & NextRe
       },
       { status: StatusCodes.OK }
     );
-  } catch(error) {
-    console.log("🚨 error on tickets/{id}/distribute: ", error.message)
+  } catch (error) {
+    console.log("🚨 error on tickets/{id}/distribute: ", error.message);
     return NextResponse.json(
       { success: false, error: error.message },
       { status: StatusCodes.BAD_REQUEST }

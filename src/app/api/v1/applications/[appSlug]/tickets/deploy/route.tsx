@@ -19,7 +19,7 @@ const TicketSchema = z.object({
   path: ["initialSupply"]
 });
 
-async function postHandler(req: NextRequestWithDeveloperUserAccessToken & NextRequestWithApiToken, { params: { appSlug } }) {
+async function postHandler(req: NextRequestWithUserAccessToken, { params: { appSlug } }) {
   try {
     const app = await getAppIdBySlug(appSlug);
     if (!app) {
@@ -60,7 +60,7 @@ async function postHandler(req: NextRequestWithDeveloperUserAccessToken & NextRe
 
     const maxId = await smartContractModel.aggregate({
       where: {
-        appId: req.appId,
+        appId: app.id,
         developerId: req.developerId,
         name: contractName
       },
@@ -77,7 +77,7 @@ async function postHandler(req: NextRequestWithDeveloperUserAccessToken & NextRe
         name: contractName,
         developerId: req.developerId,
         version: nextId,
-        metadataUrl,
+        metadataImgUrl: metadataUrl,
         metadataPayload: {
           name: validBody.data.name,
           symbol: validBody.data.symbol,

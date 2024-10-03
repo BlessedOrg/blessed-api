@@ -1,10 +1,10 @@
 "use server";
-import { importUserToPrivy } from "@/lib/auth/importUserToPrivy";
-import { developersUserAccountModel, prisma } from "@/models";
+import { prisma, userModel } from "@/models";
+import { createCapsuleAccount } from "@/lib/auth/accounts/createCapsuleAccount";
 
 export async function createMissingAccounts(emails: string[], appId: string) {
   try {
-    const existingAccounts = await developersUserAccountModel.findMany({
+    const existingAccounts = await userModel.findMany({
       where: {
         email: {
           in: emails
@@ -23,7 +23,7 @@ export async function createMissingAccounts(emails: string[], appId: string) {
     const alreadyAssignedAccounts = existingAccounts.filter(account => account.Apps.length > 0);
     const nonExistingEmails = emails.filter(email => !existingAccounts.some(account => account.email === email));
 
-    const privyAccounts = await createPrivyAccounts(nonExistingEmails);
+    const capsuleAccounts = await createCapsuleAccounts(nonExistingEmails);
 
     const result = await prisma.$transaction(async (tx) => {
       const assignExistingAccounts = await tx.appUser.createMany({
@@ -34,18 +34,18 @@ export async function createMissingAccounts(emails: string[], appId: string) {
         skipDuplicates: true
       });
 
-      const createNewAccounts = await tx.developersUserAccount.createMany({
-        data: privyAccounts.map(account => ({
+      const createNewAccounts = await tx.user.createMany({
+        data: capsuleAccounts.map(account => ({
           email: account.email,
           walletAddress: account.walletAddress
         })),
         skipDuplicates: true
       });
 
-      const newAccounts = await tx.developersUserAccount.findMany({
+      const newAccounts = await tx.user.findMany({
         where: {
           email: {
-            in: privyAccounts.map(account => account.email)
+            in: capsuleAccounts.map(account => account.email)
           }
         }
       });
@@ -65,7 +65,7 @@ export async function createMissingAccounts(emails: string[], appId: string) {
       };
     });
 
-    const allUsers = await developersUserAccountModel.findMany({
+    const allUsers = await userModel.findMany({
       where: {
         email: {
           in: emails
@@ -92,16 +92,20 @@ export async function createMissingAccounts(emails: string[], appId: string) {
   }
 }
 
-const createPrivyAccounts = async (emails: string[]): Promise<{ email: string, walletAddress: string }[]> => {
-  let privyAccounts = [];
+const createCapsuleAccounts = async (emails: string[]): Promise<{ email: string, walletAddress: string }[]> => {
+  let capsuleAccounts = [];
   for (const email of emails) {
-    const privyUser = await importUserToPrivy(email);
-    if (privyUser) {
-      privyAccounts.push({
+    const capsuleUser = await createCapsuleAccount(email, "user");
+    if (capsuleUser.error) {
+      console.log("‼️Error occurred while creating capsule account:", capsuleUser.error);
+      return;
+    }
+    if (capsuleUser) {
+      capsuleAccounts.push({
         email: email,
-        walletAddress: privyUser.wallet.address
+        walletAddress: capsuleUser.data.walletAddress
       });
     }
   }
-  return privyAccounts;
+  return capsuleAccounts;
 };

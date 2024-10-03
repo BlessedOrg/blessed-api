@@ -1,13 +1,12 @@
 "use server";
-import { developerAccountModel, developersUserAccountModel } from "@/models";
+import { developerAccountModel, userModel } from "@/models";
 import z from "zod";
-import { sessionType } from "@prisma/client";
 
 const schema = z.object({
-  email: z.string().email(),
+  email: z.string().email()
 });
 
-export async function validateEmail(email: string, accountType?: sessionType) {
+export async function validateEmail(email: string, accountType?: AccountType) {
   const validBody = schema.safeParse({ email });
 
   if (!validBody.success) {
@@ -15,9 +14,9 @@ export async function validateEmail(email: string, accountType?: sessionType) {
   }
 
   const isEmailTaken =
-    accountType === "dev"
+    accountType === "developer"
       ? await developerAccountModel.findFirst({ where: { email } })
-      : await developersUserAccountModel.findFirst({ where: { email } });
+      : await userModel.findFirst({ where: { email } });
 
   // if (isEmailTaken) {
   //   throw new Error("Email already taken")

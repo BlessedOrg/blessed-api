@@ -32,11 +32,10 @@ async function getHandler(req: NextRequestWithDeveloperAccessToken, { params: { 
       _count: {
         select: {
           SmartContracts: true,
-          ApiTokens: true,
           Users: true
-        },
-      },
-    },
+        }
+      }
+    }
   });
 
   if (!app) {

@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { StatusCodes } from "http-status-codes";
-import { sessionModel } from "@/models";
+import jwt from "jsonwebtoken";
+import { userSessionModel } from "@/models";
 
-export function withDeveloperUserAccessToken(handler: (req: NextRequest, context: { params: any }) => Promise<NextResponse> | NextResponse) {
+export function withUserAccessToken(handler: (req: NextRequest, context: { params: any }) => Promise<NextResponse> | NextResponse) {
   return async (request: NextRequest, context: { params: any }) => {
     try {
       const authHeader = request.headers.get("authorization");
@@ -10,8 +11,8 @@ export function withDeveloperUserAccessToken(handler: (req: NextRequest, context
         return NextResponse.json({ error: "Unauthorized" }, { status: StatusCodes.UNAUTHORIZED });
       }
       const token = authHeader.split(" ")[1];
-
-      const session: any = await sessionModel.findFirst({
+      const decoded: any = jwt.verify(token, process.env.JWT_SECRET);
+      const session: any = await userSessionModel.findFirst({
         where: {
           accessToken: token
         },
@@ -26,12 +27,13 @@ export function withDeveloperUserAccessToken(handler: (req: NextRequest, context
 
       Object.assign(request, {
         developerId: session.developerId,
-        userId: session.developerUserId
+        userId: session.developerUserId,
+        capsuleTokenVaultKey: decoded.capsuleTokenVaultKey
       });
 
       return handler(request, context);
     } catch (error) {
-      console.log("🚨 withDeveloperUserAccessToken:", error.message);
+      console.log("🚨 withUserAccessToken:", error.message);
       return NextResponse.json({ error: error.message }, { status: StatusCodes.UNAUTHORIZED });
     }
   };

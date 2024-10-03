@@ -11,7 +11,7 @@ const WhitelistSchema = z.object({
   removeEmails: z.array(z.string().email()).optional()
 });
 
-async function postHandler(req: NextRequestWithDeveloperUserAccessToken & NextRequestWithApiToken, { params: { appSlug, id } }) {
+async function postHandler(req: NextRequestWithUserAccessToken, { params: { appSlug, id } }) {
   try {
     const validBody = WhitelistSchema.safeParse(await req.json());
     if (!validBody.success) {
@@ -63,7 +63,7 @@ async function postHandler(req: NextRequestWithDeveloperUserAccessToken & NextRe
       smartContract.address,
       "updateWhitelist",
       [whitelistUpdates],
-      contractArtifacts["tickets"].abi,
+      contractArtifacts["tickets"].abi
     );
 
     return NextResponse.json(

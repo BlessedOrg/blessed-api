@@ -3,15 +3,24 @@ import { shortenWalletAddress } from "@/utils/shortenWalletAddress";
 
 const vaultApiUrl = process.env.OP_VAULT_SERVER_HOST!;
 const vaultToken = process.env.OP_API_TOKEN!;
+const vaultCapsuleTokensId = process.env.OP_CAPSULE_KEY_VAULT_ID!;
+const vaultAccessTokensId = process.env.OP_ACCESS_TOKEN_VAULT_ID!;
 
-export async function createVaultPrivateKeyItem(
+type IdPerType = {
+  [K in VaultItemType]: string
+};
+
+const idPerType: IdPerType = {
+  "capsuleKey": vaultCapsuleTokensId,
+  "accessToken": vaultAccessTokensId
+};
+export async function createVaultCapsuleKeyItem(
   value: string,
-  publicKey: string,
   address: string,
   email: string,
-  deployed: boolean,
+  type: AccountType
 ) {
-  const vaultId = process.env.OP_PRIVATE_KEY_VAULT_ID!;
+  const vaultId = vaultCapsuleTokensId;
   try {
     const createdItem = await fetch(
       `${vaultApiUrl}/v1/vaults/${vaultId}/items`,
@@ -19,55 +28,49 @@ export async function createVaultPrivateKeyItem(
         method: "POST",
         headers: {
           Authorization: `Bearer ${vaultToken}`,
-          "Content-Type": "application/json",
+          "Content-Type": "application/json"
         },
         body: JSON.stringify({
           vault: {
-            id: vaultId,
+            id: vaultId
           },
-          title: `Credentials for: ${shortenWalletAddress(address)}`,
+          title: `Capsule Token for ${type}: ${shortenWalletAddress(address)}`,
           category: "LOGIN",
-          tags: ["sepolia", deployed ? "deployed" : "undeployed"],
+          tags: [type],
           fields: [
             {
               id: "email",
               type: "STRING",
               label: "Email",
-              value: email,
+              value: email
             },
             {
               id: "walletAddress",
               type: "STRING",
               label: "Wallet address",
-              value: address,
+              value: address
             },
             {
-              id: "publicKey",
-              type: "STRING",
-              label: "Public key",
-              value: publicKey,
-            },
-            {
-              id: "privateKey",
+              id: "capsuleKey",
               type: "CONCEALED",
-              label: "Private key",
-              value,
-            },
-          ],
-        }),
-      },
+              label: "Capsule key",
+              value
+            }
+          ]
+        })
+      }
     );
-    console.log(`🔑 Created Key Pair in Vault for: ${email}`);
+    console.log(`🔑 Created Capsule Key Pair in Vault for: ${email}`);
     return await createdItem.json();
   } catch (error: any) {
     console.log(
-      `⛑️🔑 Failed to create Key Pair in Vault for: ${email} \n ${error?.message}`,
+      `⛑️🔑 Failed to create Capsule Key in Vault for: ${email} \n ${error?.message}`
     );
   }
 }
 
-export async function createVaultApiTokenItem(apiToken: string, userId: string) {
-  const vaultId = process.env.OP_API_TOKEN_VAULT_ID!;
+export async function createVaultAccessTokenItem(apiToken: string, developerId: string) {
+  const vaultId = vaultAccessTokensId;
   try {
     const createdItem = await fetch(
       `${vaultApiUrl}/v1/vaults/${vaultId}/items`,
@@ -75,53 +78,51 @@ export async function createVaultApiTokenItem(apiToken: string, userId: string) 
         method: "POST",
         headers: {
           Authorization: `Bearer ${vaultToken}`,
-          "Content-Type": "application/json",
+          "Content-Type": "application/json"
         },
         body: JSON.stringify({
           vault: {
-            id: vaultId,
+            id: vaultId
           },
           // 🏗️ TODO: use title with real user's wallet/id
-          title: `Access Token for user ${userId}`,
+          title: `Access Token for developer ${developerId}`,
           category: "API_CREDENTIAL",
           tags: ["accessToken"],
           fields: [
             {
-              id: "userId",
+              id: "developerId",
               type: "STRING",
               label: "User ID",
-              value: userId,
+              value: developerId
             },
             {
               id: "accessToken",
               label: "Access Token",
               type: "CONCEALED",
-              value: apiToken,
-            },
-          ],
-        }),
-      },
+              value: apiToken
+            }
+          ]
+        })
+      }
     );
-    console.log(`🔑 Created Access Token in Vault for User: ${userId}`);
+    console.log(`🔑 Created Access Token in Vault for developer: ${developerId}`);
     return await createdItem.json();
   } catch (error: any) {
-    console.log(`⛑️🔑 Failed to create Access Token in Vault for User: ${userId} \n ${error?.message}`);
+    console.log(`⛑️🔑 Failed to create Access Token in Vault for developer: ${developerId} \n ${error?.message}`);
   }
 }
 
-export async function getVaultItem(id: string, type?: "apiKey" | "privateKey") {
-  const vaultId = type === "privateKey"
-    ? process.env.OP_PRIVATE_KEY_VAULT_ID!
-    : process.env.OP_API_TOKEN_VAULT_ID!;
+export async function getVaultItem(id: string, type?: VaultItemType) {
+  const vaultId = idPerType[type];
 
   const createdItem = await fetch(
     `${vaultApiUrl}/v1/vaults/${vaultId}/items/${id}`,
     {
       headers: {
         Authorization: `Bearer ${vaultToken}`,
-        "Content-Type": "application/json",
-      },
-    },
+        "Content-Type": "application/json"
+      }
+    }
   );
   const vaultItem = await createdItem.json();
   if (vaultItem?.status !== 400) {
@@ -137,11 +138,9 @@ export async function getVaultItem(id: string, type?: "apiKey" | "privateKey") {
 export async function replaceVaultItemFields(
   id: string,
   newData: any,
-  type?: "apiKey" | "privateKey"
+  type?: VaultItemType
 ) {
-  const vaultId = type === "privateKey"
-    ? process.env.OP_PRIVATE_KEY_VAULT_ID!
-    : process.env.OP_API_TOKEN_VAULT_ID!;
+  const vaultId = idPerType[type];
 
   const currentItemData = await getVaultItem(id, type);
   try {
@@ -151,16 +150,16 @@ export async function replaceVaultItemFields(
         method: "PUT",
         headers: {
           Authorization: `Bearer ${vaultToken}`,
-          "Content-Type": "application/json",
+          "Content-Type": "application/json"
         },
         body: JSON.stringify({
           ...currentItemData,
           fields: [
             ...currentItemData.fields,
-            ...newData,
+            ...newData
           ]
-        }),
-      },
+        })
+      }
     );
     console.log(`✅🔑 Replaced Vault item`);
     return await updatedItem.json();
@@ -171,13 +170,10 @@ export async function replaceVaultItemFields(
 
 export async function updateVaultItem(
   id: string,
-  newData: {op: "replace" | "add" | "remove", path: string, value: any}[],
-  type?: "apiKey" | "privateKey",
+  newData: { op: "replace" | "add" | "remove", path: string, value: any }[],
+  type?: VaultItemType
 ) {
-  const vaultId =
-    type === "privateKey"
-      ? process.env.OP_PRIVATE_KEY_VAULT_ID!
-      : process.env.OP_API_TOKEN_VAULT_ID!;
+  const vaultId = idPerType[type];
   try {
     const updatedItem = await fetch(
       `${vaultApiUrl}/v1/vaults/${vaultId}/items/${id}`,
@@ -185,10 +181,10 @@ export async function updateVaultItem(
         method: "PATCH",
         headers: {
           Authorization: `Bearer ${vaultToken}`,
-          "Content-Type": "application/json",
+          "Content-Type": "application/json"
         },
-        body: JSON.stringify(newData),
-      },
+        body: JSON.stringify(newData)
+      }
     );
     console.log(`✅🔑 Updated Vault item`);
     return await updatedItem.json();

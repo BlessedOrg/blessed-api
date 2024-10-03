@@ -1,11 +1,12 @@
 import { NextResponse } from "next/server";
 import { StatusCodes } from "http-status-codes";
 import { verifyEmailOtp } from "@/lib/emails/auth/verifyEmailOtp";
-import { developerAccountModel } from "@/models";
-import { createDeveloperAccount } from "@/lib/auth/accounts/createDeveloperAccount";
+import { userModel } from "@/models";
 import { refreshAccountSession } from "@/lib/auth/accounts/refreshAccountSession";
+import { getAppIdBySlug } from "@/lib/app";
+import { createUserAccount } from "@/lib/auth/accounts/createUserAccount";
 
-export async function POST(req: Request) {
+export async function POST(req: Request, { params: { appSlug } }) {
   const body = await req.json();
   const { code } = body;
 
@@ -14,7 +15,7 @@ export async function POST(req: Request) {
       status: StatusCodes.BAD_REQUEST
     } as any);
   }
-
+  const { id: appId } = await getAppIdBySlug(appSlug);
   const verifyEmailResult = await verifyEmailOtp(code);
 
   const { accepted, email } = verifyEmailResult;
@@ -24,16 +25,16 @@ export async function POST(req: Request) {
       { status: StatusCodes.BAD_REQUEST }
     );
   }
-  const developerExists = await developerAccountModel.findUnique({ where: { email } });
-  if (!developerExists) {
-    const { data, status, error } = await createDeveloperAccount(email);
+  const userExists = await userModel.findUnique({ where: { email } });
+  if (!userExists) {
+    const { data, status, error } = await createUserAccount(email, appId);
     if (!!error) {
       return NextResponse.json({ error }, { status });
     }
     return NextResponse.json(data, { status });
   } else {
     if (accepted && email) {
-      const { data, error, status } = await refreshAccountSession(email, "developer");
+      const { data, error, status } = await refreshAccountSession(email, "user");
       if (!!error) {
         return NextResponse.json({ error }, { status });
       }

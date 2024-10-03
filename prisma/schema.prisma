@@ -14,18 +14,18 @@ datasource db {
 }
 
 model DeveloperAccount {
-  id            String          @id @default(cuid())
-  email         String          @unique
-  walletAddress String?         @unique
-  Otps          AccountOtp[]
-  Sessions      Session[]
-  vaultKey      String?
-  ApiTokens     ApiToken[]
-  Erc20Tokens   Erc20Token[]
-  SmartContract SmartContract[]
-  Apps          App[]
-  createdAt     DateTime        @default(now())
-  updatedAt     DateTime        @updatedAt
+  id                   String             @id @default(cuid())
+  email                String             @unique
+  walletAddress        String?            @unique
+  Otps                 AccountOtp[]
+  accessTokenVaultKey  String?
+  capsuleTokenVaultKey String?
+  Erc20Tokens          Erc20Token[]
+  SmartContract        SmartContract[]
+  Apps                 App[]
+  Sessions             DeveloperSession[]
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
 }
 
 model App {
@@ -35,7 +35,6 @@ model App {
   description      String?
   imageUrl         String?
   SmartContracts   SmartContract[]
-  ApiTokens        ApiToken[]
   DeveloperAccount DeveloperAccount @relation(fields: [developerId], references: [id])
   developerId      String
   Users            AppUser[]
@@ -43,13 +42,14 @@ model App {
   updatedAt        DateTime         @updatedAt
 }
 
-model DevelopersUserAccount {
+model User {
   id                        String                     @id @default(cuid())
   email                     String                     @unique
   walletAddress             String?                    @unique
+  capsuleTokenVaultKey      String?
   Apps                      AppUser[]
   Otps                      AccountOtp[]
-  Sessions                  Session[]
+  Sessions                  UserSession[]
   sessionId                 String?
   SmartContractInteractions SmartContractInteraction[]
   createdAt                 DateTime                   @default(now())
@@ -57,44 +57,46 @@ model DevelopersUserAccount {
 }
 
 model AppUser {
-  app       App                   @relation(fields: [appId], references: [id])
+  app       App      @relation(fields: [appId], references: [id])
   appId     String
-  user      DevelopersUserAccount @relation(fields: [userId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
   userId    String
-  createdAt DateTime              @default(now())
+  createdAt DateTime @default(now())
 
   @@id([appId, userId])
   @@unique([appId, userId])
 }
 
 model AccountOtp {
-  id                    String                 @id @default(cuid())
-  otp                   String
-  DeveloperAccount      DeveloperAccount?      @relation(fields: [developerId], references: [id])
-  developerId           String?
-  DevelopersUserAccount DevelopersUserAccount? @relation(fields: [developerUserId], references: [id])
-  developerUserId       String?
-  createdAt             DateTime               @default(now())
-  updatedAt             DateTime               @updatedAt
+  id               String            @id @default(cuid())
+  otp              String
+  DeveloperAccount DeveloperAccount? @relation(fields: [developerId], references: [id])
+  developerId      String?
+  User             User?             @relation(fields: [userId], references: [id])
+  userId           String?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
 }
 
-enum sessionType {
-  dev
-  user
+model UserSession {
+  id           String   @id @default(cuid())
+  accessToken  String   @unique
+  refreshToken String   @unique
+  appId        String
+  User         User?    @relation(fields: [userId], references: [id])
+  userId       String?
+  expiresAt    DateTime
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 }
 
-model Session {
-  id                    String                 @id @default(cuid())
-  accessToken           String                 @unique
-  refreshToken          String                 @unique
-  DeveloperAccount      DeveloperAccount?      @relation(fields: [developerId], references: [id])
-  developerId           String?
-  DevelopersUserAccount DevelopersUserAccount? @relation(fields: [developerUserId], references: [id])
-  developerUserId       String?
-  sessionType           sessionType            @default(dev)
-  expiresAt             DateTime
-  createdAt             DateTime               @default(now())
-  updatedAt             DateTime               @updatedAt
+model DeveloperSession {
+  id               String            @id @default(cuid())
+  DeveloperAccount DeveloperAccount? @relation(fields: [developerId], references: [id])
+  developerId      String?
+  expiresAt        DateTime
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
 }
 
 model EmailVerificationCode {
@@ -104,19 +106,6 @@ model EmailVerificationCode {
   expiresAt DateTime
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-}
-
-model ApiToken {
-  id               String            @id @default(cuid())
-  vaultKey         String
-  DeveloperAccount DeveloperAccount? @relation(fields: [developerId], references: [id])
-  developerId      String?
-  App              App               @relation(fields: [appId], references: [id])
-  appId            String
-  revoked          Boolean           @default(false)
-  expiresAt        DateTime?
-  createdAt        DateTime          @default(now())
-  updatedAt        DateTime          @updatedAt
 }
 
 model Erc20Token {
@@ -141,7 +130,7 @@ model SmartContract {
   version                   Int
   DevelopersAccount         DeveloperAccount?          @relation(fields: [developerId], references: [id])
   developerId               String?
-  metadataUrl               String
+  metadataImgUrl            String?
   metadataPayload           Json
   App                       App                        @relation(fields: [appId], references: [id])
   appId                     String
@@ -152,19 +141,19 @@ model SmartContract {
 }
 
 model SmartContractInteraction {
-  id                    String                       @id @default(cuid())
-  DevelopersUserAccount DevelopersUserAccount        @relation(fields: [developerUserId], references: [id])
-  developerUserId       String
-  SmartContract         SmartContract                @relation(fields: [smartContractId], references: [id])
-  smartContractId       String
-  method                String
-  txHash                String
-  output                Json?
-  input                 Json?
-  fees                  String?
-  type                  SmartContractInteractionType
-  createdAt             DateTime                     @default(now())
-  updatedAt             DateTime                     @updatedAt
+  id              String                       @id @default(cuid())
+  User            User                         @relation(fields: [userId], references: [id])
+  userId          String
+  SmartContract   SmartContract                @relation(fields: [smartContractId], references: [id])
+  smartContractId String
+  method          String
+  txHash          String
+  output          Json?
+  input           Json?
+  fees            String?
+  type            SmartContractInteractionType
+  createdAt       DateTime                     @default(now())
+  updatedAt       DateTime                     @updatedAt
 }
 
 enum SmartContractInteractionType {

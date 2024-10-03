@@ -77,11 +77,10 @@ async function getAllMyApps(req: NextRequestWithDeveloperAccessToken) {
       _count: {
         select: {
           SmartContracts: true,
-          ApiTokens: true,
           Users: true
-        },
-      },
-    },
+        }
+      }
+    }
   });
 
   return NextResponse.json(apps, { status: StatusCodes.OK });
