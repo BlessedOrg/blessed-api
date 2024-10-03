@@ -74,7 +74,8 @@ async function postHandler(req: NextRequestWithDeveloperUserAccessToken & NextRe
         subject: `Your ticket to ${app.name}!`,
         html: await renderTicketReceiverEmail({
           eventName: app.name,
-          ticketUrl: smartContract?.metadataImgUrl ?? app?.imageUrl ?? null,
+          // 🏗️ TODO: remove this `is any` once the schema id updated
+          ticketUrl: (smartContract as any)?.metadataImgUrl ?? app?.imageUrl ?? null,
           imageUrl: app?.imageUrl ?? null
         })
       }))
