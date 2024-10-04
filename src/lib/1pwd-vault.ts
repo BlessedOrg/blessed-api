@@ -36,7 +36,7 @@ export async function createVaultCapsuleKeyItem(
           },
           title: `Capsule Token for ${type}: ${shortenWalletAddress(address)}`,
           category: "LOGIN",
-          tags: [type],
+          tags: [type, "capsuleWallet"],
           fields: [
             {
               id: "email",
