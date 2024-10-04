@@ -51,7 +51,7 @@ export const createDeveloperAccount = async (email: string) => {
   }
 };
 
-export const createMissingAccounts = async (emails: string[], appId: string)=> {
+export const createMissingAccounts = async (emails: string[], appId: string) => {
   try {
     const existingAccounts = await userModel.findMany({
       where: {
@@ -166,7 +166,7 @@ export const createMissingAccounts = async (emails: string[], appId: string)=> {
       error: e instanceof Error ? e.message : "An unknown error occurred"
     };
   }
-}
+};
 
 export const createUserAccount = async (email: string, appId: string) => {
   try {
@@ -196,7 +196,7 @@ export const createUserAccount = async (email: string, appId: string) => {
     });
 
     if (createdUserAccount) {
-      const { accessToken, refreshToken } = await createOrUpdateSession(email, "user");
+      const { accessToken, refreshToken } = await createOrUpdateSession(email, "user", appId);
 
       const data = {
         accessToken,

@@ -28,7 +28,7 @@ export async function createSessionTokens(payload: any) {
   const accessToken = jwt.sign(
     payload,
     process.env.JWT_SECRET!,
-    { expiresIn: "2d" },
+    { expiresIn: "2d" }
   );
   const refreshToken = uuidv4();
 
@@ -41,7 +41,7 @@ export async function createSessionTokens(payload: any) {
     accessToken,
     refreshToken,
     hashedAccessToken,
-    hashedRefreshToken,
+    hashedRefreshToken
   };
 }
 
@@ -119,6 +119,12 @@ export const updateDeveloperSession = async (email: string) => {
           value: accessToken
         }
       ], "accessToken");
+      await developerSessionModel.create({
+        data: {
+          developerId: developer.id,
+          expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // 30 days
+        }
+      });
       return {
         accessToken,
         refreshToken,
