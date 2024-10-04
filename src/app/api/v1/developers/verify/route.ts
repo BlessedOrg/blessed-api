@@ -1,9 +1,8 @@
 import { NextResponse } from "next/server";
 import { StatusCodes } from "http-status-codes";
-import { verifyEmailVerificationCode } from "@/lib/auth/verifyEmailVerificationCode";
 import { developerAccountModel } from "@/models";
-import { createDeveloperAccount } from "@/lib/auth/accounts/createDeveloperAccount";
-import { refreshAccountSession } from "@/lib/auth/accounts/refreshAccountSession";
+import { createDeveloperAccount, refreshAccountSession } from "@/lib/auth/accounts";
+import { verifyEmailVerificationCode } from "@/lib/auth/emailVerificationCode";
 
 export async function POST(req: Request) {
   const body = await req.json();

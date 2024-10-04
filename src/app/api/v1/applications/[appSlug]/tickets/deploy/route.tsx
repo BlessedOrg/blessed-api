@@ -3,7 +3,7 @@ import { StatusCodes } from "http-status-codes";
 import { smartContractModel } from "@/models";
 import z from "zod";
 import { uploadMetadata } from "@/lib/irys";
-import { getAppIdBySlug } from "@/lib/app";
+import { getAppIdBySlug } from "@/lib/queries";
 import { account, deployContract, getExplorerUrl } from "@/lib/viem";
 import { withDeveloperAccessToken } from "@/app/middleware/withDeveloperAccessToken";
 

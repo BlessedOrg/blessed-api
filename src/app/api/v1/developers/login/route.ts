@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { StatusCodes } from "http-status-codes";
-import { generateEmailVerificationCode } from "@/lib/auth/generateEmailVerificationCode";
+import { generateEmailVerificationCode } from "@/lib/auth/emailVerificationCode";
 import { sendEmail } from "@/lib/emails/send";
 import renderVerificationCodeEmail from "@/lib/emails/templates/VerificationCodeEmail";
 

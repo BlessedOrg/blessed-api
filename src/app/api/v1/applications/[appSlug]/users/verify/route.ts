@@ -1,10 +1,9 @@
 import { NextResponse } from "next/server";
 import { StatusCodes } from "http-status-codes";
 import { userModel } from "@/models";
-import { refreshAccountSession } from "@/lib/auth/accounts/refreshAccountSession";
-import { getAppIdBySlug } from "@/lib/app";
-import { createUserAccount } from "@/lib/auth/accounts/createUserAccount";
-import { verifyEmailVerificationCode } from "@/lib/auth/verifyEmailVerificationCode";
+import { createUserAccount, refreshAccountSession } from "@/lib/auth/accounts";
+import { getAppIdBySlug } from "@/lib/queries";
+import { verifyEmailVerificationCode } from "@/lib/auth/emailVerificationCode";
 
 export async function POST(req: Request, { params: { appSlug } }) {
   const body = await req.json();

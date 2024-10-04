@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { StatusCodes } from "http-status-codes";
 import { withDeveloperAccessToken } from "@/app/middleware/withDeveloperAccessToken";
-import { getAppIdBySlug } from "@/lib/app";
-import { createMissingAccounts } from "@/lib/auth/accounts/createMissingAccounts";
+import { getAppIdBySlug } from "@/lib/queries";
+import { createMissingAccounts } from "@/lib/auth/accounts";
 import { appModel, userModel } from "@/models";
 
 async function getHandler(req: NextRequestWithDeveloperAccessToken, { params: { appSlug } }) {
