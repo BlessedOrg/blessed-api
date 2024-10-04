@@ -39,9 +39,7 @@ export async function POST(req: Request, { params: { appSlug } }) {
     } else {
       return NextResponse.json(
         { error: "Invalid code", message: verifyEmailResult.message },
-        {
-          status: StatusCodes.BAD_REQUEST
-        }
+        { status: StatusCodes.BAD_REQUEST }
       );
     }
   }

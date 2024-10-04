@@ -26,7 +26,6 @@ export async function generateEmailVerificationCode({ to, expirationTimeMinutes,
   return newCode;
 }
 
-
 export async function verifyEmailVerificationCode(code: string) {
   const existingCodeData = await emailVerificationCodeModel.findFirst({
     where: {
