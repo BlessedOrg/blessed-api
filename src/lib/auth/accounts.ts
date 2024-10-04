@@ -223,9 +223,9 @@ export const createUserAccount = async (email: string, appId: string) => {
   }
 };
 
-export const refreshAccountSession = async (email: string, accountType: AccountType) => {
+export const refreshAccountSession = async (email: string, accountType: AccountType, appId?: string) => {
   try {
-    const newSessionData = await createOrUpdateSession(email, accountType);
+    const newSessionData = await createOrUpdateSession(email, accountType, appId);
     const data = {
       accessToken: newSessionData.accessToken,
       refreshToken: newSessionData.refreshToken,

@@ -31,7 +31,7 @@ export async function POST(req: Request, { params: { appSlug } }) {
     return NextResponse.json(data, { status });
   } else {
     if (accepted && email) {
-      const { data, error, status } = await refreshAccountSession(email, "user");
+      const { data, error, status } = await refreshAccountSession(email, "user", appId);
       if (!!error) {
         return NextResponse.json({ error }, { status });
       }

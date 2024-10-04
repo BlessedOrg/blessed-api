@@ -129,7 +129,7 @@ export const updateDeveloperSession = async (email: string) => {
   }
 };
 
-export const updateUserSession = async (email: string, appId) => {
+export const updateUserSession = async (email: string, appId: string) => {
   const user = await userModel.findUnique({ where: { email } });
   if (!user) {
     throw new Error(`User with email ${email} not found`);
@@ -173,7 +173,7 @@ export const updateUserSession = async (email: string, appId) => {
       capsuleTokenVaultKey: user.capsuleTokenVaultKey,
       walletAddress: user.walletAddress
     });
-    const newSession = await userSessionModel.create({
+    await userSessionModel.create({
       data: {
         userId: user.id,
         appId,
