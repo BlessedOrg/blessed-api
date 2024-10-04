@@ -5,19 +5,24 @@ import { createCapsuleAccount } from "@/lib/auth/accounts/createCapsuleAccount";
 
 export const createDeveloperAccount = async (email: string) => {
   try {
-    const { data, error, status } = await createCapsuleAccount(email, "developer");
+    const createdDeveloperAccount: any = await developerAccountModel.create({
+      data: {
+        email
+      }
+    });
+    const { data, error, status } = await createCapsuleAccount(createdDeveloperAccount.id, email, "developer");
     if (!!error) {
       return { error, status };
     }
     const { capsuleTokenVaultKey, walletAddress } = data;
-    const createdDeveloperAccount: any = await developerAccountModel.create({
+
+    await developerAccountModel.update({
+      where: { id: createdDeveloperAccount.id },
       data: {
-        email,
-        walletAddress,
-        capsuleTokenVaultKey
+        capsuleTokenVaultKey,
+        walletAddress
       }
     });
-
     if (createdDeveloperAccount) {
       const { accessToken, refreshToken } = await createOrUpdateSession(email, "developer");
 

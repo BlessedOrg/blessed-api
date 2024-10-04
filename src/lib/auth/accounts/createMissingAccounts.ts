@@ -23,8 +23,6 @@ export async function createMissingAccounts(emails: string[], appId: string) {
     const alreadyAssignedAccounts = existingAccounts.filter(account => account.Apps.length > 0);
     const nonExistingEmails = emails.filter(email => !existingAccounts.some(account => account.email === email));
 
-    const capsuleAccounts = await createCapsuleAccounts(nonExistingEmails);
-
     const result = await prisma.$transaction(async (tx) => {
       const assignExistingAccounts = await tx.appUser.createMany({
         data: accountsToAssign.map(account => ({
@@ -35,10 +33,8 @@ export async function createMissingAccounts(emails: string[], appId: string) {
       });
 
       const createNewAccounts = await tx.user.createMany({
-        data: capsuleAccounts.map(account => ({
-          email: account.email,
-          walletAddress: account.walletAddress,
-          capsuleTokenVaultKey: account.capsuleTokenVaultKey
+        data: nonExistingEmails.map(email => ({
+          email
         })),
         skipDuplicates: true
       });
@@ -46,7 +42,7 @@ export async function createMissingAccounts(emails: string[], appId: string) {
       const newAccounts = await tx.user.findMany({
         where: {
           email: {
-            in: capsuleAccounts.map(account => account.email)
+            in: nonExistingEmails
           }
         }
       });
@@ -62,9 +58,22 @@ export async function createMissingAccounts(emails: string[], appId: string) {
       return {
         assignedExisting: assignExistingAccounts.count,
         createdNew: createNewAccounts.count,
-        assignedNew: assignNewAccounts.count
+        assignedNew: assignNewAccounts.count,
+        newAccounts: newAccounts
       };
     });
+
+    const capsuleAccounts = await createCapsuleAccounts(result.newAccounts.map(acc => ({ accountId: acc.id, email: acc.email })));
+
+    for (const capsuleAccount of capsuleAccounts) {
+      await userModel.update({
+        where: { email: capsuleAccount.email },
+        data: {
+          walletAddress: capsuleAccount.walletAddress,
+          capsuleTokenVaultKey: capsuleAccount.capsuleTokenVaultKey
+        }
+      });
+    }
 
     const allUsers = await userModel.findMany({
       where: {
@@ -93,17 +102,17 @@ export async function createMissingAccounts(emails: string[], appId: string) {
   }
 }
 
-const createCapsuleAccounts = async (emails: string[]): Promise<{ email: string, walletAddress: string, capsuleTokenVaultKey: string }[]> => {
+const createCapsuleAccounts = async (accounts: { email: string, accountId: string }[]): Promise<{ email: string, walletAddress: string, capsuleTokenVaultKey: string }[]> => {
   let capsuleAccounts = [];
-  for (const email of emails) {
-    const capsuleUser = await createCapsuleAccount(email, "user");
+  for (const account of accounts) {
+    const capsuleUser = await createCapsuleAccount(account.accountId, account.email, "user");
     if (capsuleUser.error) {
       console.log("‼️Error occurred while creating capsule account:", capsuleUser.error);
       return;
     }
     if (capsuleUser) {
       capsuleAccounts.push({
-        email: email,
+        email: account.email,
         walletAddress: capsuleUser.data.walletAddress,
         capsuleTokenVaultKey: capsuleUser.data.capsuleTokenVaultKey
       });
