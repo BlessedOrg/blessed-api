@@ -8,6 +8,7 @@ import { createMissingAccounts } from "@/lib/auth/accounts";
 import { withDeveloperAccessToken } from "@/app/middleware/withDeveloperAccessToken";
 import renderTicketReceiverEmail from "@/lib/emails/templates/TicketReceiverEmail";
 import { sendBatchEmails } from "@/lib/emails/sendBatch";
+import { parseEventLogs } from "viem";
 
 const DistributeSchema = z.object({
   distributions: z.array(
@@ -53,32 +54,60 @@ async function postHandler(req: NextRequestWithUserAccessToken, { params: { appS
 
     const { users } = await createMissingAccounts(validBody.data.distributions.map(distribution => distribution.email), app.id);
     const emailToWalletMap = new Map(users.map(account => [account.email, account.walletAddress]));
-    const distributionMap = validBody.data.distributions.map(distribution => {
+    const distribution = validBody.data.distributions.map(distribution => {
       const walletAddress = emailToWalletMap.get(distribution.email);
       if (walletAddress) {
-        return [walletAddress, distribution.amount] as [string, number];
+        return {
+          email: distribution.email,
+          walletAddr: walletAddress,
+          amount: distribution.amount,
+          tokenIds: []
+        }
       }
       return null;
-    }).filter((item): item is [string, number] => item !== null);
+    }).filter((item) => item !== null);
+
 
     const result = await writeContract(
       smartContract.address,
       "distribute",
-      [distributionMap],
+      [distribution.map(dist => [dist.walletAddr, dist.amount])],
       contractArtifacts["tickets"].abi
     );
 
+    const logs = parseEventLogs({
+      abi: contractArtifacts["tickets"].abi,
+      logs: result.logs,
+    });
+
+    const transferSingleEventArgs = logs
+      .filter(log => (log as any) !== "TransferSingle")
+      .map((log) => (log as any)?.args);
+
+    transferSingleEventArgs.forEach((args) => {
+      const matchingRecipient = distribution
+        .find(d => d.walletAddr.toLowerCase() == args.to.toLowerCase())
+      if (matchingRecipient) {
+        matchingRecipient.tokenIds.push(args.id.toString())
+      }
+    })
+
     const emailsToSend = await Promise.all(
-      validBody.data.distributions.map(async (receiver: any) => ({
-        recipientEmail: receiver.email,
-        subject: `Your ticket to ${app.name}!`,
-        html: await renderTicketReceiverEmail({
-          eventName: app.name,
-          // 🏗️ TODO: remove this `is any` once the schema id updated
-          ticketUrl: (smartContract as any)?.metadataImgUrl ?? app?.imageUrl ?? null,
-          imageUrl: app?.imageUrl ?? null
-        })
-      }))
+      distribution.map(async (dist: any) => {
+        const ticketUrls = dist.tokenIds.map((tokenId) =>
+          `https://blessed.fan/show-ticket?app=${app.slug}&contractId=${smartContract.id}&tokenId=${tokenId}&userEmail=${dist.email}`
+        );
+        return {
+          recipientEmail: dist.email,
+          subject: `Your ticket${dist.tokenIds.length > 0 ? "s" : ""} to ${app.name}!`,
+          html: await renderTicketReceiverEmail({
+            eventName: app.name,
+            ticketUrls,
+            imageUrl: app?.imageUrl ?? null,
+            tokenIds: dist.tokenIds
+          })
+        }
+      })
     );
     await sendBatchEmails(emailsToSend, req.nextUrl.hostname === "localhost");
 
@@ -86,7 +115,7 @@ async function postHandler(req: NextRequestWithUserAccessToken, { params: { appS
       {
         success: true,
         distributionBlockHash: result.blockHash,
-        distributionMap,
+        distribution,
         explorerUrls: {
           distributionTx: getExplorerUrl(result.transactionHash)
         }
