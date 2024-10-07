@@ -6,7 +6,7 @@ import { CallWithERC2771Request } from "@gelatonetwork/relay-sdk-viem";
 import { activeChain } from "@/lib/viem";
 import { gaslessTransaction } from "@/lib/gelato";
 
-export async function getHandler(req: NextRequestWithUserAccessToken) {
+async function getHandler(req: NextRequestWithUserAccessToken) {
   const counterContractAddress = "0x5034F97bf9518Aa191678Eb8E9B202f0Cf1aE3f1";
   const data = encodeFunctionData({
     abi: counterAbi,

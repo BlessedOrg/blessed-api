@@ -7,9 +7,9 @@ import { createCapsuleAccount as createCapsuleViemAccount, createCapsuleViemClie
 import { activeChain, rpcUrl } from "@/lib/viem";
 import { http } from "viem";
 
-export const capsule = new Capsule(Environment.BETA, process.env.CAPSULE_API_KEY!);
-
 export const createCapsuleAccount = async (accountId: string, email: string, type: AccountType) => {
+  const capsule = new Capsule(Environment.BETA, process.env.CAPSULE_API_KEY!);
+
   const formattedEmail = formatEmailToAvoidCapsuleConflict(email, accountId);
   const hasWallet = await capsule.hasPregenWallet(accountId);
   const walletType = "EVM" as WalletType;
