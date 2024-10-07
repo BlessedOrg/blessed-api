@@ -134,6 +134,15 @@ export const writeContractWithNonceGuard = async (contractAddr, functionName, ar
   }
 };
 
+export const readContract = async (address, abi, functionName, args = null) => {
+  return publicClient.readContract({
+    address,
+    abi,
+    functionName,
+    args
+  });
+}
+
 export const writeContract = async (contractAddr, functionName, args, abi) => {
   await initializeNonce();
   const hash = await client.writeContract({

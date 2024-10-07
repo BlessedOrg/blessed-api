@@ -1,18 +1,20 @@
-import { Body, Container, Head, Hr, Html, Img, Preview, render, Section, Text } from "@react-email/components";
+import { Body, Button, Container, Head, Hr, Html, Img, Preview, render, Section, Text } from "@react-email/components";
 import * as React from "react";
 
 interface TicketReceiverProps {
   eventName: string;
-  ticketUrl: string | null;
+  ticketUrls: string[];
   imageUrl: string | null;
+  tokenIds: string[] | null;
 }
 
-const TicketReceiverEmailTemplate = ({ eventName, ticketUrl, imageUrl }: TicketReceiverProps) => {
+const TicketReceiverEmailTemplate = ({ eventName, ticketUrls, imageUrl, tokenIds }: TicketReceiverProps) => {
+  const ticketWord = tokenIds.length > 1 ? "tickets" : "ticket"
   return (
     <Html>
       <Head />
       <Preview>
-        You just received the ticket for {eventName}
+        You just received the {ticketWord} for {eventName}
       </Preview>
       <Body style={main}>
         <Container style={container}>
@@ -24,13 +26,15 @@ const TicketReceiverEmailTemplate = ({ eventName, ticketUrl, imageUrl }: TicketR
             />
           )}
           <Text style={paragraph}>Hello there!</Text>
-          <Text style={paragraph}>Great news, your are blessed! The {eventName} team has sent you the ticket.</Text>
-          <Text style={paragraph}>To make things easier for you, we’ve created an account on your behalf, where your ticket is securely held. Simply log in to access your ticket and get ready for the event.</Text>
+          <Text style={paragraph}>Great news, your are blessed! The {eventName} team has sent you the {ticketWord}.</Text>
+          <Text style={paragraph}>To make things easier for you, we’ve created an account on your behalf, where your ticket(s) is securely held. Simply log in to access your ticket and get ready for the event.</Text>
           <Section style={btnContainer}>
             {/*// 🏗️ TODO: add column url to App model, so we can use it here */}
-            {/*<Button style={button} href={ticketUrl}>*/}
-            {/*  Access your ticket*/}
-            {/*</Button>*/}
+            {ticketUrls.map((url, index) => (
+              <Button style={button} href={url} key={url}>
+                Access your ticket {ticketUrls.length > 1 ? `#${index+1}` : ""}
+              </Button>
+            ))}
           </Section>
           <Text style={paragraph}>
             Tons of fun at the event
@@ -80,7 +84,8 @@ const button = {
   textDecoration: "none",
   textAlign: "center" as const,
   display: "block",
-  padding: "12px"
+  padding: "12px",
+  marginBottom: "8px"
 };
 
 const hr = {
@@ -93,12 +98,13 @@ const footer = {
   fontSize: "12px"
 };
 
-const renderTicketReceiverEmail = async ({ eventName, ticketUrl, imageUrl }) => {
+const renderTicketReceiverEmail = async ({ eventName, ticketUrls, imageUrl, tokenIds }) => {
   return await render(
     <TicketReceiverEmailTemplate
       eventName={eventName}
-      ticketUrl={ticketUrl}
+      ticketUrls={ticketUrls}
       imageUrl={imageUrl}
+      tokenIds={tokenIds}
     />
   );
 };
