@@ -17,7 +17,6 @@ async function getHandler(req: NextRequestWithUserAccessToken, { params: { appSl
     const smartContract = await smartContractModel.findUnique({
       where: {
         id,
-        developerId: req.developerId,
         name: "tickets",
         appId: app.id
       }
@@ -29,10 +28,10 @@ async function getHandler(req: NextRequestWithUserAccessToken, { params: { appSl
       );
     }
 
-    const userId = req.nextUrl.searchParams.get('userId');
+    const userId = req.nextUrl.searchParams.get("userId");
     if (!userId) {
       return NextResponse.json(
-        { error: 'userId is required in query parameters' },
+        { error: "userId is required in query parameters" },
         { status: StatusCodes.BAD_REQUEST }
       );
     }
@@ -45,7 +44,7 @@ async function getHandler(req: NextRequestWithUserAccessToken, { params: { appSl
         email: true,
         walletAddress: true
       }
-    })
+    });
     if (!user) {
       return NextResponse.json(
         { error: `User with ID "${userId}" not found.` },
@@ -67,7 +66,7 @@ async function getHandler(req: NextRequestWithUserAccessToken, { params: { appSl
         userWalletAddress: user.walletAddress,
         userEmail: user.email,
         success: true,
-        result: Number(result),
+        result: Number(result)
       },
       { status: StatusCodes.OK }
     );
