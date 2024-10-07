@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { StatusCodes } from "http-status-codes";
-import { appModel, smartContractModel } from "@/models";
+import { smartContractModel } from "@/models";
 import { withDeveloperAccessToken } from "@/app/middleware/withDeveloperAccessToken";
-import { getAppIdBySlug } from "@/lib/app";
+import { getAppIdBySlug } from "@/lib/queries";
 
 async function getHandler(req: NextRequestWithDeveloperAccessToken, { params: { appSlug } }) {
   if (!appSlug) {

@@ -64,9 +64,7 @@ export const fetchNonce = async (address: string | null = null) => {
 
   const signer = provider.getSigner(account?.address);
   const nonceManager = new NonceManager(signer);
-  const nonceFromManager = await nonceManager.getTransactionCount("latest");
-  console.log("🔥 nonceFromManager: ", nonceFromManager);
-  return nonceFromManager;
+  return nonceManager.getTransactionCount("latest");
 };
 
 export const getExplorerUrl = (param: string): string => {

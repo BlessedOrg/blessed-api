@@ -1,10 +1,9 @@
 import { NextResponse } from "next/server";
 import { StatusCodes } from "http-status-codes";
 import { userModel } from "@/models";
-import { refreshAccountSession } from "@/lib/auth/accounts/refreshAccountSession";
-import { getAppIdBySlug } from "@/lib/app";
-import { createUserAccount } from "@/lib/auth/accounts/createUserAccount";
-import { verifyEmailVerificationCode } from "@/lib/auth/verifyEmailVerificationCode";
+import { createUserAccount, refreshAccountSession } from "@/lib/auth/accounts";
+import { getAppIdBySlug } from "@/lib/queries";
+import { verifyEmailVerificationCode } from "@/lib/auth/emailVerificationCode";
 
 export async function POST(req: Request, { params: { appSlug } }) {
   const body = await req.json();
@@ -32,7 +31,7 @@ export async function POST(req: Request, { params: { appSlug } }) {
     return NextResponse.json(data, { status });
   } else {
     if (accepted && email) {
-      const { data, error, status } = await refreshAccountSession(email, "user");
+      const { data, error, status } = await refreshAccountSession(email, "user", appId);
       if (!!error) {
         return NextResponse.json({ error }, { status });
       }
@@ -40,9 +39,7 @@ export async function POST(req: Request, { params: { appSlug } }) {
     } else {
       return NextResponse.json(
         { error: "Invalid code", message: verifyEmailResult.message },
-        {
-          status: StatusCodes.BAD_REQUEST
-        }
+        { status: StatusCodes.BAD_REQUEST }
       );
     }
   }

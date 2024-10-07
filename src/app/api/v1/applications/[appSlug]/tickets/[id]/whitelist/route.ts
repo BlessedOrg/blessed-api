@@ -2,9 +2,9 @@ import { NextResponse } from "next/server";
 import { StatusCodes } from "http-status-codes";
 import { contractArtifacts, getExplorerUrl, writeContract } from "@/lib/viem";
 import { smartContractModel } from "@/models";
-import { getAppIdBySlug } from "@/lib/app";
+import { getAppIdBySlug } from "@/lib/queries";
 import z from "zod";
-import { createMissingAccounts } from "@/lib/auth/accounts/createMissingAccounts";
+import { createMissingAccounts } from "@/lib/auth/accounts";
 import { withDeveloperAccessToken } from "@/app/middleware/withDeveloperAccessToken";
 
 const WhitelistSchema = z.object({

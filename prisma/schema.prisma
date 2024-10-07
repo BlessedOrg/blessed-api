@@ -50,7 +50,6 @@ model User {
   Apps                      AppUser[]
   Otps                      AccountOtp[]
   Sessions                  UserSession[]
-  sessionId                 String?
   SmartContractInteractions SmartContractInteraction[]
   createdAt                 DateTime                   @default(now())
   updatedAt                 DateTime                   @updatedAt
