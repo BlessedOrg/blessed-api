@@ -4,7 +4,7 @@ import { withDeveloperAccessToken } from "@/app/middleware/withDeveloperAccessTo
 import { developerSessionModel } from "@/models";
 import { updateVaultItem } from "@/lib/1pwd-vault";
 
-export async function postHandler(req: NextRequestWithDeveloperAccessToken) {
+async function postHandler(req: NextRequestWithDeveloperAccessToken) {
   await developerSessionModel.updateMany({
     where: {
       developerId: req.developerId
