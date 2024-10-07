@@ -17,14 +17,13 @@ export function withDeveloperAccessToken(
       const decoded: any = jwt.verify(token, process.env.JWT_SECRET);
 
       const itemFromVault = await getVaultItem(decoded?.accessTokenVaultKey, "accessToken");
-
       if (!itemFromVault?.fields?.some(i => i.value === token)) {
         return NextResponse.json({ error: "Invalid token" }, { status: StatusCodes.UNAUTHORIZED });
       }
 
       Object.assign(request, {
         developerId: decoded.id,
-        developerWalletAddress: decoded.walletAddress,
+        walletAddress: decoded.walletAddress,
         accessTokenVaultKey: decoded.accessTokenVaultKey,
         capsuleTokenVaultKey: decoded.capsuleTokenVaultKey
       });
