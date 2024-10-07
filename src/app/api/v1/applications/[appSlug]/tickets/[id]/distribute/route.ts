@@ -96,7 +96,7 @@ async function postHandler(req: NextRequestWithUserAccessToken, { params: { appS
     const emailsToSend = await Promise.all(
       distribution.map(async (dist: any) => {
         const ticketUrls = dist.tokenIds.map((tokenId) =>
-          `https://blessed-landing-page-git-show-ticket-page-blessed-org.vercel.app/show-ticket?app=${app.slug}&contractId=${smartContract.id}&tokenId=${tokenId}&userId=${dist.userId}`
+          `https://blessed.fan/show-ticket?app=${app.slug}&contractId=${smartContract.id}&tokenId=${tokenId}&userId=${dist.userId}`
         );
         return {
           recipientEmail: dist.email,
