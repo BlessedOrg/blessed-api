@@ -20,7 +20,7 @@ const TicketSchema = z.object({
   path: ["initialSupply"]
 });
 
-async function postHandler(req: NextRequestWithUserAccessToken, { params: { appSlug } }) {
+async function postHandler(req: NextRequestWithDeveloperAccessToken, { params: { appSlug } }) {
   try {
     const app = await getAppIdBySlug(appSlug);
     if (!app) {

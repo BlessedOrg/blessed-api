@@ -12,23 +12,34 @@ export function withUserAccessToken(handler: (req: NextRequest, context: { param
       }
       const token = authHeader.split(" ")[1];
       const decoded: any = jwt.verify(token, process.env.JWT_SECRET);
-      const session: any = await userSessionModel.findFirst({
+      const session = await userSessionModel.findFirst({
         where: {
           accessToken: token
         },
         orderBy: {
           updatedAt: "desc"
+        },
+        include: {
+          User: {
+            select: {
+              email: true
+            }
+          }
         }
       });
+      if (new Date(session.expiresAt).getTime() < new Date().getTime()) {
+        return NextResponse.json({ error: "Session expired" }, { status: StatusCodes.UNAUTHORIZED });
+      }
 
       if (token !== session?.accessToken) {
         return NextResponse.json({ error: "Invalid token" }, { status: StatusCodes.UNAUTHORIZED });
       }
 
       Object.assign(request, {
-        developerId: session.developerId,
-        userId: session.developerUserId,
-        capsuleTokenVaultKey: decoded.capsuleTokenVaultKey
+        userId: session.userId,
+        capsuleTokenVaultKey: decoded.capsuleTokenVaultKey,
+        walletAddress: decoded.walletAddress,
+        email: session.User.email
       });
 
       return handler(request, context);

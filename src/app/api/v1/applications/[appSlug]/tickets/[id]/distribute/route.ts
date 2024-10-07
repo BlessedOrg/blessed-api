@@ -19,7 +19,7 @@ const DistributeSchema = z.object({
   )
 });
 
-async function postHandler(req: NextRequestWithUserAccessToken, { params: { appSlug, id } }) {
+async function postHandler(req: NextRequestWithDeveloperAccessToken, { params: { appSlug, id } }) {
   try {
     const validBody = DistributeSchema.safeParse(await req.json());
     if (!validBody.success) {
@@ -47,7 +47,7 @@ async function postHandler(req: NextRequestWithUserAccessToken, { params: { appS
     });
     if (!smartContract) {
       return NextResponse.json(
-        { error: `Wrong parameters. Smart contract tickets from User ${req.userId} not found.` },
+        { error: `Wrong parameters. Smart contract tickets from Developer ${req.developerId} not found.` },
         { status: StatusCodes.BAD_REQUEST }
       );
     }

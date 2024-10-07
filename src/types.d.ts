@@ -8,13 +8,14 @@ declare global {
   // Requests
   type NextRequestWithDeveloperAccessToken = NextRequest & {
     developerId: string;
-    developerWalletAddress: string;
+    walletAddress: string;
     accessTokenVaultKey: string,
     capsuleTokenVaultKey: string,
   };
   type NextRequestWithUserAccessToken = NextRequest & {
-    developerId: string;
     userId: string;
     capsuleTokenVaultKey: string,
+    walletAddress: `0x${string}`,
+    email: string
   };
 }
