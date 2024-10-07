@@ -163,7 +163,7 @@ export async function replaceVaultItemFields(
 
 export async function updateVaultItem(
   id: string,
-  newData: { op: "replace" | "add" | "remove", path: string, value: any }[],
+  newData: { op: "replace" | "add" | "remove", path: string, value?: any }[],
   type?: VaultItemType
 ) {
   const vaultId = idPerType[type];

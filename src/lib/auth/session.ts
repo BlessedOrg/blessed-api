@@ -160,7 +160,7 @@ export const updateUserSession = async (email: string, appId: string) => {
       data: {
         accessToken: hashedAccessToken,
         refreshToken: hashedRefreshToken,
-        expiresAt: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000)
+        expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // 30 days
       }
     });
 

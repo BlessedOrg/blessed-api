@@ -27,6 +27,9 @@ export function withUserAccessToken(handler: (req: NextRequest, context: { param
           }
         }
       });
+      if (new Date(session.expiresAt).getTime() < new Date().getTime()) {
+        return NextResponse.json({ error: "Session expired" }, { status: StatusCodes.UNAUTHORIZED });
+      }
 
       if (token !== session?.accessToken) {
         return NextResponse.json({ error: "Invalid token" }, { status: StatusCodes.UNAUTHORIZED });
