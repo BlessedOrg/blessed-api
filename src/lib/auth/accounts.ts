@@ -148,6 +148,7 @@ export const createMissingAccounts = async (emails: string[], appId: string) => 
         }
       },
       select: {
+        id: true,
         email: true,
         walletAddress: true
       }

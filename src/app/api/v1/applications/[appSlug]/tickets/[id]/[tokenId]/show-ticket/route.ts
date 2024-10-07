@@ -29,8 +29,8 @@ async function getHandler(req: NextRequestWithUserAccessToken, { params: { appSl
       );
     }
 
-    const userEmail = req.nextUrl.searchParams.get('userEmail');
-    if (!userEmail) {
+    const userId = req.nextUrl.searchParams.get('userId');
+    if (!userId) {
       return NextResponse.json(
         { error: 'userId is required in query parameters' },
         { status: StatusCodes.BAD_REQUEST }
@@ -39,12 +39,16 @@ async function getHandler(req: NextRequestWithUserAccessToken, { params: { appSl
 
     const user = await userModel.findUnique({
       where: {
-        email: userEmail
+        id: userId
+      },
+      select: {
+        email: true,
+        walletAddress: true
       }
     })
     if (!user) {
       return NextResponse.json(
-        { error: `User with email "${userEmail}" not found.` },
+        { error: `User with ID "${userId}" not found.` },
         { status: StatusCodes.BAD_REQUEST }
       );
     }
@@ -61,7 +65,7 @@ async function getHandler(req: NextRequestWithUserAccessToken, { params: { appSl
         eventName: app.name,
         ticketId: tokenId,
         userWalletAddress: user.walletAddress,
-        userEmail,
+        userEmail: user.email,
         success: true,
         result: Number(result),
       },

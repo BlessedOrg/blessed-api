@@ -53,13 +53,14 @@ async function postHandler(req: NextRequestWithUserAccessToken, { params: { appS
     }
 
     const { users } = await createMissingAccounts(validBody.data.distributions.map(distribution => distribution.email), app.id);
-    const emailToWalletMap = new Map(users.map(account => [account.email, account.walletAddress]));
+    const emailToWalletMap = new Map(users.map(account => [account.email, { walletAddress: account.walletAddress, id: account.id }]));
     const distribution = validBody.data.distributions.map(distribution => {
-      const walletAddress = emailToWalletMap.get(distribution.email);
-      if (walletAddress) {
+      const mappedUser = emailToWalletMap.get(distribution.email);
+      if (mappedUser) {
         return {
+          userId: mappedUser.id,
           email: distribution.email,
-          walletAddr: walletAddress,
+          walletAddr: mappedUser.walletAddress,
           amount: distribution.amount,
           tokenIds: []
         }
@@ -95,7 +96,7 @@ async function postHandler(req: NextRequestWithUserAccessToken, { params: { appS
     const emailsToSend = await Promise.all(
       distribution.map(async (dist: any) => {
         const ticketUrls = dist.tokenIds.map((tokenId) =>
-          `https://blessed-landing-page-git-show-ticket-page-blessed-org.vercel.app/show-ticket?app=${app.slug}&contractId=${smartContract.id}&tokenId=${tokenId}&userEmail=${dist.email}`
+          `https://blessed-landing-page-git-show-ticket-page-blessed-org.vercel.app/show-ticket?app=${app.slug}&contractId=${smartContract.id}&tokenId=${tokenId}&userId=${dist.userId}`
         );
         return {
           recipientEmail: dist.email,
