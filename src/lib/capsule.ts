@@ -1,3 +1,4 @@
+"use server";
 import { Environment } from "@usecapsule/core-sdk";
 import { Capsule, PregenIdentifierType, WalletType } from "@usecapsule/server-sdk";
 import { createVaultCapsuleKeyItem, getVaultItem } from "@/lib/1pwd-vault";
@@ -16,8 +17,8 @@ export const createCapsuleAccount = async (accountId: string, email: string, typ
   const pregenIdentifierType = "EMAIL" as PregenIdentifierType;
   if (!hasWallet) {
     try {
-      const { address } = await capsule.createWalletPreGen(walletType, formattedEmail, pregenIdentifierType);
-      const userShare = capsule.getUserShare();
+      const { address } = await capsule.createWalletPreGen(walletType, formattedEmail, pregenIdentifierType) as { address: string };
+      const userShare = capsule.getUserShare() as string;
       const vaultItem = await createVaultCapsuleKeyItem(userShare, address, email, type);
       const data = {
         capsuleTokenVaultKey: vaultItem.id,
@@ -34,7 +35,7 @@ export const createCapsuleAccount = async (accountId: string, email: string, typ
   }
 };
 
-export const getCapsuleSigner = async (capsuleTokenVaultKey: string) => {
+export async function getCapsuleSigner(capsuleTokenVaultKey: string) {
   const capsuleOneTimeClient = new Capsule(Environment.BETA, process.env.CAPSULE_API_KEY!);
   const vaultItem = await getVaultItem(capsuleTokenVaultKey, "capsuleKey");
   const userShare = vaultItem.fields.find(i => i.id === "capsuleKey")?.value;
@@ -46,11 +47,15 @@ export const getCapsuleSigner = async (capsuleTokenVaultKey: string) => {
   });
   const account = createCapsuleViemAccount(capsuleOneTimeClient);
   console.log(`📝 Capsule signer: ${account.address}`);
-  return {
-    ...capsuleViemClient,
+
+  const missingViemFns = {
     signMessage: (message: string) => account.signMessage({ message }),
     getAddress: () => Promise.resolve(account.address),
     signTypedData: (props: any) => account.signTypedData(props),
     getChainId: () => Promise.resolve(activeChain.id)
+  } as any;
+  return {
+    ...capsuleViemClient,
+    ...missingViemFns
   };
 };

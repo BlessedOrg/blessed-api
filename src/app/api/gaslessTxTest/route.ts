@@ -8,6 +8,8 @@ import { gaslessTransaction } from "@/lib/gelato";
 
 async function getHandler(req: NextRequestWithUserAccessToken) {
   const counterContractAddress = "0x5034F97bf9518Aa191678Eb8E9B202f0Cf1aE3f1";
+  const counterAbi = [{ "inputs": [], "name": "getCount", "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }], "stateMutability": "view", "type": "function" }, { "inputs": [], "name": "increment", "outputs": [], "stateMutability": "nonpayable", "type": "function" }];
+
   const data = encodeFunctionData({
     abi: counterAbi,
     functionName: "increment"
@@ -26,4 +28,3 @@ async function getHandler(req: NextRequestWithUserAccessToken) {
 
 export const GET = withUserAccessToken(getHandler);
 
-const counterAbi = [{ "inputs": [], "name": "getCount", "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }], "stateMutability": "view", "type": "function" }, { "inputs": [], "name": "increment", "outputs": [], "stateMutability": "nonpayable", "type": "function" }];

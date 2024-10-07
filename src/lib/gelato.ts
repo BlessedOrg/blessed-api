@@ -1,3 +1,4 @@
+"use server";
 import { CallWithERC2771Request, ERC2771Type, GelatoRelay } from "@gelatonetwork/relay-sdk-viem";
 import { getCapsuleSigner } from "@/lib/capsule";
 import { StatusCodes } from "http-status-codes";
