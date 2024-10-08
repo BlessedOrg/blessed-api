@@ -16,204 +16,173 @@ bun dev
 
 # API Documentation
 
-## Onboarding
+This document outlines the API endpoints for our application.
 
-### POST /api/auth/onboarding
+## Base URL
 
-This endpoint requires an email in the request body and sends a verification code to the provided email.
+All API requests should be prefixed with: `/api/v1`
 
-**Request Body:**
+## Authentication
 
-```json
-{
-  "email": "user@example.com"
-}
+Most endpoints require authentication. Include the access token in the Authorization header:
+
+```
+Authorization: Bearer YOUR_ACCESS_TOKEN
 ```
 
-**Response:**
+## Endpoints
 
-- **200 OK**: Verification code sent successfully.
-- **400 Bad Request**: Invalid email format.
+### Developers
 
-### POST /api/auth/onboarding/verify
+#### Login
 
-This endpoint requires a verification code from the previous request. <br/>
-- Creates a Starknet Argent account.
-- Sending initial funds to the created account by [gasless or normal transaction in case gasless failed] from operator(App wallet) account.
-- Deploys the created account.
-- Creates Vault Item for the created account with credentials.
-
-**Request Body:**
-
-```json
-{
-  "code": "verification_code"
-}
-```
-
-**Response body:**
-
-```json
-{
-  "accessToken": string,
-  "refreshToken": string,
-  "user": {
-    "email": string,
-    "isDeployed": boolean,
-    "walletAddress": string,
-    "vaultKey": string,
+- **Path**: `/developers/login`
+- **Method**: POST
+- **Description**: Initiates the login process for a developer by sending an OTP to their email.
+- **Body**:
+  ```json
+  {
+    "email": "developer@example.com"
   }
-}
-```
+  ```
+- **Response**: Confirmation that OTP has been sent.
 
-**Response:**
+#### Verify
 
-- **200 OK**: Account created and session data returned.
-- **400 Bad Request**: Invalid verification code.
-- **500 Internal Server Error**: Failed to create user.
-
-## Onboard your users
-
-### POST /api/auth/[developerId]/onboarding
-
-This endpoint requires an email in the request body and sends a verification code to the provided email.
-
-**Request Body:**
-
-```json
-{
-  "email": "user@example.com"
-}
-```
-
-**Response:**
-
-- **200 OK**: Verification code sent successfully.
-- **400 Bad Request**: Invalid email format.
-
-### POST /api/auth/[developerId]/onboarding/verify
-
-This endpoint requires a verification code from the previous request. <br/>
-- Creates a Starknet Argent account.
-- Sending initial funds to the created account by [gasless or normal transaction in case gasless failed] from operator(App wallet) account.
-- Deploys the created account.
-- Creates Vault Item for the created account with credentials.
-- Connects the created account with the developer account.
-
-**Request Body:**
-
-```json
-{
-  "code": "verification_code"
-}
-```
-
-**Response body:**
-
-```json
-{
-  "accessToken": string,
-  "refreshToken": string,
-  "user": {
-    "email": string,
-    "isDeployed": boolean,
-    "walletAddress": string,
-    "vaultKey": string,
+- **Path**: `/developers/verify`
+- **Method**: POST
+- **Description**: Verifies the OTP sent to the developer's email and completes the login process.
+- **Body**:
+  ```json
+  {
+    "otp": "123456"
   }
-}
-```
+  ```
+- **Response**: Access token and wallet address upon successful verification.
 
-**Response status:**
+#### Get Wallet
 
-- **200 OK**: Account created and session data returned.
-- **400 Bad Request**: Invalid verification code.
-- **500 Internal Server Error**: Failed to create user.
+- **Path**: `/developers/wallet`
+- **Method**: GET
+- **Description**: Retrieves the wallet address associated with the authenticated developer.
+- **Authentication**: Required
+- **Response**: Developer's wallet address.
 
-## Create ERC20 Token
+### Applications
 
-### POST /api/public/token/create - Developer only
+#### Create Application
 
-This endpoint requires a supply amount, token name, and symbol in the request body. <br/>
-It creates an ERC20 token and returns the token address with token details.
-
-**Request Body:**
-
-```json
-{
-  "supplyAmount": 210000000,
-  "name": "YourTokenName",
-  "symbol": "Symbol"
-}
-```
-
-**Required Headers:**
-```json
-{
-  "headers": {
-    "Authorization": "Bearer [developerAccessToken]"
+- **Path**: `/applications`
+- **Method**: POST
+- **Description**: Creates a new application for the authenticated developer.
+- **Authentication**: Required
+- **Body**:
+  ```json
+  {
+    "name": "My New App"
   }
-}
-```
+  ```
+- **Response**: Details of the created application.
 
-**Response:**
+#### List Applications
 
-- **200 OK**: Erc20 token created successfully.
-- **400 Bad Request**: Invalid or missing token details.
+- **Path**: `/applications`
+- **Method**: GET
+- **Description**: Retrieves a list of all applications owned by the authenticated developer.
+- **Authentication**: Required
+- **Response**: List of applications.
 
-## Get ERC20 Token available functions
+#### Get Application Details
 
-### GET /api/public/token/functions
+- **Path**: `/applications/{applicationId}`
+- **Method**: GET
+- **Description**: Retrieves details of a specific application.
+- **Authentication**: Required
+- **Response**: Application details.
 
-This endpoint returns the available functions for an ERC20 token.
+### Tickets
 
-**Example Response:**
+#### Deploy Ticket
 
-```json
-{
-  "readFunctions": [
-    {
-      "name": "total_supply",
-      "inputs": []
-    }
-  ],
-  "writeFunctions": [
-    {
-      "name": "transfer",
-      "inputs": [
-        {
-          "name": "to",
-          "type": "address"
-        },
-        {
-          "name": "value",
-          "type": "number"
-        }
-      ]
-    }
-  ]
-}
-```
+- **Path**: `/applications/{applicationId}/tickets/deploy`
+- **Method**: POST
+- **Description**: Deploys a new ticket type for the specified application.
+- **Authentication**: Required
+- **Body**:
+  ```json
+  {
+    "name": "VIP Ticket",
+    "initialSupply": 100
+  }
+  ```
+- **Response**: Details of the deployed ticket type.
 
-**Response:**
+#### List Tickets
 
-- **200 OK**: ERC20 token functions returned successfully.
+- **Path**: `/applications/{applicationId}/tickets`
+- **Method**: GET
+- **Description**: Retrieves a list of all ticket types for the specified application.
+- **Authentication**: Required
+- **Response**: List of ticket types.
 
-## Interact with ERC20 Token
+#### Update Ticket Supply
 
-### POST /api/public/token/[contractAddress]/[functionName]
+- **Path**: `/applications/{applicationId}/tickets/{ticketId}/supply`
+- **Method**: PUT
+- **Description**: Updates the supply of a specific ticket type.
+- **Authentication**: Required
+- **Body**:
+  ```json
+  {
+    "newSupply": 150
+  }
+  ```
+- **Response**: Updated ticket details.
 
-This endpoint requires a contract address, function name, and function inputs in the request body. It interacts with the ERC20 token contract and returns the transaction hash or function result.
+#### Distribute Tickets
 
-**Request Body example:**
+- **Path**: `/applications/{applicationId}/tickets/{ticketId}/distribute`
+- **Method**: POST
+- **Description**: Distributes tickets to specified users.
+- **Authentication**: Required
+- **Body**:
+  ```json
+  {
+    "distributions": [
+      { "email": "user1@example.com", "amount": 2 },
+      { "email": "user2@example.com", "amount": 1 }
+    ]
+  }
+  ```
+- **Response**: Confirmation of ticket distribution.
 
-```json
-{
-  "recipient": "0x1234567890abcdef1234567890abcdef12345678",
-  "amount": 100
-}
-```
+### Users
 
-**Response:**
+#### Onboard Users
 
-- **200 OK**: ERC20 token function executed successfully.
-- **400 Bad Request**: Invalid or missing function inputs.
+- **Path**: `/applications/{applicationId}/users`
+- **Method**: POST
+- **Description**: Onboards new users for the specified application.
+- **Authentication**: Required
+- **Body**:
+  ```json
+  {
+    "users": [
+      { "email": "user1@example.com" },
+      { "email": "user2@example.com" }
+    ]
+  }
+  ```
+- **Response**: List of onboarded users with their wallet addresses.
+
+## Error Responses
+
+All endpoints may return the following error responses:
+
+- `400 Bad Request`: When the request is malformed or missing required fields.
+- `401 Unauthorized`: When authentication fails or is missing.
+- `403 Forbidden`: When the authenticated user doesn't have permission for the requested action.
+- `404 Not Found`: When the requested resource is not found.
+- `500 Internal Server Error`: When an unexpected error occurs on the server.
+
+Error responses will include a JSON body with an `error` field describing the issue.
