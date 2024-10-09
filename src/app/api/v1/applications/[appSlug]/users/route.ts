@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
 import { StatusCodes } from "http-status-codes";
-import { withDeveloperAccessToken } from "@/app/middleware/withDeveloperAccessToken";
 import { getAppIdBySlug } from "@/lib/queries";
 import { createMissingAccounts } from "@/lib/auth/accounts";
 import { appModel, userModel } from "@/models";
+import { withApiKeyOrDevAccessToken } from "@/app/middleware/withApiKeyOrDevAccessToken";
 
-async function getHandler(req: NextRequestWithDeveloperAccessToken, { params: { appSlug } }) {
+async function getHandler(req: NextRequestWithApiKeyOrDevAccessToken, { params: { appSlug } }) {
   if (!appSlug) {
     return NextResponse.json({ error: "appSlug query param is required" }, { status: StatusCodes.BAD_REQUEST });
   }
@@ -29,9 +29,9 @@ async function getHandler(req: NextRequestWithDeveloperAccessToken, { params: { 
   return NextResponse.json(users, { status: StatusCodes.OK });
 }
 
-export const GET = withDeveloperAccessToken(getHandler);
+export const GET = withApiKeyOrDevAccessToken(getHandler);
 
-async function postHandler(req: NextRequestWithDeveloperAccessToken, { params: { appSlug } }) {
+async function postHandler(req: NextRequestWithApiKeyOrDevAccessToken, { params: { appSlug } }) {
   const body = await req.json() as {
     "users": { "email": string }[]
   };
@@ -47,4 +47,4 @@ async function postHandler(req: NextRequestWithDeveloperAccessToken, { params: {
   return NextResponse.json(createdUsers, { status: StatusCodes.OK });
 }
 
-export const POST = withDeveloperAccessToken(postHandler);
+export const POST = withApiKeyOrDevAccessToken(postHandler);

@@ -1,10 +1,11 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { StatusCodes } from "http-status-codes";
 import { generateEmailVerificationCode } from "@/lib/auth/emailVerificationCode";
 import { sendEmail } from "@/lib/emails/send";
 import renderVerificationCodeEmail from "@/lib/emails/templates/VerificationCodeEmail";
+import { withApiKey } from "@/app/middleware/withApiKey";
 
-export async function POST(req: NextRequest) {
+async function postHandler(req: NextRequestWithApiKey) {
   const body = await req.json();
   const { email } = body;
 
@@ -31,3 +32,5 @@ export async function POST(req: NextRequest) {
     });
   }
 }
+
+export const POST = withApiKey(postHandler);

@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
 import { StatusCodes } from "http-status-codes";
 import { smartContractModel } from "@/models";
-import { withDeveloperAccessToken } from "@/app/middleware/withDeveloperAccessToken";
+import { withApiKeyOrDevAccessToken } from "@/app/middleware/withApiKeyOrDevAccessToken";
 
 export const dynamic = "force-dynamic";
 
-async function getHandler(req: NextRequestWithDeveloperAccessToken) {
+async function getHandler(req: NextRequestWithDevAccessToken) {
   const myContracts = await smartContractModel.findMany({
     where: {
       developerId: req.developerId
@@ -23,4 +23,4 @@ async function getHandler(req: NextRequestWithDeveloperAccessToken) {
   return NextResponse.json({ myContracts }, { status: StatusCodes.OK });
 }
 
-export const GET = withDeveloperAccessToken(getHandler);
+export const GET = withApiKeyOrDevAccessToken(getHandler);

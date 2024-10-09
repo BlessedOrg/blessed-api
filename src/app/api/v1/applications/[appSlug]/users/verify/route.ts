@@ -4,8 +4,9 @@ import { userModel } from "@/models";
 import { createUserAccount, refreshAccountSession } from "@/lib/auth/accounts";
 import { getAppIdBySlug } from "@/lib/queries";
 import { verifyEmailVerificationCode } from "@/lib/auth/emailVerificationCode";
+import { withApiKey } from "@/app/middleware/withApiKey";
 
-export async function POST(req: Request, { params: { appSlug } }) {
+async function postHandler(req: Request, { params: { appSlug } }) {
   const body = await req.json();
   const { code } = body;
 
@@ -44,3 +45,4 @@ export async function POST(req: Request, { params: { appSlug } }) {
     }
   }
 }
+export const POST = withApiKey(postHandler);

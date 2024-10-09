@@ -1,9 +1,9 @@
 import { appModel } from "@/models";
 import { NextResponse } from "next/server";
 import { StatusCodes } from "http-status-codes";
-import { withDeveloperAccessToken } from "@/app/middleware/withDeveloperAccessToken";
 import z from "zod";
 import slugify from "slugify";
+import { withDevAccessToken } from "@/app/middleware/withDevAccessToken";
 
 const postSchema = z.object({
   name: z.string().min(3),
@@ -11,7 +11,7 @@ const postSchema = z.object({
   imageUrl: z.string().optional()
 });
 
-async function createNewApp(req: NextRequestWithDeveloperAccessToken) {
+async function createNewApp(req: NextRequestWithDevAccessToken) {
   const parsedBody = postSchema.safeParse(await req.json());
   const { name, description, imageUrl } = parsedBody.data;
   const slug = slugify(name, {
@@ -66,9 +66,9 @@ async function createNewApp(req: NextRequestWithDeveloperAccessToken) {
   return NextResponse.json(app, { status: StatusCodes.OK });
 }
 
-export const POST = withDeveloperAccessToken(createNewApp);
+export const POST = withDevAccessToken(createNewApp);
 
-async function getAllMyApps(req: NextRequestWithDeveloperAccessToken) {
+async function getAllMyApps(req: NextRequestWithDevAccessToken) {
   const apps = await appModel.findMany({
     where: {
       developerId: req.developerId
@@ -86,4 +86,4 @@ async function getAllMyApps(req: NextRequestWithDeveloperAccessToken) {
   return NextResponse.json(apps, { status: StatusCodes.OK });
 }
 
-export const GET = withDeveloperAccessToken(getAllMyApps);
+export const GET = withDevAccessToken(getAllMyApps);
