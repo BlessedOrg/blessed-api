@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
 import { StatusCodes } from "http-status-codes";
 import { appModel } from "@/models";
-import { withDeveloperAccessToken } from "@/app/middleware/withDeveloperAccessToken";
+import { withApiKeyOrDevAccessToken } from "@/app/middleware/withApiKeyOrDevAccessToken";
 
-async function getHandler(req: NextRequestWithDeveloperAccessToken, { params: { appSlug } }) {
+async function getHandler(req: NextRequestWithApiKeyOrDevAccessToken, { params: { appSlug } }) {
   if (!appSlug) {
     return NextResponse.json({ error: "appId query param is required" }, { status: StatusCodes.BAD_REQUEST });
   }
@@ -45,4 +45,4 @@ async function getHandler(req: NextRequestWithDeveloperAccessToken, { params: { 
   return NextResponse.json(app, { status: StatusCodes.OK });
 }
 
-export const GET = withDeveloperAccessToken(getHandler);
+export const GET = withApiKeyOrDevAccessToken(getHandler);

@@ -5,10 +5,10 @@ import { smartContractModel } from "@/models";
 import { getAppIdBySlug } from "@/lib/queries";
 import z from "zod";
 import { createMissingAccounts } from "@/lib/auth/accounts";
-import { withDeveloperAccessToken } from "@/app/middleware/withDeveloperAccessToken";
 import renderTicketReceiverEmail from "@/lib/emails/templates/TicketReceiverEmail";
 import { sendBatchEmails } from "@/lib/emails/sendBatch";
 import { parseEventLogs } from "viem";
+import { withApiKeyOrDevAccessToken } from "@/app/middleware/withApiKeyOrDevAccessToken";
 
 const DistributeSchema = z.object({
   distributions: z.array(
@@ -19,7 +19,7 @@ const DistributeSchema = z.object({
   )
 });
 
-async function postHandler(req: NextRequestWithDeveloperAccessToken, { params: { appSlug, id } }) {
+async function postHandler(req: NextRequestWithApiKeyOrDevAccessToken, { params: { appSlug, id } }) {
   try {
     const validBody = DistributeSchema.safeParse(await req.json());
     if (!validBody.success) {
@@ -63,11 +63,10 @@ async function postHandler(req: NextRequestWithDeveloperAccessToken, { params: {
           walletAddr: mappedUser.walletAddress,
           amount: distribution.amount,
           tokenIds: []
-        }
+        };
       }
       return null;
     }).filter((item) => item !== null);
-
 
     const result = await writeContract(
       smartContract.address,
@@ -78,7 +77,7 @@ async function postHandler(req: NextRequestWithDeveloperAccessToken, { params: {
 
     const logs = parseEventLogs({
       abi: contractArtifacts["tickets"].abi,
-      logs: result.logs,
+      logs: result.logs
     });
 
     const transferSingleEventArgs = logs
@@ -87,11 +86,11 @@ async function postHandler(req: NextRequestWithDeveloperAccessToken, { params: {
 
     transferSingleEventArgs.forEach((args) => {
       const matchingRecipient = distribution
-        .find(d => d.walletAddr.toLowerCase() == args.to.toLowerCase())
+        .find(d => d.walletAddr.toLowerCase() == args.to.toLowerCase());
       if (matchingRecipient) {
-        matchingRecipient.tokenIds.push(args.id.toString())
+        matchingRecipient.tokenIds.push(args.id.toString());
       }
-    })
+    });
 
     const emailsToSend = await Promise.all(
       distribution.map(async (dist: any) => {
@@ -107,7 +106,7 @@ async function postHandler(req: NextRequestWithDeveloperAccessToken, { params: {
             imageUrl: app?.imageUrl ?? null,
             tokenIds: dist.tokenIds
           })
-        }
+        };
       })
     );
     await sendBatchEmails(emailsToSend, req.nextUrl.hostname === "localhost");
@@ -132,4 +131,4 @@ async function postHandler(req: NextRequestWithDeveloperAccessToken, { params: {
   }
 }
 export const maxDuration = 300;
-export const POST = withDeveloperAccessToken(postHandler);
+export const POST = withApiKeyOrDevAccessToken(postHandler);
