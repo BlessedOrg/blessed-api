@@ -13,7 +13,6 @@ export function withUserAccessToken(handler: (req: NextRequest, context: { param
       const token = authHeader.split(" ")[1];
       const decoded = jwt.verify(token, process.env.JWT_SECRET) as UserAccessTokenJWT;
       if (!decoded?.userId) {
-        console.log("Missing userId in JWT token", token);
         return NextResponse.json({ error: "Wrong token, unauthorized" }, { status: StatusCodes.UNAUTHORIZED });
       }
       const session = await userSessionModel.findFirst({
@@ -32,13 +31,10 @@ export function withUserAccessToken(handler: (req: NextRequest, context: { param
         }
       });
       if (new Date(session.expiresAt).getTime() < new Date().getTime()) {
-        console.log("Session expired");
-        console.log(new Date(session.expiresAt).toLocaleDateString());
         return NextResponse.json({ error: "Session expired" }, { status: StatusCodes.UNAUTHORIZED });
       }
 
       if (token !== session?.accessToken) {
-        console.log("Invalid token", token, session?.accessToken);
         return NextResponse.json({ error: "Invalid token" }, { status: StatusCodes.UNAUTHORIZED });
       }
 

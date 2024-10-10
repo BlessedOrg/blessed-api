@@ -4,6 +4,7 @@ import { getAppIdBySlug } from "@/lib/queries";
 import { createMissingAccounts } from "@/lib/auth/accounts";
 import { appModel, userModel } from "@/models";
 import { withApiKeyOrDevAccessToken } from "@/app/middleware/withApiKeyOrDevAccessToken";
+import z from "zod";
 
 async function getHandler(req: NextRequestWithApiKeyOrDevAccessToken, { params: { appSlug } }) {
   if (!appSlug) {
@@ -31,15 +32,22 @@ async function getHandler(req: NextRequestWithApiKeyOrDevAccessToken, { params: 
 
 export const GET = withApiKeyOrDevAccessToken(getHandler);
 
+const UsersSchema = z.object({
+  users: z.array(z.object({ email: z.string().email() })).nonempty()
+});
 async function postHandler(req: NextRequestWithApiKeyOrDevAccessToken, { params: { appSlug } }) {
-  const body = await req.json() as {
-    "users": { "email": string }[]
-  };
+  const validBody = UsersSchema.safeParse(await req.json());
+  if (!validBody.success) {
+    return NextResponse.json(
+      { error: `Validation failed: ${validBody.error}` },
+      { status: StatusCodes.NOT_FOUND }
+    );
+  }
   const appData = await appModel.findUnique({
     where: { slug: appSlug },
     select: { id: true }
   });
-  const { users } = body;
+  const { users } = validBody.data;
   if (!appSlug) {
     return NextResponse.json({ error: "appSlug query param is required" }, { status: StatusCodes.BAD_REQUEST });
   }

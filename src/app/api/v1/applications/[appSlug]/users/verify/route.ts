@@ -5,11 +5,17 @@ import { createUserAccount, refreshAccountSession } from "@/lib/auth/accounts";
 import { getAppIdBySlug } from "@/lib/queries";
 import { verifyEmailVerificationCode } from "@/lib/auth/emailVerificationCode";
 import { withApiKey } from "@/app/middleware/withApiKey";
+import { OtpCodeSchema } from "@/lib/zodSchema";
 
 async function postHandler(req: Request, { params: { appSlug } }) {
-  const body = await req.json();
-  const { code } = body;
-
+  const validBody = OtpCodeSchema.safeParse(await req.json());
+  if (!validBody.success) {
+    return NextResponse.json(
+      { error: `Validation failed: ${validBody.error}` },
+      { status: StatusCodes.NOT_FOUND }
+    );
+  }
+  const { code } = validBody.data;
   if (!code) {
     return NextResponse.json({ error: "Invalid code format" }, { status: StatusCodes.BAD_REQUEST } as any);
   }
