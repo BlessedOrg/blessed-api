@@ -6,7 +6,7 @@ import { StatusCodes } from "http-status-codes";
 import { formatEmailToAvoidCapsuleConflict } from "@/utils/formatEmailToAvoidCapsuleConflict";
 import { createCapsuleAccount as createCapsuleViemAccount, createCapsuleViemClient } from "@usecapsule/viem-v2-integration";
 import { activeChain, rpcUrl } from "@/lib/viem";
-import { http, WalletClient } from "viem";
+import { http } from "viem";
 
 export const createCapsuleAccount = async (accountId: string, email: string, type: AccountType) => {
   const capsule = new Capsule(Environment.BETA, process.env.CAPSULE_API_KEY!);
@@ -53,8 +53,10 @@ export async function getCapsuleSigner(capsuleTokenVaultKey: string) {
     signMessage: (message: string) => account.signMessage({ message }),
     getAddress: () => Promise.resolve(account.address),
     signTypedData: (props: any) => account.signTypedData(props),
-    getChainId: () => Promise.resolve(activeChain.id),
-    ...capsuleViemClient
-  } as WalletClient;
-  return accountInstance;
+    getChainId: () => Promise.resolve(activeChain.id)
+  } as any;
+  return {
+    ...capsuleViemClient,
+    ...accountInstance
+  };
 };

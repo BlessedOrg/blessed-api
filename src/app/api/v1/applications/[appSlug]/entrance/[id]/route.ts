@@ -9,7 +9,7 @@ import { account, activeChain, contractArtifacts, readContract } from "@/lib/vie
 const EntrySchema = z.object({
   ticketId: z.number().int().positive("Ticket id must be a positive integer")
 });
-export async function postRequest(req: NextRequestWithApiKeyAndUserAccessToken, { params: { id } }) {
+async function postRequest(req: NextRequestWithApiKeyAndUserAccessToken, { params: { id } }) {
   const validBody = EntrySchema.safeParse(await req.json());
   if (!validBody.success) {
     return NextResponse.json(
