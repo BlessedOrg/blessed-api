@@ -6,7 +6,7 @@ import { StatusCodes } from "http-status-codes";
 import { formatEmailToAvoidCapsuleConflict } from "@/utils/formatEmailToAvoidCapsuleConflict";
 import { createCapsuleAccount as createCapsuleViemAccount, createCapsuleViemClient } from "@usecapsule/viem-v2-integration";
 import { activeChain, rpcUrl } from "@/lib/viem";
-import { http } from "viem";
+import { http, WalletClient } from "viem";
 
 export const createCapsuleAccount = async (accountId: string, email: string, type: AccountType) => {
   const capsule = new Capsule(Environment.BETA, process.env.CAPSULE_API_KEY!);
@@ -40,22 +40,21 @@ export async function getCapsuleSigner(capsuleTokenVaultKey: string) {
   const vaultItem = await getVaultItem(capsuleTokenVaultKey, "capsuleKey");
   const userShare = vaultItem.fields.find(i => i.id === "capsuleKey")?.value;
   await capsuleOneTimeClient.setUserShare(userShare);
+  const account = createCapsuleViemAccount(capsuleOneTimeClient);
 
   const capsuleViemClient = createCapsuleViemClient(capsuleOneTimeClient, {
     chain: activeChain,
-    transport: http(rpcUrl)
+    transport: http(rpcUrl),
+    account
   });
-  const account = createCapsuleViemAccount(capsuleOneTimeClient);
-  console.log(`📝 Capsule signer: ${account.address}`);
 
-  const missingViemFns = {
+  console.log(`📝 Capsule signer: ${account.address}`);
+  const accountInstance = {
     signMessage: (message: string) => account.signMessage({ message }),
     getAddress: () => Promise.resolve(account.address),
     signTypedData: (props: any) => account.signTypedData(props),
-    getChainId: () => Promise.resolve(activeChain.id)
-  } as any;
-  return {
-    ...capsuleViemClient,
-    ...missingViemFns
-  };
+    getChainId: () => Promise.resolve(activeChain.id),
+    ...capsuleViemClient
+  } as WalletClient;
+  return accountInstance;
 };
