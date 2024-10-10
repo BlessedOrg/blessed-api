@@ -5,7 +5,7 @@ import z from "zod";
 import { uploadMetadata } from "@/lib/irys";
 import { getAppIdBySlug } from "@/lib/queries";
 import { account, deployContract, getExplorerUrl } from "@/lib/viem";
-import { withDeveloperAccessToken } from "@/app/middleware/withDeveloperAccessToken";
+import { withApiKeyOrDevAccessToken } from "@/app/middleware/withApiKeyOrDevAccessToken";
 
 const TicketSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -20,7 +20,7 @@ const TicketSchema = z.object({
   path: ["initialSupply"]
 });
 
-async function postHandler(req: NextRequestWithDeveloperAccessToken, { params: { appSlug } }) {
+async function postHandler(req: NextRequestWithApiKeyOrDevAccessToken, { params: { appSlug } }) {
   try {
     const app = await getAppIdBySlug(appSlug);
     if (!app) {
@@ -109,4 +109,4 @@ async function postHandler(req: NextRequestWithDeveloperAccessToken, { params: {
   }
 }
 export const maxDuration = 300;
-export const POST = withDeveloperAccessToken(postHandler);
+export const POST = withApiKeyOrDevAccessToken(postHandler);

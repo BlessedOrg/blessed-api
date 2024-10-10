@@ -1,11 +1,12 @@
 import { NextResponse } from "next/server";
 import { StatusCodes } from "http-status-codes";
-import { withDeveloperAccessToken } from "@/app/middleware/withDeveloperAccessToken";
 import { getAppIdBySlug } from "@/lib/queries";
 import { createMissingAccounts } from "@/lib/auth/accounts";
 import { appModel, userModel } from "@/models";
+import { withApiKeyOrDevAccessToken } from "@/app/middleware/withApiKeyOrDevAccessToken";
+import z from "zod";
 
-async function getHandler(req: NextRequestWithDeveloperAccessToken, { params: { appSlug } }) {
+async function getHandler(req: NextRequestWithApiKeyOrDevAccessToken, { params: { appSlug } }) {
   if (!appSlug) {
     return NextResponse.json({ error: "appSlug query param is required" }, { status: StatusCodes.BAD_REQUEST });
   }
@@ -29,17 +30,24 @@ async function getHandler(req: NextRequestWithDeveloperAccessToken, { params: { 
   return NextResponse.json(users, { status: StatusCodes.OK });
 }
 
-export const GET = withDeveloperAccessToken(getHandler);
+export const GET = withApiKeyOrDevAccessToken(getHandler);
 
-async function postHandler(req: NextRequestWithDeveloperAccessToken, { params: { appSlug } }) {
-  const body = await req.json() as {
-    "users": { "email": string }[]
-  };
+const UsersSchema = z.object({
+  users: z.array(z.object({ email: z.string().email() })).nonempty()
+});
+async function postHandler(req: NextRequestWithApiKeyOrDevAccessToken, { params: { appSlug } }) {
+  const validBody = UsersSchema.safeParse(await req.json());
+  if (!validBody.success) {
+    return NextResponse.json(
+      { error: `Validation failed: ${validBody.error}` },
+      { status: StatusCodes.NOT_FOUND }
+    );
+  }
   const appData = await appModel.findUnique({
     where: { slug: appSlug },
     select: { id: true }
   });
-  const { users } = body;
+  const { users } = validBody.data;
   if (!appSlug) {
     return NextResponse.json({ error: "appSlug query param is required" }, { status: StatusCodes.BAD_REQUEST });
   }
@@ -47,4 +55,4 @@ async function postHandler(req: NextRequestWithDeveloperAccessToken, { params: {
   return NextResponse.json(createdUsers, { status: StatusCodes.OK });
 }
 
-export const POST = withDeveloperAccessToken(postHandler);
+export const POST = withApiKeyOrDevAccessToken(postHandler);

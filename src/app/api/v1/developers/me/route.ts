@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
 import { StatusCodes } from "http-status-codes";
-import { withDeveloperAccessToken } from "@/app/middleware/withDeveloperAccessToken";
 import { developerAccountModel } from "@/models";
+import { withApiKeyOrDevAccessToken } from "@/app/middleware/withApiKeyOrDevAccessToken";
 
-async function getHandler(req: NextRequestWithDeveloperAccessToken) {
+async function getHandler(req: NextRequestWithApiKeyOrDevAccessToken) {
   const devData = await developerAccountModel.findUnique({
     where: {
       id: req.developerId
@@ -15,4 +15,4 @@ async function getHandler(req: NextRequestWithDeveloperAccessToken) {
   });
 }
 
-export const GET = withDeveloperAccessToken(getHandler);
+export const GET = withApiKeyOrDevAccessToken(getHandler);

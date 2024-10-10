@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
 import { StatusCodes } from "http-status-codes";
-import { withUserAccessToken } from "@/app/middleware/withUserAccessToken";
 import { userSessionModel } from "@/models";
+import { withApiKeyAndUserAccessToken } from "@/app/middleware/withApiKeyAndUserAccessToken";
 
-async function postHandler(req: NextRequestWithUserAccessToken) {
+async function postHandler(req: NextRequestWithApiKeyAndUserAccessToken) {
   await userSessionModel.updateMany({
     where: {
       userId: req.userId
@@ -18,4 +18,4 @@ async function postHandler(req: NextRequestWithUserAccessToken) {
   });
 }
 
-export const POST = withUserAccessToken(postHandler);
+export const POST = withApiKeyAndUserAccessToken(postHandler);

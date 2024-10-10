@@ -27,8 +27,7 @@ export async function createOrUpdateSession(email: string, accountType: AccountT
 export async function createSessionTokens(payload: any) {
   const accessToken = jwt.sign(
     payload,
-    process.env.JWT_SECRET!,
-    { expiresIn: "2d" }
+    process.env.JWT_SECRET!
   );
   const refreshToken = uuidv4();
 
@@ -59,7 +58,7 @@ export const updateDeveloperSession = async (email: string) => {
 
   if (existingSession?.id) {
     const { accessToken, refreshToken } = await createSessionTokens({
-      id: developer?.id,
+      developerId: developer?.id,
       capsuleTokenVaultKey: developer.capsuleTokenVaultKey,
       accessTokenVaultKey: developer.accessTokenVaultKey,
       walletAddress: developer.walletAddress
@@ -106,7 +105,7 @@ export const updateDeveloperSession = async (email: string) => {
         }
       });
       const { accessToken, refreshToken } = await createSessionTokens({
-        id: developer?.id,
+        developerId: developer?.id,
         accessTokenVaultKey: vaultItem.id,
         capsuleTokenVaultKey: developer.capsuleTokenVaultKey,
         walletAddress: developer.walletAddress
@@ -149,7 +148,7 @@ export const updateUserSession = async (email: string, appId: string) => {
 
   if (existingSession?.id) {
     const { hashedRefreshToken, hashedAccessToken, accessToken, refreshToken } = await createSessionTokens({
-      id: user?.id,
+      userId: user?.id,
       capsuleTokenVaultKey: user.capsuleTokenVaultKey,
       walletAddress: user.walletAddress
     });
@@ -160,7 +159,7 @@ export const updateUserSession = async (email: string, appId: string) => {
       data: {
         accessToken: hashedAccessToken,
         refreshToken: hashedRefreshToken,
-        expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // 30 days
+        expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
       }
     });
 
@@ -175,7 +174,7 @@ export const updateUserSession = async (email: string, appId: string) => {
     };
   } else {
     const { accessToken, refreshToken } = await createSessionTokens({
-      id: user?.id,
+      userId: user?.id,
       capsuleTokenVaultKey: user.capsuleTokenVaultKey,
       walletAddress: user.walletAddress
     });
@@ -185,7 +184,7 @@ export const updateUserSession = async (email: string, appId: string) => {
         appId,
         accessToken,
         refreshToken,
-        expiresAt: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000)
+        expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
       }
     });
 

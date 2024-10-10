@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
 import { StatusCodes } from "http-status-codes";
-import { withDeveloperAccessToken } from "@/app/middleware/withDeveloperAccessToken";
+import { withDevAccessToken } from "@/app/middleware/withDevAccessToken";
 import { developerSessionModel } from "@/models";
 import { updateVaultItem } from "@/lib/1pwd-vault";
 
-async function postHandler(req: NextRequestWithDeveloperAccessToken) {
+async function postHandler(req: NextRequestWithDevAccessToken) {
   await developerSessionModel.updateMany({
     where: {
       developerId: req.developerId
@@ -31,4 +31,4 @@ async function postHandler(req: NextRequestWithDeveloperAccessToken) {
     });
   }
 }
-export const POST = withDeveloperAccessToken(postHandler);
+export const POST = withDevAccessToken(postHandler);

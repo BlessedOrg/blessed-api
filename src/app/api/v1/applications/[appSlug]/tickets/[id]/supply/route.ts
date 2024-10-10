@@ -4,13 +4,13 @@ import { contractArtifacts, getExplorerUrl, writeContract } from "@/lib/viem";
 import { smartContractModel } from "@/models";
 import { getAppIdBySlug } from "@/lib/queries";
 import z from "zod";
-import { withDeveloperAccessToken } from "@/app/middleware/withDeveloperAccessToken";
+import { withApiKeyOrDevAccessToken } from "@/app/middleware/withApiKeyOrDevAccessToken";
 
 const DistributeSchema = z.object({
   additionalSupply: z.number().int().positive()
 });
 
-async function postHandler(req: NextRequestWithDeveloperAccessToken, { params: { appSlug, id } }) {
+async function postHandler(req: NextRequestWithApiKeyOrDevAccessToken, { params: { appSlug, id } }) {
   try {
     const validBody = DistributeSchema.safeParse(await req.json());
     if (!validBody.success) {
@@ -69,4 +69,4 @@ async function postHandler(req: NextRequestWithDeveloperAccessToken, { params: {
   }
 }
 export const maxDuration = 300;
-export const POST = withDeveloperAccessToken(postHandler);
+export const POST = withApiKeyOrDevAccessToken(postHandler);
