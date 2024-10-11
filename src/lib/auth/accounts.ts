@@ -12,6 +12,7 @@ export const createDeveloperAccount = async (email: string) => {
     });
     const { data, error, status } = await createCapsuleAccount(createdDeveloperAccount.id, email, "developer");
     if (!!error) {
+      await developerAccountModel.delete({ where: { id: createdDeveloperAccount.id } });
       return { error, status };
     }
     const { capsuleTokenVaultKey, walletAddress } = data;

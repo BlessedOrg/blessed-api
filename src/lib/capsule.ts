@@ -18,15 +18,15 @@ export const createCapsuleAccount = async (accountId: string, email: string, typ
   if (!hasWallet) {
     try {
       const { address } = await capsule.createWalletPreGen(walletType, formattedEmail, pregenIdentifierType) as { address: string };
+      if (!address) {
+        return { error: "Could not create a wallet, service temporarily not available.", status: StatusCodes.INTERNAL_SERVER_ERROR };
+      }
       const userShare = capsule.getUserShare() as string;
       const vaultItem = await createVaultCapsuleKeyItem(userShare, address, email, type);
       const data = {
         capsuleTokenVaultKey: vaultItem.id,
         walletAddress: address
       };
-      if (!data?.walletAddress) {
-        return { error: "Could not create a wallet, service temporarily not available.", status: StatusCodes.INTERNAL_SERVER_ERROR };
-      }
       return { data, status: StatusCodes.CREATED };
     } catch (e) {
       return { error: e, status: StatusCodes.INTERNAL_SERVER_ERROR };
