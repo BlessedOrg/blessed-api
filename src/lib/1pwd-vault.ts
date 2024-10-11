@@ -5,6 +5,7 @@ const vaultApiUrl = process.env.OP_VAULT_SERVER_HOST!;
 const vaultToken = process.env.OP_API_TOKEN!;
 const vaultCapsuleTokensId = process.env.OP_CAPSULE_KEY_VAULT_ID!;
 const vaultAccessTokensId = process.env.OP_ACCESS_TOKEN_VAULT_ID!;
+const vaultApiKeysId = process.env.OP_API_KEY_VAULT_ID!;
 const headers = {
   Authorization: `Bearer ${vaultToken}`,
   "Content-Type": "application/json"
@@ -15,7 +16,8 @@ type IdPerType = {
 
 const idPerType: IdPerType = {
   "capsuleKey": vaultCapsuleTokensId,
-  "accessToken": vaultAccessTokensId
+  "accessToken": vaultAccessTokensId,
+  "apiKey": vaultApiKeysId
 };
 export async function createVaultCapsuleKeyItem(
   value: string,
@@ -70,16 +72,15 @@ export async function createVaultCapsuleKeyItem(
 }
 
 export async function createVaultAccessTokenItem(apiToken: string, developerId: string) {
-  const vaultId = vaultAccessTokensId;
   try {
     const createdItem = await fetch(
-      `${vaultApiUrl}/v1/vaults/${vaultId}/items`,
+      `${vaultApiUrl}/v1/vaults/${vaultAccessTokensId}/items`,
       {
         method: "POST",
         headers,
         body: JSON.stringify({
           vault: {
-            id: vaultId
+            id: vaultAccessTokensId
           },
           title: `Access Token for developer ${developerId}`,
           category: "API_CREDENTIAL",
@@ -108,6 +109,44 @@ export async function createVaultAccessTokenItem(apiToken: string, developerId: 
   }
 }
 
+export async function createVaultApiKeyItem(apiKey: string, appSlug: string) {
+  try {
+    const createdItem = await fetch(
+      `${vaultApiUrl}/v1/vaults/${vaultApiKeysId}/items`,
+      {
+        method: "POST",
+        headers,
+        body: JSON.stringify({
+          vault: {
+            id: vaultApiKeysId
+          },
+          title: `API Key for app ${appSlug}`,
+          category: "API_CREDENTIAL",
+          tags: ["apiKeys"],
+          fields: [
+            {
+              id: "appSlug",
+              type: "STRING",
+              label: "App Slug",
+              value: appSlug
+            },
+            {
+              id: "apiKey",
+              label: "Api Key",
+              type: "CONCEALED",
+              value: apiKey
+            }
+          ]
+        })
+      }
+    );
+    console.log(`🔑 Created API Key in Vault for app: ${appSlug}`);
+    return await createdItem.json();
+  } catch (error: any) {
+    console.log(`⛑️🔑 Failed to create API Key in Vault for app: ${appSlug} \n ${error?.message}`);
+  }
+}
+
 export async function getVaultItem(id: string, type?: VaultItemType) {
   const vaultId = idPerType[type];
 
@@ -122,9 +161,9 @@ export async function getVaultItem(id: string, type?: VaultItemType) {
   );
   const vaultItem = await createdItem.json();
   if (vaultItem?.status !== 400) {
-    console.log(`🔑 Retrieved Access Token from Vault`);
+    console.log(`🔑 Retrieved ${type} from Vault`);
   } else {
-    const errMsg = `Failed to retrieve Access Token from Vault: ${vaultItem?.message}`;
+    const errMsg = `Failed to retrieve ${type} from Vault: ${vaultItem?.message}`;
     console.error(`⛑️🔑 ${errMsg}`);
     throw new Error(errMsg);
   }
