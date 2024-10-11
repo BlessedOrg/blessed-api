@@ -24,6 +24,9 @@ export const createCapsuleAccount = async (accountId: string, email: string, typ
         capsuleTokenVaultKey: vaultItem.id,
         walletAddress: address
       };
+      if (!data?.walletAddress) {
+        return { error: "Could not create a wallet, service temporarily not available.", status: StatusCodes.INTERNAL_SERVER_ERROR };
+      }
       return { data, status: StatusCodes.CREATED };
     } catch (e) {
       return { error: e, status: StatusCodes.INTERNAL_SERVER_ERROR };
