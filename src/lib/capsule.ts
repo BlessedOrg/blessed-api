@@ -43,7 +43,7 @@ export async function getCapsuleSigner(capsuleTokenVaultKey: string) {
 
   const capsuleViemClient = createCapsuleViemClient(capsuleOneTimeClient, {
     chain: activeChain,
-    transport: http(rpcUrl)
+    transport: (http(rpcUrl)) as any
   });
   const account = createCapsuleViemAccount(capsuleOneTimeClient);
   console.log(`📝 Capsule signer: ${account.address}`);
@@ -55,6 +55,7 @@ export async function getCapsuleSigner(capsuleTokenVaultKey: string) {
     getChainId: () => Promise.resolve(activeChain.id)
   } as any;
   return {
+    account,
     ...capsuleViemClient,
     ...missingViemFns
   };

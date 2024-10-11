@@ -4,10 +4,12 @@ import { smartContractModel } from "@/models";
 import z from "zod";
 import { uploadMetadata } from "@/lib/irys";
 import { getAppIdBySlug } from "@/lib/queries";
-import { account, deployContract, getExplorerUrl } from "@/lib/viem";
+import { deployContract, getExplorerUrl } from "@/lib/viem";
 import { withDeveloperAccessToken } from "@/app/middleware/withDeveloperAccessToken";
+import { getExplorerUrlForma } from "@/utils/getExplorerUrl";
 
 const TicketSchema = z.object({
+  owner: z.string().min(1),
   name: z.string().min(1, "Name is required"),
   description: z.string(),
   symbol: z.string().min(1, "Symbol is required").max(10, "Symbol must be 10 characters or less"),
@@ -45,8 +47,8 @@ async function postHandler(req: NextRequestWithDeveloperAccessToken, { params: {
 
     const contractName = "tickets";
     const args = {
-      // 🏗️ TODO: replace with developer's client
-      owner: account.address,
+      // 🏗️ TODO: replace with developer's wallet
+      owner: validBody.data.owner,
       baseURI: metadataUrl,
       name: validBody.data.name,
       symbol: validBody.data.symbol,
@@ -95,7 +97,7 @@ async function postHandler(req: NextRequestWithDeveloperAccessToken, { params: {
         contract,
         smartContractRecord,
         explorerUrls: {
-          contract: getExplorerUrl(contract.contractAddr)
+          contract: getExplorerUrlForma(contract.contractAddr, "contract")
         }
       },
       { status: StatusCodes.OK }

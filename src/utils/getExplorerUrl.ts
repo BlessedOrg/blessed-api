@@ -1,8 +1,10 @@
-export const getExplorerUrl = (param: string, type: "hash" | "contract"): string => {
+const baseUrl = "https://explorer.sketchpad-1.forma.art"
+
+export const getExplorerUrlForma = (param: string, type: "hash" | "contract"): string => {
   switch (type) {
     case "hash":
-      return `https://sepolia.voyager.online/tx/${param}`;
+      return `${baseUrl}/tx/${param}`;
     case "contract":
-      return `https://sepolia.voyager.online/contract/${param}`;
+      return `${baseUrl}/address/${param}`;
   }
 };
