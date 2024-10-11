@@ -1,9 +1,9 @@
-import { NextResponse } from "next/server";
-import { StatusCodes } from "http-status-codes";
-import { withDeveloperAccessToken } from "@/app/middleware/withDeveloperAccessToken";
 import { developerAccountModel } from "@/models";
+import { StatusCodes } from "http-status-codes";
+import { NextResponse } from "next/server";
+import { withApiKeyOrDevAccessToken } from "@/app/middleware/withApiKeyOrDevAccessToken";
 
-async function handler(req: NextRequestWithDeveloperAccessToken) {
+async function handler(req: NextRequestWithApiKeyOrDevAccessToken) {
   const developerData = await developerAccountModel.findUnique({ where: { id: req.developerId }, select: { walletAddress: true } });
 
   return NextResponse.json(developerData, {
@@ -11,5 +11,5 @@ async function handler(req: NextRequestWithDeveloperAccessToken) {
   });
 }
 
-export const GET = withDeveloperAccessToken(handler);
+export const GET = withApiKeyOrDevAccessToken(handler);
 

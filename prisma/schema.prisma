@@ -17,10 +17,8 @@ model DeveloperAccount {
   id                   String             @id @default(cuid())
   email                String             @unique
   walletAddress        String?            @unique
-  Otps                 AccountOtp[]
   accessTokenVaultKey  String?
   capsuleTokenVaultKey String?
-  Erc20Tokens          Erc20Token[]
   SmartContract        SmartContract[]
   Apps                 App[]
   Sessions             DeveloperSession[]
@@ -34,10 +32,12 @@ model App {
   name             String           @unique
   description      String?
   imageUrl         String?
+  domainUrl        String?
   SmartContracts   SmartContract[]
   DeveloperAccount DeveloperAccount @relation(fields: [developerId], references: [id])
   developerId      String
   Users            AppUser[]
+  ApiTokens        ApiToken[]
   createdAt        DateTime         @default(now())
   updatedAt        DateTime         @updatedAt
 }
@@ -48,7 +48,6 @@ model User {
   walletAddress             String?                    @unique
   capsuleTokenVaultKey      String?
   Apps                      AppUser[]
-  Otps                      AccountOtp[]
   Sessions                  UserSession[]
   SmartContractInteractions SmartContractInteraction[]
   createdAt                 DateTime                   @default(now())
@@ -66,15 +65,15 @@ model AppUser {
   @@unique([appId, userId])
 }
 
-model AccountOtp {
-  id               String            @id @default(cuid())
-  otp              String
-  DeveloperAccount DeveloperAccount? @relation(fields: [developerId], references: [id])
-  developerId      String?
-  User             User?             @relation(fields: [userId], references: [id])
-  userId           String?
-  createdAt        DateTime          @default(now())
-  updatedAt        DateTime          @updatedAt
+model ApiToken {
+  id               String    @id @default(cuid())
+  apiTokenVaultKey String
+  App              App       @relation(fields: [appId], references: [id])
+  appId            String
+  revoked          Boolean   @default(false)
+  expiresAt        DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
 }
 
 model UserSession {
@@ -107,21 +106,6 @@ model EmailVerificationCode {
   updatedAt DateTime @updatedAt
 }
 
-model Erc20Token {
-  id               String           @id @default(cuid())
-  DeveloperAccount DeveloperAccount @relation(fields: [developerId], references: [id])
-  developerId      String
-  name             String
-  symbol           String
-  decimals         Int
-  supply           Int
-  contractAddress  String
-  SmartContract    SmartContract    @relation(fields: [smartContractId], references: [id])
-  smartContractId  String
-  createdAt        DateTime         @default(now())
-  updatedAt        DateTime         @updatedAt
-}
-
 model SmartContract {
   id                        String                     @id @default(cuid())
   address                   String                     @unique
@@ -133,7 +117,6 @@ model SmartContract {
   metadataPayload           Json
   App                       App                        @relation(fields: [appId], references: [id])
   appId                     String
-  Erc20Token                Erc20Token[]
   SmartContractInteractions SmartContractInteraction[]
   createdAt                 DateTime                   @default(now())
   updatedAt                 DateTime                   @updatedAt

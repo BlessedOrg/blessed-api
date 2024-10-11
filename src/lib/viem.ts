@@ -1,19 +1,19 @@
 import { ethers } from "ethers";
 import { NonceManager } from "@ethersproject/experimental";
 import { importAllJsonContractsArtifacts } from "@/lib/contracts/interfaces";
-import { createPublicClient, createWalletClient, http } from "viem";
+import { createPublicClient, createWalletClient, getAddress, http } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 
 export const rpcUrl = process.env.NEXT_PUBLIC_JSON_RPC_URL || "define RPC URL env ";
 export const chainId = Number(process.env.NEXT_PUBLIC_CHAIN_ID) || 84532;
 export const ethNativeCurrency = {
   decimals: 18,
-  name: "Ether",
-  symbol: "ETH"
+  name: "TIA",
+  symbol: "TIA"
 };
 export const baseSepolia = {
   id: chainId,
-  name: "Base Sepolia",
+  name: "Forma Sketchpad",
   nativeCurrency: ethNativeCurrency,
   rpcUrls: {
     default: {
@@ -24,7 +24,7 @@ export const baseSepolia = {
   blockExplorers: {
     default: {
       name: "Explorer",
-      url: "https://sepolia.basescan.org"
+      url: "https://explorer.sketchpad-1.forma.art"
     }
   }
 };
@@ -94,7 +94,7 @@ export const deployContract = async (contractName, args) => {
   });
 
   if (receipt?.contractAddress) {
-    contractAddr = receipt.contractAddress;
+    contractAddr = getAddress(receipt.contractAddress);
   }
 
   return { hash, contractAddr };
@@ -141,7 +141,7 @@ export const readContract = async (address, abi, functionName, args = null) => {
     functionName,
     args
   });
-}
+};
 
 export const writeContract = async (contractAddr, functionName, args, abi) => {
   await initializeNonce();

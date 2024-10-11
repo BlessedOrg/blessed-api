@@ -4,14 +4,17 @@ import jwt from "jsonwebtoken";
 import { userSessionModel } from "@/models";
 
 export function withUserAccessToken(handler: (req: NextRequest, context: { params: any }) => Promise<NextResponse> | NextResponse) {
-  return async (request: NextRequest, context: { params: any }) => {
+  return async (request: NextRequest, context: { params: any }, globalMiddlewareResponse?: boolean) => {
     try {
       const authHeader = request.headers.get("authorization");
       if (!authHeader || !authHeader.startsWith("Bearer ")) {
         return NextResponse.json({ error: "Unauthorized" }, { status: StatusCodes.UNAUTHORIZED });
       }
       const token = authHeader.split(" ")[1];
-      const decoded: any = jwt.verify(token, process.env.JWT_SECRET);
+      const decoded = jwt.verify(token, process.env.JWT_SECRET) as UserAccessTokenJWT;
+      if (!decoded?.userId) {
+        return NextResponse.json({ error: "Wrong token, unauthorized" }, { status: StatusCodes.UNAUTHORIZED });
+      }
       const session = await userSessionModel.findFirst({
         where: {
           accessToken: token
@@ -41,7 +44,9 @@ export function withUserAccessToken(handler: (req: NextRequest, context: { param
         walletAddress: decoded.walletAddress,
         email: session.User.email
       });
-
+      if (globalMiddlewareResponse) {
+        return request;
+      }
       return handler(request, context);
     } catch (error) {
       console.log("🚨 withUserAccessToken:", error.message);

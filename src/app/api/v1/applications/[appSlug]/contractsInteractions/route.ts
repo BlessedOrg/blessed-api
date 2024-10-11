@@ -1,14 +1,14 @@
 import { NextResponse } from "next/server";
 import { StatusCodes } from "http-status-codes";
 import { smartContractInteractionModel, smartContractModel } from "@/models";
-import { withDeveloperAccessToken } from "@/app/middleware/withDeveloperAccessToken";
 import { getAppIdBySlug } from "@/lib/queries";
+import { withApiKeyOrDevAccessToken } from "@/app/middleware/withApiKeyOrDevAccessToken";
 
-async function getHandler(req: NextRequestWithDeveloperAccessToken, { params: { appSlug } }) {
+async function getHandler(req: NextRequestWithApiKeyOrDevAccessToken, { params: { appSlug } }) {
   if (!appSlug) {
     return NextResponse.json({ error: "appId query param is required" }, { status: StatusCodes.BAD_REQUEST });
   }
-  const app = await getAppIdBySlug(appSlug)
+  const app = await getAppIdBySlug(appSlug);
   if (!app) {
     return NextResponse.json(
       { error: `App not found` },
@@ -35,4 +35,4 @@ async function getHandler(req: NextRequestWithDeveloperAccessToken, { params: { 
   return NextResponse.json(smartContractsInteractions, { status: StatusCodes.OK });
 }
 
-export const GET = withDeveloperAccessToken(getHandler);
+export const GET = withApiKeyOrDevAccessToken(getHandler);

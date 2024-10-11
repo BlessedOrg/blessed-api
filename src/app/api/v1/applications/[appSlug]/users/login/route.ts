@@ -1,12 +1,20 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { StatusCodes } from "http-status-codes";
 import { generateEmailVerificationCode } from "@/lib/auth/emailVerificationCode";
 import { sendEmail } from "@/lib/emails/send";
 import renderVerificationCodeEmail from "@/lib/emails/templates/VerificationCodeEmail";
+import { withApiKey } from "@/app/middleware/withApiKey";
+import { EmailSchema } from "@/lib/zodSchema";
 
-export async function POST(req: NextRequest) {
-  const body = await req.json();
-  const { email } = body;
+async function postHandler(req: NextRequestWithApiKey) {
+  const validBody = EmailSchema.safeParse(await req.json());
+  if (!validBody.success) {
+    return NextResponse.json(
+      { error: `Validation failed: ${validBody.error}` },
+      { status: StatusCodes.NOT_FOUND }
+    );
+  }
+  const { email } = validBody.data;
 
   const otpCode = await generateEmailVerificationCode({
     to: email,
@@ -31,3 +39,5 @@ export async function POST(req: NextRequest) {
     });
   }
 }
+
+export const POST = withApiKey(postHandler);

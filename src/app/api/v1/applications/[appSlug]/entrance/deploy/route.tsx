@@ -2,22 +2,13 @@ import { NextResponse } from "next/server";
 import { StatusCodes } from "http-status-codes";
 import { smartContractModel } from "@/models";
 import z from "zod";
-import { uploadMetadata } from "@/lib/irys";
 import { getAppIdBySlug } from "@/lib/queries";
-import { account, deployContract, getExplorerUrl } from "@/lib/viem";
+import { deployContract, getExplorerUrl } from "@/lib/viem";
 import { withApiKeyOrDevAccessToken } from "@/app/middleware/withApiKeyOrDevAccessToken";
+import { uploadMetadata } from "@/lib/irys";
 
-const TicketSchema = z.object({
-  name: z.string().min(1, "Name is required"),
-  description: z.string(),
-  symbol: z.string().min(1, "Symbol is required").max(10, "Symbol must be 10 characters or less"),
-  initialSupply: z.number().int().positive("Initial supply must be a positive integer"),
-  maxSupply: z.number().int().positive("Max supply must be a positive integer"),
-  transferable: z.boolean(),
-  whitelistOnly: z.boolean()
-}).refine(data => data.initialSupply <= data.maxSupply, {
-  message: "Initial supply must be less than or equal to max supply",
-  path: ["initialSupply"]
+const EntranceSchema = z.object({
+  ticketAddress: z.string().min(1, "Ticket address is required")
 });
 
 async function postHandler(req: NextRequestWithApiKeyOrDevAccessToken, { params: { appSlug } }) {
@@ -29,31 +20,25 @@ async function postHandler(req: NextRequestWithApiKeyOrDevAccessToken, { params:
         { status: StatusCodes.NOT_FOUND }
       );
     }
-    const validBody = TicketSchema.safeParse(await req.json());
+    const validBody = EntranceSchema.safeParse(await req.json());
     if (!validBody.success) {
       return NextResponse.json(
         { error: `Validation failed: ${validBody.error}` },
         { status: StatusCodes.NOT_FOUND }
       );
     }
-    const { metadataUrl, metadataImageUrl } = await uploadMetadata({
-      name: validBody.data.name,
-      symbol: validBody.data.symbol,
-      description: validBody.data.description,
-      image: ""
-    });
 
-    const contractName = "tickets";
+    const metadataPayload = {
+      name: "Entrance checker",
+      symbol: "",
+      description: "Entrance checker for event",
+      image: ""
+    };
+    const { metadataUrl, metadataImageUrl } = await uploadMetadata(metadataPayload);
+    const contractName = "entrance";
     const args = {
-      // 🏗️ TODO: replace with developer's client
-      owner: account.address,
-      baseURI: metadataUrl,
-      name: validBody.data.name,
-      symbol: validBody.data.symbol,
-      initialSupply: validBody.data.initialSupply,
-      maxSupply: validBody.data.maxSupply,
-      transferable: validBody.data.transferable,
-      whitelistOnly: validBody.data.whitelistOnly
+      ticketAddress: validBody.data.ticketAddress,
+      owner: app.DeveloperAccount.walletAddress
     };
 
     const contract = await deployContract(contractName, Object.values(args));
@@ -78,14 +63,12 @@ async function postHandler(req: NextRequestWithApiKeyOrDevAccessToken, { params:
         name: contractName,
         developerId: req.developerId,
         version: nextId,
+        appId: app.id,
         metadataUrl,
         metadataPayload: {
-          name: validBody.data.name,
-          symbol: validBody.data.symbol,
-          description: validBody.data.description,
+          ...metadataPayload,
           ...metadataImageUrl && { metadataImageUrl }
-        },
-        appId: app.id
+        }
       }
     });
 

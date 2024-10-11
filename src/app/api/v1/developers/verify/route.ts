@@ -3,16 +3,17 @@ import { StatusCodes } from "http-status-codes";
 import { developerAccountModel } from "@/models";
 import { createDeveloperAccount, refreshAccountSession } from "@/lib/auth/accounts";
 import { verifyEmailVerificationCode } from "@/lib/auth/emailVerificationCode";
+import { OtpCodeSchema } from "@/lib/zodSchema";
 
 export async function POST(req: Request) {
-  const body = await req.json();
-  const { code } = body;
-
-  if (!code) {
-    return NextResponse.json({ error: "Invalid code format" }, {
-      status: StatusCodes.BAD_REQUEST
-    } as any);
+  const validBody = OtpCodeSchema.safeParse(await req.json());
+  if (!validBody.success) {
+    return NextResponse.json(
+      { error: `Validation failed: ${validBody.error}` },
+      { status: StatusCodes.NOT_FOUND }
+    );
   }
+  const { code } = validBody.data;
 
   const verifyEmailResult = await verifyEmailVerificationCode(code);
 
