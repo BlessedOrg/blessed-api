@@ -19,7 +19,6 @@ model DeveloperAccount {
   walletAddress        String?            @unique
   accessTokenVaultKey  String?
   capsuleTokenVaultKey String?
-  Erc20Tokens          Erc20Token[]
   SmartContract        SmartContract[]
   Apps                 App[]
   Sessions             DeveloperSession[]
@@ -107,21 +106,6 @@ model EmailVerificationCode {
   updatedAt DateTime @updatedAt
 }
 
-model Erc20Token {
-  id               String           @id @default(cuid())
-  DeveloperAccount DeveloperAccount @relation(fields: [developerId], references: [id])
-  developerId      String
-  name             String
-  symbol           String
-  decimals         Int
-  supply           Int
-  contractAddress  String
-  SmartContract    SmartContract    @relation(fields: [smartContractId], references: [id])
-  smartContractId  String
-  createdAt        DateTime         @default(now())
-  updatedAt        DateTime         @updatedAt
-}
-
 model SmartContract {
   id                        String                     @id @default(cuid())
   address                   String                     @unique
@@ -133,7 +117,6 @@ model SmartContract {
   metadataPayload           Json
   App                       App                        @relation(fields: [appId], references: [id])
   appId                     String
-  Erc20Token                Erc20Token[]
   SmartContractInteractions SmartContractInteraction[]
   createdAt                 DateTime                   @default(now())
   updatedAt                 DateTime                   @updatedAt
