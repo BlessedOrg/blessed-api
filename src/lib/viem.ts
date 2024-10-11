@@ -6,15 +6,15 @@ import { privateKeyToAccount } from "viem/accounts";
 
 export const rpcUrl = process.env.NEXT_PUBLIC_JSON_RPC_URL || "define RPC URL env ";
 export const chainId = Number(process.env.NEXT_PUBLIC_CHAIN_ID) || 84532;
-export const ethNativeCurrency = {
+export const nativeCurrency = {
   decimals: 18,
   name: "TIA",
   symbol: "TIA"
 };
-export const baseSepolia = {
+export const formaSketchpad = {
   id: chainId,
   name: "Forma Sketchpad",
-  nativeCurrency: ethNativeCurrency,
+  nativeCurrency,
   rpcUrls: {
     default: {
       http: [rpcUrl],
@@ -28,7 +28,7 @@ export const baseSepolia = {
     }
   }
 };
-export const activeChain = baseSepolia;
+export const activeChain = formaSketchpad;
 
 export const account = privateKeyToAccount(`0x${process.env.OPERATOR_PRIVATE_KEY}`);
 

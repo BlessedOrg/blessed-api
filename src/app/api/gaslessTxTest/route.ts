@@ -1,13 +1,13 @@
 import { NextResponse } from "next/server";
 import { StatusCodes } from "http-status-codes";
-import { encodeFunctionData, parseAbi } from "viem";
+import { encodeFunctionData } from "viem";
 import { getCapsuleSigner } from "@/lib/capsule";
-import { withDeveloperAccessToken } from "@/app/middleware/withDeveloperAccessToken";
-import { account, contractArtifacts, readContract, rpcUrl } from "@/lib/viem";
+import { contractArtifacts, readContract, rpcUrl } from "@/lib/viem";
 import { ethers } from "ethers";
 import { NonceManager } from "@ethersproject/experimental";
+import { withDevAccessToken } from "@/app/middleware/withDevAccessToken";
 
-async function getHandler(req: NextRequestWithUserAccessToken) {
+async function getHandler(req: NextRequestWithDevAccessToken) {
   // 🏗️ TODO: clean this - WiP
   // const res = await fetch(`https://engine.sketchpad-1.forma.art/relayer/393b72f1-11b4-4d9a-8aa0-2fc19e320501/transaction/status/6914d05f-e199-44c6-b905-742a69096dbc`)
   //
@@ -24,7 +24,7 @@ async function getHandler(req: NextRequestWithUserAccessToken) {
   const data = encodeFunctionData({
     abi,
     functionName: "count",
-    args: [],
+    args: []
   });
 
   const owner = await readContract(
@@ -50,10 +50,10 @@ async function getHandler(req: NextRequestWithUserAccessToken) {
   const gasEstimate = await provider.estimateGas({
     from: capsuleSigner.account.address,
     to: contractAddress,
-    data,
+    data
   });
 
-  console.log({gasEstimate, string: gasEstimate.toString()});
+  console.log({ gasEstimate, string: gasEstimate.toString() });
 
   const transaction = {
     chainid: process.env.NEXT_PUBLIC_CHAIN_ID,
@@ -62,7 +62,7 @@ async function getHandler(req: NextRequestWithUserAccessToken) {
     value: "0",
     gas: gasEstimate.toString(),
     nonce,
-    data,
+    data
   };
 
   const signature = await capsuleSigner.signMessage(JSON.stringify(transaction));
@@ -73,22 +73,22 @@ async function getHandler(req: NextRequestWithUserAccessToken) {
     type: "forward",
     request: transaction,
     signature,
-    forwarderAddress: "0x839320b787DbB268dCF0170302b16b25168B6bA7", // TODO: make it some var, maybe env var?
+    forwarderAddress: "0x839320b787DbB268dCF0170302b16b25168B6bA7" // TODO: make it some var, maybe env var?
   };
 
   const response = await fetch("relayer-address", {
     method: "POST",
     headers: {
-      "Content-Type": "application/json",
+      "Content-Type": "application/json"
     },
-    body: JSON.stringify(payload),
+    body: JSON.stringify(payload)
   });
 
   const relayerRes = await response.json();
   console.log("🌳 relayerRes: ", relayerRes);
   return NextResponse.json({}, {
-    status: StatusCodes.OK,
+    status: StatusCodes.OK
   });
 }
 
-export const GET = withDeveloperAccessToken(getHandler);
+export const GET = withDevAccessToken(getHandler);
