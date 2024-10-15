@@ -1,21 +1,6 @@
 "use server";
-import { appModel, developerAccountModel, userModel } from "@/models";
+import { developerAccountModel, userModel } from "@/models";
 import z from "zod";
-
-export const getAppIdBySlug = async (slug: string) => {
-  return appModel.findUnique({
-    where: {
-      slug
-    },
-    include: {
-      DeveloperAccount: {
-        select: {
-          walletAddress: true
-        }
-      }
-    }
-  });
-};
 
 export const getUserIdByEmail = async (email: string) => {
   const userData = await userModel.findUnique({
