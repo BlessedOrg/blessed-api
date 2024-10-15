@@ -120,10 +120,7 @@ export const createMissingAccounts = async (emails: string[], appId: string) => 
     const accounts = result.newAccounts.map(acc => ({ accountId: acc.id, email: acc.email }));
     for (const account of accounts) {
       // const capsuleUser = await createCapsuleAccount(account.accountId, account.email, "user");
-      const { data, error } = await createPrivyAccount(
-        account.email,
-        account.accountId
-      );
+      const { data, error } = await createPrivyAccount(account.email, account.accountId);
       if (error) {
         console.log("‼️Error occurred while creating capsule account:", error);
         return;
