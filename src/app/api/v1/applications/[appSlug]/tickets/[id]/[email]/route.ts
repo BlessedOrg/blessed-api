@@ -1,23 +1,22 @@
 import { NextResponse } from "next/server";
 import { StatusCodes } from "http-status-codes";
 import { contractArtifacts, readContract } from "@/lib/viem";
-import { smartContractModel } from "@/models";
+import { smartContractModel, userModel } from "@/models";
 import { getAppIdBySlug } from "@/lib/queries";
 import z from "zod";
-import { createMissingAccounts } from "@/lib/auth/accounts";
 import { withApiKeyOrDevAccessToken } from "@/app/middleware/withApiKeyOrDevAccessToken";
 import { isEmpty } from "lodash-es";
 
-const CheckOwnershipSchema = z.object({
-  emails: z.array(z.string().email())
+const EmailOwnerSchema = z.object({
+  email: z.string().email()
 });
 
-async function postHandler(req: NextRequestWithApiKeyOrDevAccessToken, { params: { appSlug, id } }) {
+async function postHandler(req: NextRequestWithApiKeyOrDevAccessToken, { params: { appSlug, id, email } }) {
   try {
-    const validBody = CheckOwnershipSchema.safeParse(await req.json());
-    if (!validBody.success) {
+    const validParam = EmailOwnerSchema.safeParse({ email });
+    if (!validParam.success) {
       return NextResponse.json(
-        { error: `Validation failed: ${validBody.error}` },
+        { error: `Validation failed: ${validParam.error}` },
         { status: StatusCodes.NOT_FOUND }
       );
     }
@@ -45,30 +44,30 @@ async function postHandler(req: NextRequestWithApiKeyOrDevAccessToken, { params:
       );
     }
 
-    const { users } = await createMissingAccounts(validBody.data.emails.map(email => email), app.id);
+    const user = await userModel.findUnique({
+      where: {
+        email
+      }
+    });
 
-    const owners = [];
-
-    for (const user of users) {
-      const result = await readContract(
-        smartContract.address,
-        contractArtifacts["tickets"].abi,
-        "getTokensByUser",
-        [user.walletAddress]
-      );
-
-      owners.push({
-        hasTicket: !isEmpty(result),
-        ...!isEmpty(result) && {
-          ownedIds: [result].map(id => id.toString())
-        },
-        email: user.email,
-        walletAddress: user.walletAddress
-      });
-    }
+    const result = await readContract(
+      smartContract.address,
+      contractArtifacts["tickets"].abi,
+      "getTokensByUser",
+      [user.walletAddress]
+    );
 
     return NextResponse.json(
-      { success: true, emails: owners },
+      {
+        user: {
+          hasTicket: !isEmpty(result),
+          ...!isEmpty(result) && {
+            ownedIds: [result].map(id => id.toString())
+          },
+          email: user.email,
+          walletAddress: user.walletAddress
+        }
+      },
       { status: StatusCodes.OK }
     );
   } catch (error) {
@@ -80,4 +79,4 @@ async function postHandler(req: NextRequestWithApiKeyOrDevAccessToken, { params:
   }
 }
 export const maxDuration = 300;
-export const POST = withApiKeyOrDevAccessToken(postHandler);
+export const GET = withApiKeyOrDevAccessToken(postHandler);
