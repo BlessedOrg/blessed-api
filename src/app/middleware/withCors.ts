@@ -17,7 +17,6 @@ const corsOptions = {
 
 export const withCors: MiddlewareFactory = (next) => {
   return async (request, event) => {
-    console.log("With CORS middleware");
     const origin = request.headers.get("origin") ?? "";
     const isAllowedOrigin = allowedOrigins.includes(origin);
 
