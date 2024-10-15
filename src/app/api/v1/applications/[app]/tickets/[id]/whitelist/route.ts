@@ -1,19 +1,19 @@
 import { NextResponse } from "next/server";
 import { StatusCodes } from "http-status-codes";
 import { contractArtifacts, getExplorerUrl, writeContract } from "@/lib/viem";
-import { smartContractModel } from "@/models";
 import z from "zod";
 import { createMissingAccounts } from "@/lib/auth/accounts";
 import { withApiKeyOrDevAccessToken } from "@/app/middleware/withApiKeyOrDevAccessToken";
 import { withAppValidate } from "@/app/middleware/withAppValidate";
+import { withTicketValidate } from "@/app/middleware/withTicketValidate";
 
 const WhitelistSchema = z.object({
   addEmails: z.array(z.string().email()).min(1),
   removeEmails: z.array(z.string().email()).optional()
 });
 
-async function postHandler(req: NextRequestWithApiKeyOrDevAccessToken & NextRequestWithAppValidate, { params: { id } }) {
-  const { appId } = req;
+async function postHandler(req: NextRequestWithApiKeyOrDevAccessToken & NextRequestWithAppValidate & NextRequestWithTicketValidate) {
+  const { appId, ticketContractAddress } = req;
   try {
     const validBody = WhitelistSchema.safeParse(await req.json());
     if (!validBody.success) {
@@ -22,22 +22,6 @@ async function postHandler(req: NextRequestWithApiKeyOrDevAccessToken & NextRequ
         { status: StatusCodes.NOT_FOUND }
       );
     }
-
-    const smartContract = await smartContractModel.findUnique({
-      where: {
-        id,
-        developerId: req.developerId,
-        name: "tickets",
-        appId
-      }
-    });
-    if (!smartContract) {
-      return NextResponse.json(
-        { error: `Wrong parameters. Smart contract tickets from Developer ${req.developerId} not found.` },
-        { status: StatusCodes.BAD_REQUEST }
-      );
-    }
-
     const allEmails = [...validBody.data.addEmails, ...(validBody.data.removeEmails || [])];
     const { users } = await createMissingAccounts(allEmails, appId);
     const emailToWalletMap = new Map(users.map(account => [account.email, account.walletAddress]));
@@ -54,7 +38,7 @@ async function postHandler(req: NextRequestWithApiKeyOrDevAccessToken & NextRequ
     ].filter((item): item is [string, boolean] => item !== null);
 
     const result = await writeContract(
-      smartContract.address,
+      ticketContractAddress,
       "updateWhitelist",
       [whitelistUpdates],
       contractArtifacts["tickets"].abi
@@ -80,4 +64,4 @@ async function postHandler(req: NextRequestWithApiKeyOrDevAccessToken & NextRequ
   }
 }
 export const maxDuration = 300;
-export const POST = withApiKeyOrDevAccessToken(withAppValidate(postHandler));
+export const POST = withApiKeyOrDevAccessToken(withAppValidate(withTicketValidate(postHandler)));

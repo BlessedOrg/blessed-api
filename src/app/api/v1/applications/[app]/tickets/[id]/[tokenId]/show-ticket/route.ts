@@ -1,26 +1,13 @@
 import { NextResponse } from "next/server";
 import { StatusCodes } from "http-status-codes";
 import { contractArtifacts, readContract } from "@/lib/viem";
-import { smartContractModel, userModel } from "@/models";
+import { userModel } from "@/models";
 import { withAppValidate } from "@/app/middleware/withAppValidate";
+import { withTicketValidate } from "@/app/middleware/withTicketValidate";
 
-async function getHandler(req: NextRequestWithUserAccessToken & NextRequestWithAppValidate, { params: { id, tokenId } }) {
-  const { appId, appName } = req;
+async function getHandler(req: NextRequestWithUserAccessToken & NextRequestWithAppValidate & NextRequestWithTicketValidate, { params: { tokenId } }) {
+  const { appName, ticketContractAddress } = req;
   try {
-    const smartContract = await smartContractModel.findUnique({
-      where: {
-        id,
-        name: "tickets",
-        appId
-      }
-    });
-    if (!smartContract) {
-      return NextResponse.json(
-        { error: `Wrong parameters. Smart contract tickets from User ${req.userId} not found.` },
-        { status: StatusCodes.BAD_REQUEST }
-      );
-    }
-
     const userId = req.nextUrl.searchParams.get("userId");
     if (!userId) {
       return NextResponse.json(
@@ -46,7 +33,7 @@ async function getHandler(req: NextRequestWithUserAccessToken & NextRequestWithA
     }
 
     const result = await readContract(
-      smartContract.address,
+      ticketContractAddress,
       contractArtifacts["tickets"].abi,
       "balanceOf",
       [user.walletAddress, tokenId]
@@ -72,4 +59,4 @@ async function getHandler(req: NextRequestWithUserAccessToken & NextRequestWithA
   }
 }
 export const maxDuration = 300;
-export const GET = (withAppValidate(getHandler));
+export const GET = (withAppValidate(withTicketValidate(getHandler)));

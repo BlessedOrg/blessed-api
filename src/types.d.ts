@@ -24,7 +24,7 @@ declare global {
     capsuleTokenVaultKey: string,
   }
 
-  type AppParam = {
+  type AppValidate = {
     appId: string
     appSlug: string
     appName: string
@@ -33,8 +33,14 @@ declare global {
     appOwnerWalletAddress: string
   }
 
+  type TicketValidate = {
+    ticketId: string;
+    ticketContractAddress: string
+  }
+
   // Requests
-  type NextRequestWithAppValidate = NextRequest & AppParam;
+  type NextRequestWithTicketValidate = NextRequest & TicketValidate;
+  type NextRequestWithAppValidate = NextRequest & AppValidate;
   type NextRequestWithDevAccessToken = NextRequest & DeveloperAccessTokenJWT;
   type NextRequestWithUserAccessToken = NextRequest & UserAccessTokenJWT
   type NextRequestWithApiKey = NextRequest & ApiTokenJWT

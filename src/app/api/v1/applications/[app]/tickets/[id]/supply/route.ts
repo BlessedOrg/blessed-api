@@ -1,17 +1,17 @@
 import { NextResponse } from "next/server";
 import { StatusCodes } from "http-status-codes";
 import { contractArtifacts, getExplorerUrl, writeContract } from "@/lib/viem";
-import { smartContractModel } from "@/models";
 import z from "zod";
 import { withApiKeyOrDevAccessToken } from "@/app/middleware/withApiKeyOrDevAccessToken";
 import { withAppValidate } from "@/app/middleware/withAppValidate";
+import { withTicketValidate } from "@/app/middleware/withTicketValidate";
 
 const DistributeSchema = z.object({
   additionalSupply: z.number().int().positive()
 });
 
-async function postHandler(req: NextRequestWithApiKeyOrDevAccessToken & NextRequestWithAppValidate, { params: { id } }) {
-  const { appId } = req;
+async function postHandler(req: NextRequestWithApiKeyOrDevAccessToken & NextRequestWithAppValidate & NextRequestWithTicketValidate) {
+  const { ticketContractAddress } = req;
   try {
     const validBody = DistributeSchema.safeParse(await req.json());
     if (!validBody.success) {
@@ -21,23 +21,8 @@ async function postHandler(req: NextRequestWithApiKeyOrDevAccessToken & NextRequ
       );
     }
 
-    const smartContract = await smartContractModel.findUnique({
-      where: {
-        id,
-        developerId: req.developerId,
-        name: "tickets",
-        appId
-      }
-    });
-    if (!smartContract) {
-      return NextResponse.json(
-        { error: `Wrong parameters. Smart contract tickets from Developer ${req.developerId} not found.` },
-        { status: StatusCodes.BAD_REQUEST }
-      );
-    }
-
     const result = await writeContract(
-      smartContract.address,
+      ticketContractAddress,
       "updateSupply",
       [validBody.data.additionalSupply],
       contractArtifacts["tickets"].abi
@@ -62,4 +47,4 @@ async function postHandler(req: NextRequestWithApiKeyOrDevAccessToken & NextRequ
   }
 }
 export const maxDuration = 300;
-export const POST = withApiKeyOrDevAccessToken(withAppValidate(postHandler));
+export const POST = withApiKeyOrDevAccessToken(withAppValidate(withTicketValidate(postHandler)));

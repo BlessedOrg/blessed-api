@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { StatusCodes } from "http-status-codes";
 import { contractArtifacts, getExplorerUrl, writeContract } from "@/lib/viem";
-import { smartContractModel } from "@/models";
 import z from "zod";
 import { createMissingAccounts } from "@/lib/auth/accounts";
 import renderTicketReceiverEmail from "@/lib/emails/templates/TicketReceiverEmail";
@@ -9,6 +8,7 @@ import { sendBatchEmails } from "@/lib/emails/sendBatch";
 import { parseEventLogs } from "viem";
 import { withApiKeyOrDevAccessToken } from "@/app/middleware/withApiKeyOrDevAccessToken";
 import { withAppValidate } from "@/app/middleware/withAppValidate";
+import { withTicketValidate } from "@/app/middleware/withTicketValidate";
 
 const DistributeSchema = z.object({
   distributions: z.array(
@@ -19,29 +19,14 @@ const DistributeSchema = z.object({
   )
 });
 
-async function postHandler(req: NextRequestWithApiKeyOrDevAccessToken & NextRequestWithAppValidate, { params: { id } }) {
-  const { appId, appSlug, appName, appImageUrl } = req;
+async function postHandler(req: NextRequestWithApiKeyOrDevAccessToken & NextRequestWithAppValidate & NextRequestWithTicketValidate) {
+  const { appId, appSlug, appName, appImageUrl, ticketId, ticketContractAddress } = req;
   try {
     const validBody = DistributeSchema.safeParse(await req.json());
     if (!validBody.success) {
       return NextResponse.json(
         { error: `Validation failed: ${validBody.error}` },
         { status: StatusCodes.NOT_FOUND }
-      );
-    }
-
-    const smartContract = await smartContractModel.findUnique({
-      where: {
-        id,
-        developerId: req.developerId,
-        name: "tickets",
-        appId
-      }
-    });
-    if (!smartContract) {
-      return NextResponse.json(
-        { error: `Wrong parameters. Smart contract tickets from Developer ${req.developerId} not found.` },
-        { status: StatusCodes.BAD_REQUEST }
       );
     }
 
@@ -62,7 +47,7 @@ async function postHandler(req: NextRequestWithApiKeyOrDevAccessToken & NextRequ
     }).filter((item) => item !== null);
 
     const result = await writeContract(
-      smartContract.address,
+      ticketContractAddress,
       "distribute",
       [distribution.map(dist => [dist.walletAddr, dist.amount])],
       contractArtifacts["tickets"].abi
@@ -88,7 +73,7 @@ async function postHandler(req: NextRequestWithApiKeyOrDevAccessToken & NextRequ
     const emailsToSend = await Promise.all(
       distribution.map(async (dist: any) => {
         const ticketUrls = dist.tokenIds.map((tokenId) =>
-          `https://blessed.fan/show-ticket?app=${appSlug}&contractId=${smartContract.id}&tokenId=${tokenId}&userId=${dist.userId}`
+          `https://blessed.fan/show-ticket?app=${appSlug}&contractId=${ticketId}&tokenId=${tokenId}&userId=${dist.userId}`
         );
         return {
           recipientEmail: dist.email,
@@ -124,4 +109,4 @@ async function postHandler(req: NextRequestWithApiKeyOrDevAccessToken & NextRequ
   }
 }
 export const maxDuration = 300;
-export const POST = withApiKeyOrDevAccessToken(withAppValidate(postHandler));
+export const POST = withApiKeyOrDevAccessToken(withAppValidate(withTicketValidate(postHandler)));
