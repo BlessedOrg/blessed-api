@@ -16,8 +16,8 @@ async function postHandler(req: NextRequestWithApiKeyOrDevAccessToken, { params:
     const validParam = EmailOwnerSchema.safeParse({ email });
     if (!validParam.success) {
       return NextResponse.json(
-        { error: `Validation failed: ${validParam.error}` },
-        { status: StatusCodes.NOT_FOUND }
+        { error: "Validation failed", reason: validParam.error.issues },
+        { status: StatusCodes.BAD_REQUEST }
       );
     }
 
