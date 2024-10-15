@@ -2,24 +2,18 @@ import { NextResponse } from "next/server";
 import { StatusCodes } from "http-status-codes";
 import { smartContractModel } from "@/models";
 import z from "zod";
-import { getAppIdBySlug } from "@/lib/queries";
 import { deployContract, getExplorerUrl } from "@/lib/viem";
 import { withApiKeyOrDevAccessToken } from "@/app/middleware/withApiKeyOrDevAccessToken";
 import { uploadMetadata } from "@/lib/irys";
+import { withAppParam } from "@/app/middleware/withAppParam";
 
 const EntranceSchema = z.object({
   ticketAddress: z.string().min(1, "Ticket address is required")
 });
 
-async function postHandler(req: NextRequestWithApiKeyOrDevAccessToken, { params: { appSlug } }) {
+async function postHandler(req: NextRequestWithApiKeyOrDevAccessToken & NextRequestWithAppParam) {
+  const { appId, appOwnerWalletAddress } = req;
   try {
-    const app = await getAppIdBySlug(appSlug);
-    if (!app) {
-      return NextResponse.json(
-        { error: `App not found` },
-        { status: StatusCodes.NOT_FOUND }
-      );
-    }
     const validBody = EntranceSchema.safeParse(await req.json());
     if (!validBody.success) {
       return NextResponse.json(
@@ -38,7 +32,7 @@ async function postHandler(req: NextRequestWithApiKeyOrDevAccessToken, { params:
     const contractName = "entrance";
     const args = {
       ticketAddress: validBody.data.ticketAddress,
-      owner: app.DeveloperAccount.walletAddress
+      owner: appOwnerWalletAddress
     };
 
     const contract = await deployContract(contractName, Object.values(args));
@@ -46,7 +40,7 @@ async function postHandler(req: NextRequestWithApiKeyOrDevAccessToken, { params:
 
     const maxId = await smartContractModel.aggregate({
       where: {
-        appId: app.id,
+        appId,
         developerId: req.developerId,
         name: contractName
       },
@@ -63,7 +57,7 @@ async function postHandler(req: NextRequestWithApiKeyOrDevAccessToken, { params:
         name: contractName,
         developerId: req.developerId,
         version: nextId,
-        appId: app.id,
+        appId,
         metadataUrl,
         metadataPayload: {
           ...metadataPayload,
@@ -92,4 +86,4 @@ async function postHandler(req: NextRequestWithApiKeyOrDevAccessToken, { params:
   }
 }
 export const maxDuration = 300;
-export const POST = withApiKeyOrDevAccessToken(postHandler);
+export const POST = withApiKeyOrDevAccessToken(withAppParam(postHandler));

@@ -3,9 +3,9 @@ import { StatusCodes } from "http-status-codes";
 import { smartContractModel } from "@/models";
 import z from "zod";
 import { uploadMetadata } from "@/lib/irys";
-import { getAppIdBySlug } from "@/lib/queries";
 import { account, deployContract, getExplorerUrl } from "@/lib/viem";
 import { withApiKeyOrDevAccessToken } from "@/app/middleware/withApiKeyOrDevAccessToken";
+import { withAppParam } from "@/app/middleware/withAppParam";
 
 const TicketSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -20,15 +20,9 @@ const TicketSchema = z.object({
   path: ["initialSupply"]
 });
 
-async function postHandler(req: NextRequestWithApiKeyOrDevAccessToken, { params: { appSlug } }) {
+async function postHandler(req: NextRequestWithApiKeyOrDevAccessToken & NextRequestWithAppParam) {
+  const { appId } = req;
   try {
-    const app = await getAppIdBySlug(appSlug);
-    if (!app) {
-      return NextResponse.json(
-        { error: `App not found` },
-        { status: StatusCodes.NOT_FOUND }
-      );
-    }
     const validBody = TicketSchema.safeParse(await req.json());
     if (!validBody.success) {
       return NextResponse.json(
@@ -61,7 +55,7 @@ async function postHandler(req: NextRequestWithApiKeyOrDevAccessToken, { params:
 
     const maxId = await smartContractModel.aggregate({
       where: {
-        appId: app.id,
+        appId,
         developerId: req.developerId,
         name: contractName
       },
@@ -85,7 +79,7 @@ async function postHandler(req: NextRequestWithApiKeyOrDevAccessToken, { params:
           description: validBody.data.description,
           ...metadataImageUrl && { metadataImageUrl }
         },
-        appId: app.id
+        appId
       }
     });
 
@@ -109,4 +103,4 @@ async function postHandler(req: NextRequestWithApiKeyOrDevAccessToken, { params:
   }
 }
 export const maxDuration = 300;
-export const POST = withApiKeyOrDevAccessToken(postHandler);
+export const POST = withApiKeyOrDevAccessToken(withAppParam(postHandler));

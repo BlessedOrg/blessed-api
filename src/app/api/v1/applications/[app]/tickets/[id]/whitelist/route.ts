@@ -2,17 +2,18 @@ import { NextResponse } from "next/server";
 import { StatusCodes } from "http-status-codes";
 import { contractArtifacts, getExplorerUrl, writeContract } from "@/lib/viem";
 import { smartContractModel } from "@/models";
-import { getAppIdBySlug } from "@/lib/queries";
 import z from "zod";
 import { createMissingAccounts } from "@/lib/auth/accounts";
 import { withApiKeyOrDevAccessToken } from "@/app/middleware/withApiKeyOrDevAccessToken";
+import { withAppParam } from "@/app/middleware/withAppParam";
 
 const WhitelistSchema = z.object({
   addEmails: z.array(z.string().email()).min(1),
   removeEmails: z.array(z.string().email()).optional()
 });
 
-async function postHandler(req: NextRequestWithApiKeyOrDevAccessToken, { params: { appSlug, id } }) {
+async function postHandler(req: NextRequestWithApiKeyOrDevAccessToken & NextRequestWithAppParam, { params: { id } }) {
+  const { appId } = req;
   try {
     const validBody = WhitelistSchema.safeParse(await req.json());
     if (!validBody.success) {
@@ -22,20 +23,12 @@ async function postHandler(req: NextRequestWithApiKeyOrDevAccessToken, { params:
       );
     }
 
-    const app = await getAppIdBySlug(appSlug);
-    if (!app) {
-      return NextResponse.json(
-        { error: `App not found` },
-        { status: StatusCodes.NOT_FOUND }
-      );
-    }
-
     const smartContract = await smartContractModel.findUnique({
       where: {
         id,
         developerId: req.developerId,
         name: "tickets",
-        appId: app.id
+        appId
       }
     });
     if (!smartContract) {
@@ -46,7 +39,7 @@ async function postHandler(req: NextRequestWithApiKeyOrDevAccessToken, { params:
     }
 
     const allEmails = [...validBody.data.addEmails, ...(validBody.data.removeEmails || [])];
-    const { users } = await createMissingAccounts(allEmails, app.id);
+    const { users } = await createMissingAccounts(allEmails, appId);
     const emailToWalletMap = new Map(users.map(account => [account.email, account.walletAddress]));
 
     const whitelistUpdates = [
@@ -87,4 +80,4 @@ async function postHandler(req: NextRequestWithApiKeyOrDevAccessToken, { params:
   }
 }
 export const maxDuration = 300;
-export const POST = withApiKeyOrDevAccessToken(postHandler);
+export const POST = withApiKeyOrDevAccessToken(withAppParam(postHandler));

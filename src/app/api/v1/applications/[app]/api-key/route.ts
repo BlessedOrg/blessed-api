@@ -4,21 +4,17 @@ import jwt from "jsonwebtoken";
 import { withDevAccessToken } from "@/app/middleware/withDevAccessToken";
 import { apiTokenModel } from "@/models";
 import { createVaultApiKeyItem } from "@/lib/1pwd-vault";
+import { withAppParam } from "@/app/middleware/withAppParam";
 
 export const dynamic = "force-dynamic";
 
-async function postHandler(req: NextRequestWithDevAccessToken, { params: { appSlug } }) {
+async function postHandler(req: NextRequestWithDevAccessToken & NextRequestWithAppParam) {
+  const { appId, appSlug } = req;
   try {
-    if (!appSlug) {
-      return NextResponse.json({ error: "appId query param is required" }, { status: StatusCodes.BAD_REQUEST });
-    }
-
     const apiTokenRecord = await apiTokenModel.create({
       data: {
         App: {
-          connect: {
-            slug: appSlug
-          }
+          connect: { id: appId }
         },
         apiTokenVaultKey: ""
       }
@@ -49,4 +45,4 @@ async function postHandler(req: NextRequestWithDevAccessToken, { params: { appSl
   }
 }
 
-export const POST = withDevAccessToken(postHandler);
+export const POST = withDevAccessToken(withAppParam(postHandler));

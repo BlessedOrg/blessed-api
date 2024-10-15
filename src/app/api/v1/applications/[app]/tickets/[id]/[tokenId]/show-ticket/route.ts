@@ -2,23 +2,16 @@ import { NextResponse } from "next/server";
 import { StatusCodes } from "http-status-codes";
 import { contractArtifacts, readContract } from "@/lib/viem";
 import { smartContractModel, userModel } from "@/models";
-import { getAppIdBySlug } from "@/lib/queries";
+import { withAppParam } from "@/app/middleware/withAppParam";
 
-async function getHandler(req: NextRequestWithUserAccessToken, { params: { appSlug, id, tokenId } }) {
+async function getHandler(req: NextRequestWithUserAccessToken & NextRequestWithAppParam, { params: { id, tokenId } }) {
+  const { appId, appName } = req;
   try {
-    const app = await getAppIdBySlug(appSlug);
-    if (!app) {
-      return NextResponse.json(
-        { error: `App not found` },
-        { status: StatusCodes.NOT_FOUND }
-      );
-    }
-
     const smartContract = await smartContractModel.findUnique({
       where: {
         id,
         name: "tickets",
-        appId: app.id
+        appId
       }
     });
     if (!smartContract) {
@@ -61,7 +54,7 @@ async function getHandler(req: NextRequestWithUserAccessToken, { params: { appSl
 
     return NextResponse.json(
       {
-        eventName: app.name,
+        eventName: appName,
         ticketId: tokenId,
         userWalletAddress: user.walletAddress,
         userEmail: user.email,
@@ -79,4 +72,4 @@ async function getHandler(req: NextRequestWithUserAccessToken, { params: { appSl
   }
 }
 export const maxDuration = 300;
-export const GET = (getHandler);
+export const GET = (withAppParam(getHandler));

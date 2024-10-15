@@ -2,13 +2,13 @@ import { NextResponse } from "next/server";
 import { StatusCodes } from "http-status-codes";
 import { contractArtifacts, getExplorerUrl, writeContract } from "@/lib/viem";
 import { smartContractModel } from "@/models";
-import { getAppIdBySlug } from "@/lib/queries";
 import z from "zod";
 import { createMissingAccounts } from "@/lib/auth/accounts";
 import renderTicketReceiverEmail from "@/lib/emails/templates/TicketReceiverEmail";
 import { sendBatchEmails } from "@/lib/emails/sendBatch";
 import { parseEventLogs } from "viem";
 import { withApiKeyOrDevAccessToken } from "@/app/middleware/withApiKeyOrDevAccessToken";
+import { withAppParam } from "@/app/middleware/withAppParam";
 
 const DistributeSchema = z.object({
   distributions: z.array(
@@ -19,7 +19,8 @@ const DistributeSchema = z.object({
   )
 });
 
-async function postHandler(req: NextRequestWithApiKeyOrDevAccessToken, { params: { appSlug, id } }) {
+async function postHandler(req: NextRequestWithApiKeyOrDevAccessToken & NextRequestWithAppParam, { params: { id } }) {
+  const { appId, appSlug, appName, appImageUrl } = req;
   try {
     const validBody = DistributeSchema.safeParse(await req.json());
     if (!validBody.success) {
@@ -29,20 +30,12 @@ async function postHandler(req: NextRequestWithApiKeyOrDevAccessToken, { params:
       );
     }
 
-    const app = await getAppIdBySlug(appSlug);
-    if (!app) {
-      return NextResponse.json(
-        { error: `App not found` },
-        { status: StatusCodes.NOT_FOUND }
-      );
-    }
-
     const smartContract = await smartContractModel.findUnique({
       where: {
         id,
         developerId: req.developerId,
         name: "tickets",
-        appId: app.id
+        appId
       }
     });
     if (!smartContract) {
@@ -52,7 +45,7 @@ async function postHandler(req: NextRequestWithApiKeyOrDevAccessToken, { params:
       );
     }
 
-    const { users } = await createMissingAccounts(validBody.data.distributions.map(distribution => distribution.email), app.id);
+    const { users } = await createMissingAccounts(validBody.data.distributions.map(distribution => distribution.email), appId);
     const emailToWalletMap = new Map(users.map(account => [account.email, { walletAddress: account.walletAddress, id: account.id }]));
     const distribution = validBody.data.distributions.map(distribution => {
       const mappedUser = emailToWalletMap.get(distribution.email);
@@ -95,15 +88,15 @@ async function postHandler(req: NextRequestWithApiKeyOrDevAccessToken, { params:
     const emailsToSend = await Promise.all(
       distribution.map(async (dist: any) => {
         const ticketUrls = dist.tokenIds.map((tokenId) =>
-          `https://blessed.fan/show-ticket?app=${app.slug}&contractId=${smartContract.id}&tokenId=${tokenId}&userId=${dist.userId}`
+          `https://blessed.fan/show-ticket?app=${appSlug}&contractId=${smartContract.id}&tokenId=${tokenId}&userId=${dist.userId}`
         );
         return {
           recipientEmail: dist.email,
-          subject: `Your ticket${dist.tokenIds.length > 0 ? "s" : ""} to ${app.name}!`,
+          subject: `Your ticket${dist.tokenIds.length > 0 ? "s" : ""} to ${appName}!`,
           html: await renderTicketReceiverEmail({
-            eventName: app.name,
+            eventName: appName,
             ticketUrls,
-            imageUrl: app?.imageUrl ?? null,
+            imageUrl: appImageUrl ?? null,
             tokenIds: dist.tokenIds
           })
         };
@@ -131,4 +124,4 @@ async function postHandler(req: NextRequestWithApiKeyOrDevAccessToken, { params:
   }
 }
 export const maxDuration = 300;
-export const POST = withApiKeyOrDevAccessToken(postHandler);
+export const POST = withApiKeyOrDevAccessToken(withAppParam(postHandler));
