@@ -2,12 +2,13 @@ import { NextResponse } from "next/server";
 import { StatusCodes } from "http-status-codes";
 import { userModel } from "@/models";
 import { createUserAccount, refreshAccountSession } from "@/lib/auth/accounts";
-import { getAppIdBySlug } from "@/lib/queries";
 import { verifyEmailVerificationCode } from "@/lib/auth/emailVerificationCode";
 import { withApiKey } from "@/app/middleware/withApiKey";
 import { OtpCodeSchema } from "@/lib/zodSchema";
+import { withAppParam } from "@/app/middleware/withAppParam";
 
-async function postHandler(req: Request, { params: { appSlug } }) {
+async function postHandler(req: NextRequestWithAppParam) {
+  const { appId } = req;
   const validBody = OtpCodeSchema.safeParse(await req.json());
   if (!validBody.success) {
     return NextResponse.json(
@@ -19,7 +20,6 @@ async function postHandler(req: Request, { params: { appSlug } }) {
   if (!code) {
     return NextResponse.json({ error: "Invalid code format" }, { status: StatusCodes.BAD_REQUEST } as any);
   }
-  const { id: appId } = await getAppIdBySlug(appSlug);
   const verifyEmailResult = await verifyEmailVerificationCode(code);
 
   const { accepted, email } = verifyEmailResult;
@@ -51,4 +51,4 @@ async function postHandler(req: Request, { params: { appSlug } }) {
     }
   }
 }
-export const POST = withApiKey(postHandler);
+export const POST = withApiKey(withAppParam(postHandler));
