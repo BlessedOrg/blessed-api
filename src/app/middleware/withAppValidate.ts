@@ -2,7 +2,7 @@ import { StatusCodes } from "http-status-codes";
 import { NextRequest, NextResponse } from "next/server";
 import { getAppBySlugOrId } from "@/lib/applications/getAppBySlugOrId";
 
-export function withAppParam(handler: (req: NextRequest, context: any) => Promise<NextResponse> | NextResponse) {
+export function withAppValidate(handler: (req: NextRequest, context: any) => Promise<NextResponse> | NextResponse) {
   return async (request: NextRequest, context) => {
     try {
       const appIdentifier = request.nextUrl.pathname.split("/")[4]; // Index 4 for 'applications/:appId'
@@ -24,7 +24,7 @@ export function withAppParam(handler: (req: NextRequest, context: any) => Promis
 
       return handler(request, context);
     } catch (error: any) {
-      console.log("🚨 withAppParam:", error.message);
+      console.log("🚨 withAppValidate:", error.message);
       return NextResponse.json({ error: error.message }, { status: StatusCodes.UNAUTHORIZED });
     }
   };

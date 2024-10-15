@@ -4,13 +4,13 @@ import { contractArtifacts, getExplorerUrl, writeContract } from "@/lib/viem";
 import { smartContractModel } from "@/models";
 import z from "zod";
 import { withApiKeyOrDevAccessToken } from "@/app/middleware/withApiKeyOrDevAccessToken";
-import { withAppParam } from "@/app/middleware/withAppParam";
+import { withAppValidate } from "@/app/middleware/withAppValidate";
 
 const DistributeSchema = z.object({
   additionalSupply: z.number().int().positive()
 });
 
-async function postHandler(req: NextRequestWithApiKeyOrDevAccessToken & NextRequestWithAppParam, { params: { id } }) {
+async function postHandler(req: NextRequestWithApiKeyOrDevAccessToken & NextRequestWithAppValidate, { params: { id } }) {
   const { appId } = req;
   try {
     const validBody = DistributeSchema.safeParse(await req.json());
@@ -62,4 +62,4 @@ async function postHandler(req: NextRequestWithApiKeyOrDevAccessToken & NextRequ
   }
 }
 export const maxDuration = 300;
-export const POST = withApiKeyOrDevAccessToken(withAppParam(postHandler));
+export const POST = withApiKeyOrDevAccessToken(withAppValidate(postHandler));

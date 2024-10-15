@@ -5,13 +5,13 @@ import z from "zod";
 import { deployContract, getExplorerUrl } from "@/lib/viem";
 import { withApiKeyOrDevAccessToken } from "@/app/middleware/withApiKeyOrDevAccessToken";
 import { uploadMetadata } from "@/lib/irys";
-import { withAppParam } from "@/app/middleware/withAppParam";
+import { withAppValidate } from "@/app/middleware/withAppValidate";
 
 const EntranceSchema = z.object({
   ticketAddress: z.string().min(1, "Ticket address is required")
 });
 
-async function postHandler(req: NextRequestWithApiKeyOrDevAccessToken & NextRequestWithAppParam) {
+async function postHandler(req: NextRequestWithApiKeyOrDevAccessToken & NextRequestWithAppValidate) {
   const { appId, appOwnerWalletAddress } = req;
   try {
     const validBody = EntranceSchema.safeParse(await req.json());
@@ -86,4 +86,4 @@ async function postHandler(req: NextRequestWithApiKeyOrDevAccessToken & NextRequ
   }
 }
 export const maxDuration = 300;
-export const POST = withApiKeyOrDevAccessToken(withAppParam(postHandler));
+export const POST = withApiKeyOrDevAccessToken(withAppValidate(postHandler));

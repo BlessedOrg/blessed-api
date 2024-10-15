@@ -2,9 +2,9 @@ import { NextResponse } from "next/server";
 import { StatusCodes } from "http-status-codes";
 import { contractArtifacts, readContract } from "@/lib/viem";
 import { smartContractModel, userModel } from "@/models";
-import { withAppParam } from "@/app/middleware/withAppParam";
+import { withAppValidate } from "@/app/middleware/withAppValidate";
 
-async function getHandler(req: NextRequestWithUserAccessToken & NextRequestWithAppParam, { params: { id, tokenId } }) {
+async function getHandler(req: NextRequestWithUserAccessToken & NextRequestWithAppValidate, { params: { id, tokenId } }) {
   const { appId, appName } = req;
   try {
     const smartContract = await smartContractModel.findUnique({
@@ -72,4 +72,4 @@ async function getHandler(req: NextRequestWithUserAccessToken & NextRequestWithA
   }
 }
 export const maxDuration = 300;
-export const GET = (withAppParam(getHandler));
+export const GET = (withAppValidate(getHandler));

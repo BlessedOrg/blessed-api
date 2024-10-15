@@ -5,7 +5,7 @@ import z from "zod";
 import { uploadMetadata } from "@/lib/irys";
 import { account, deployContract, getExplorerUrl } from "@/lib/viem";
 import { withApiKeyOrDevAccessToken } from "@/app/middleware/withApiKeyOrDevAccessToken";
-import { withAppParam } from "@/app/middleware/withAppParam";
+import { withAppValidate } from "@/app/middleware/withAppValidate";
 
 const TicketSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -20,7 +20,7 @@ const TicketSchema = z.object({
   path: ["initialSupply"]
 });
 
-async function postHandler(req: NextRequestWithApiKeyOrDevAccessToken & NextRequestWithAppParam) {
+async function postHandler(req: NextRequestWithApiKeyOrDevAccessToken & NextRequestWithAppValidate) {
   const { appId } = req;
   try {
     const validBody = TicketSchema.safeParse(await req.json());
@@ -103,4 +103,4 @@ async function postHandler(req: NextRequestWithApiKeyOrDevAccessToken & NextRequ
   }
 }
 export const maxDuration = 300;
-export const POST = withApiKeyOrDevAccessToken(withAppParam(postHandler));
+export const POST = withApiKeyOrDevAccessToken(withAppValidate(postHandler));

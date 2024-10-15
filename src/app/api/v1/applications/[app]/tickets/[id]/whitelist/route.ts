@@ -5,14 +5,14 @@ import { smartContractModel } from "@/models";
 import z from "zod";
 import { createMissingAccounts } from "@/lib/auth/accounts";
 import { withApiKeyOrDevAccessToken } from "@/app/middleware/withApiKeyOrDevAccessToken";
-import { withAppParam } from "@/app/middleware/withAppParam";
+import { withAppValidate } from "@/app/middleware/withAppValidate";
 
 const WhitelistSchema = z.object({
   addEmails: z.array(z.string().email()).min(1),
   removeEmails: z.array(z.string().email()).optional()
 });
 
-async function postHandler(req: NextRequestWithApiKeyOrDevAccessToken & NextRequestWithAppParam, { params: { id } }) {
+async function postHandler(req: NextRequestWithApiKeyOrDevAccessToken & NextRequestWithAppValidate, { params: { id } }) {
   const { appId } = req;
   try {
     const validBody = WhitelistSchema.safeParse(await req.json());
@@ -80,4 +80,4 @@ async function postHandler(req: NextRequestWithApiKeyOrDevAccessToken & NextRequ
   }
 }
 export const maxDuration = 300;
-export const POST = withApiKeyOrDevAccessToken(withAppParam(postHandler));
+export const POST = withApiKeyOrDevAccessToken(withAppValidate(postHandler));

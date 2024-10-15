@@ -4,11 +4,11 @@ import jwt from "jsonwebtoken";
 import { withDevAccessToken } from "@/app/middleware/withDevAccessToken";
 import { apiTokenModel } from "@/models";
 import { createVaultApiKeyItem } from "@/lib/1pwd-vault";
-import { withAppParam } from "@/app/middleware/withAppParam";
+import { withAppValidate } from "@/app/middleware/withAppValidate";
 
 export const dynamic = "force-dynamic";
 
-async function postHandler(req: NextRequestWithDevAccessToken & NextRequestWithAppParam) {
+async function postHandler(req: NextRequestWithDevAccessToken & NextRequestWithAppValidate) {
   const { appId, appSlug } = req;
   try {
     const apiTokenRecord = await apiTokenModel.create({
@@ -45,4 +45,4 @@ async function postHandler(req: NextRequestWithDevAccessToken & NextRequestWithA
   }
 }
 
-export const POST = withDevAccessToken(withAppParam(postHandler));
+export const POST = withDevAccessToken(withAppValidate(postHandler));

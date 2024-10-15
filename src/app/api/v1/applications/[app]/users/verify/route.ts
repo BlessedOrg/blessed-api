@@ -5,9 +5,9 @@ import { createUserAccount, refreshAccountSession } from "@/lib/auth/accounts";
 import { verifyEmailVerificationCode } from "@/lib/auth/emailVerificationCode";
 import { withApiKey } from "@/app/middleware/withApiKey";
 import { OtpCodeSchema } from "@/lib/zodSchema";
-import { withAppParam } from "@/app/middleware/withAppParam";
+import { withAppValidate } from "@/app/middleware/withAppValidate";
 
-async function postHandler(req: NextRequestWithAppParam) {
+async function postHandler(req: NextRequestWithAppValidate) {
   const { appId } = req;
   const validBody = OtpCodeSchema.safeParse(await req.json());
   if (!validBody.success) {
@@ -51,4 +51,4 @@ async function postHandler(req: NextRequestWithAppParam) {
     }
   }
 }
-export const POST = withApiKey(withAppParam(postHandler));
+export const POST = withApiKey(withAppValidate(postHandler));

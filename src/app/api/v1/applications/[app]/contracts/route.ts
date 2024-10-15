@@ -2,9 +2,9 @@ import { NextResponse } from "next/server";
 import { StatusCodes } from "http-status-codes";
 import { smartContractModel } from "@/models";
 import { withApiKeyOrDevAccessToken } from "@/app/middleware/withApiKeyOrDevAccessToken";
-import { withAppParam } from "@/app/middleware/withAppParam";
+import { withAppValidate } from "@/app/middleware/withAppValidate";
 
-async function getHandler(req: NextRequestWithApiKeyOrDevAccessToken & NextRequestWithAppParam) {
+async function getHandler(req: NextRequestWithApiKeyOrDevAccessToken & NextRequestWithAppValidate) {
   const { appId } = req;
 
   const smartContracts = await smartContractModel.findMany({
@@ -15,4 +15,4 @@ async function getHandler(req: NextRequestWithApiKeyOrDevAccessToken & NextReque
   return NextResponse.json(smartContracts, { status: StatusCodes.OK });
 }
 
-export const GET = withApiKeyOrDevAccessToken(withAppParam(getHandler));
+export const GET = withApiKeyOrDevAccessToken(withAppValidate(getHandler));

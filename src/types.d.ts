@@ -34,7 +34,7 @@ declare global {
   }
 
   // Requests
-  type NextRequestWithAppParam = NextRequest & AppParam;
+  type NextRequestWithAppValidate = NextRequest & AppParam;
   type NextRequestWithDevAccessToken = NextRequest & DeveloperAccessTokenJWT;
   type NextRequestWithUserAccessToken = NextRequest & UserAccessTokenJWT
   type NextRequestWithApiKey = NextRequest & ApiTokenJWT

@@ -4,9 +4,9 @@ import { createMissingAccounts } from "@/lib/auth/accounts";
 import { userModel } from "@/models";
 import { withApiKeyOrDevAccessToken } from "@/app/middleware/withApiKeyOrDevAccessToken";
 import z from "zod";
-import { withAppParam } from "@/app/middleware/withAppParam";
+import { withAppValidate } from "@/app/middleware/withAppValidate";
 
-async function getHandler(req: NextRequestWithApiKeyOrDevAccessToken & NextRequestWithAppParam) {
+async function getHandler(req: NextRequestWithApiKeyOrDevAccessToken & NextRequestWithAppValidate) {
   const { appId } = req;
 
   const users = await userModel.findMany({
@@ -21,12 +21,12 @@ async function getHandler(req: NextRequestWithApiKeyOrDevAccessToken & NextReque
   return NextResponse.json(users, { status: StatusCodes.OK });
 }
 
-export const GET = withApiKeyOrDevAccessToken(withAppParam(getHandler));
+export const GET = withApiKeyOrDevAccessToken(withAppValidate(getHandler));
 
 const UsersSchema = z.object({
   users: z.array(z.object({ email: z.string().email() })).nonempty()
 });
-async function postHandler(req: NextRequestWithApiKeyOrDevAccessToken & NextRequestWithAppParam) {
+async function postHandler(req: NextRequestWithApiKeyOrDevAccessToken & NextRequestWithAppValidate) {
   const { appId } = req;
   const validBody = UsersSchema.safeParse(await req.json());
   if (!validBody.success) {
@@ -41,4 +41,4 @@ async function postHandler(req: NextRequestWithApiKeyOrDevAccessToken & NextRequ
   return NextResponse.json(createdUsers, { status: StatusCodes.OK });
 }
 
-export const POST = withApiKeyOrDevAccessToken(withAppParam(postHandler));
+export const POST = withApiKeyOrDevAccessToken(withAppValidate(postHandler));

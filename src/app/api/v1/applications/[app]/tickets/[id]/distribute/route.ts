@@ -8,7 +8,7 @@ import renderTicketReceiverEmail from "@/lib/emails/templates/TicketReceiverEmai
 import { sendBatchEmails } from "@/lib/emails/sendBatch";
 import { parseEventLogs } from "viem";
 import { withApiKeyOrDevAccessToken } from "@/app/middleware/withApiKeyOrDevAccessToken";
-import { withAppParam } from "@/app/middleware/withAppParam";
+import { withAppValidate } from "@/app/middleware/withAppValidate";
 
 const DistributeSchema = z.object({
   distributions: z.array(
@@ -19,7 +19,7 @@ const DistributeSchema = z.object({
   )
 });
 
-async function postHandler(req: NextRequestWithApiKeyOrDevAccessToken & NextRequestWithAppParam, { params: { id } }) {
+async function postHandler(req: NextRequestWithApiKeyOrDevAccessToken & NextRequestWithAppValidate, { params: { id } }) {
   const { appId, appSlug, appName, appImageUrl } = req;
   try {
     const validBody = DistributeSchema.safeParse(await req.json());
@@ -124,4 +124,4 @@ async function postHandler(req: NextRequestWithApiKeyOrDevAccessToken & NextRequ
   }
 }
 export const maxDuration = 300;
-export const POST = withApiKeyOrDevAccessToken(withAppParam(postHandler));
+export const POST = withApiKeyOrDevAccessToken(withAppValidate(postHandler));
