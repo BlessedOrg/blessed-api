@@ -8,12 +8,12 @@ export const rpcUrl = process.env.NEXT_PUBLIC_JSON_RPC_URL || "define RPC URL en
 export const chainId = Number(process.env.NEXT_PUBLIC_CHAIN_ID) || 84532;
 export const ethNativeCurrency = {
   decimals: 18,
-  name: "TIA",
-  symbol: "TIA"
+  name: "ETH",
+  symbol: "ETH"
 };
 export const baseSepolia = {
   id: chainId,
-  name: "Forma Sketchpad",
+  name: "BaseSepolia",
   nativeCurrency: ethNativeCurrency,
   rpcUrls: {
     default: {
@@ -24,7 +24,7 @@ export const baseSepolia = {
   blockExplorers: {
     default: {
       name: "Explorer",
-      url: "https://explorer.sketchpad-1.forma.art"
+      url: "https://sepolia.basescan.org"
     }
   }
 };

@@ -1,4 +1,4 @@
-import { NextRequest } from "next/server";
+import { NextMiddleware, NextRequest } from "next/server";
 
 export {};
 declare global {
@@ -24,10 +24,27 @@ declare global {
     capsuleTokenVaultKey: string,
   }
 
+  type AppValidate = {
+    appId: string
+    appSlug: string
+    appName: string
+    appImageUrl: string
+    appOwnerId: string
+    appOwnerWalletAddress: string
+  }
+
+  type TicketValidate = {
+    ticketId: string;
+    ticketContractAddress: string
+  }
+
   // Requests
+  type NextRequestWithTicketValidate = NextRequest & TicketValidate;
+  type NextRequestWithAppValidate = NextRequest & AppValidate;
   type NextRequestWithDevAccessToken = NextRequest & DeveloperAccessTokenJWT;
   type NextRequestWithUserAccessToken = NextRequest & UserAccessTokenJWT
   type NextRequestWithApiKey = NextRequest & ApiTokenJWT
   type NextRequestWithApiKeyOrDevAccessToken = NextRequest & NextRequestWithApiKey | NextRequestWithDevAccessToken;
   type NextRequestWithApiKeyAndUserAccessToken = NextRequest & NextRequestWithApiKey & NextRequestWithUserAccessToken;
+  type MiddlewareFactory = (middleware: NextMiddleware) => NextMiddleware;
 }

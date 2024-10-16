@@ -25,6 +25,7 @@ export async function createVaultCapsuleKeyItem(
   email: string,
   type: AccountType
 ) {
+  const isBetaEnv = process.env.NODE_ENV !== "production";
   const vaultId = vaultCapsuleTokensId;
   try {
     const createdItem = await fetch(
@@ -38,7 +39,7 @@ export async function createVaultCapsuleKeyItem(
           },
           title: `Capsule Token for ${type}: ${shortenWalletAddress(address)}`,
           category: "LOGIN",
-          tags: [type, "capsuleWallet"],
+          tags: [type, "capsuleWallet", isBetaEnv ? "BETA" : "Production"],
           fields: [
             {
               id: "email",

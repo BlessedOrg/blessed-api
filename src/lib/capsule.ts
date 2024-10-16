@@ -10,7 +10,7 @@ import { http } from "viem";
 
 export const createCapsuleAccount = async (accountId: string, email: string, type: AccountType) => {
   const capsule = new Capsule(Environment.BETA, process.env.CAPSULE_API_KEY!);
-
+  const isBetaEnv = process.env.NODE_ENV !== "production";
   const formattedEmail = formatEmailToAvoidCapsuleConflict(email, accountId);
   const hasWallet = await capsule.hasPregenWallet(accountId);
   const walletType = "EVM" as WalletType;
@@ -25,7 +25,7 @@ export const createCapsuleAccount = async (accountId: string, email: string, typ
       const vaultItem = await createVaultCapsuleKeyItem(userShare, address, email, type);
       const data = {
         capsuleTokenVaultKey: vaultItem.id,
-        walletAddress: address
+        walletAddress: address?.toLowerCase()
       };
       return { data, status: StatusCodes.CREATED };
     } catch (e) {

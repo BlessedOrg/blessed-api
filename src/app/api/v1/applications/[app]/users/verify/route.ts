@@ -1,11 +1,14 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { StatusCodes } from "http-status-codes";
-import { developerAccountModel } from "@/models";
-import { createDeveloperAccount, refreshAccountSession } from "@/lib/auth/accounts";
+import { userModel } from "@/models";
+import { createUserAccount, refreshAccountSession } from "@/lib/auth/accounts";
 import { verifyEmailVerificationCode } from "@/lib/auth/emailVerificationCode";
+import { withApiKey } from "@/app/middleware/withApiKey";
 import { OtpCodeSchema } from "@/lib/zodSchema";
+import { withAppValidate } from "@/app/middleware/withAppValidate";
 
-export async function POST(req: NextRequest) {
+async function postHandler(req: NextRequestWithAppValidate) {
+  const { appId } = req;
   const validBody = OtpCodeSchema.safeParse(await req.json());
   if (!validBody.success) {
     return NextResponse.json(
@@ -14,7 +17,9 @@ export async function POST(req: NextRequest) {
     );
   }
   const { code } = validBody.data;
-
+  if (!code) {
+    return NextResponse.json({ error: "Invalid code format" }, { status: StatusCodes.BAD_REQUEST } as any);
+  }
   const verifyEmailResult = await verifyEmailVerificationCode(code);
 
   const { accepted, email } = verifyEmailResult;
@@ -24,17 +29,16 @@ export async function POST(req: NextRequest) {
       { status: StatusCodes.BAD_REQUEST }
     );
   }
-  const developerExists = await developerAccountModel.findUnique({ where: { email } });
-  const isBetaEnv = req.nextUrl.hostname === "localhost";
-  if (!developerExists) {
-    const { data, status, error } = await createDeveloperAccount(email);
+  const userExists = await userModel.findUnique({ where: { email } });
+  if (!userExists) {
+    const { data, status, error } = await createUserAccount(email, appId);
     if (!!error) {
       return NextResponse.json({ error }, { status });
     }
     return NextResponse.json(data, { status });
   } else {
     if (accepted && email) {
-      const { data, error, status } = await refreshAccountSession(email, "developer");
+      const { data, error, status } = await refreshAccountSession(email, "user", appId);
       if (!!error) {
         return NextResponse.json({ error }, { status });
       }
@@ -47,3 +51,4 @@ export async function POST(req: NextRequest) {
     }
   }
 }
+export const POST = withApiKey(withAppValidate(postHandler));
