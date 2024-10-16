@@ -11,6 +11,7 @@ import { gaslessTransaction } from "@/lib/gelato";
 const EntrySchema = z.object({
   ticketId: z.number().int().positive("Ticket id must be a positive integer")
 });
+
 async function postRequest(req: NextRequestWithApiKeyAndUserAccessToken, { params: { id } }) {
   const validBody = EntrySchema.safeParse(await req.json());
   if (!validBody.success) {
@@ -28,7 +29,12 @@ async function postRequest(req: NextRequestWithApiKeyAndUserAccessToken, { param
       );
     }
     const entranceContract = entranceRecord.address as `0x${string}`;
-    const isAlreadyEntered = await readContract(entranceContract, contractArtifacts["entrance"].abi, "hasEntry", [req.walletAddress]);
+    const isAlreadyEntered = await readContract(
+      entranceContract,
+      contractArtifacts["entrance"].abi,
+      "hasEntry",
+      [req.walletAddress]
+    );
     if (!isAlreadyEntered) {
       const data = encodeFunctionData({
         abi: contractArtifacts["entrance"].abi,
@@ -47,13 +53,20 @@ async function postRequest(req: NextRequestWithApiKeyAndUserAccessToken, { param
         const url = `https://relay.gelato.digital/tasks/status/${gaslessTxData?.taskId}`;
         const response = await fetch(url);
         const responseJson = await response.json();
-        return NextResponse.json({ message: "Success", taskId: gaslessTxData?.taskId, taskStatus: responseJson }, { status });
+        return NextResponse.json(
+          { message: "Success", taskId: gaslessTxData?.taskId, taskStatus: responseJson },
+          { status }
+        );
       }
-      return NextResponse.json({ error }, { status });
+      return NextResponse.json(
+        { error },
+        { status }
+      );
     } else {
-      return NextResponse.json({ message: "Already entered" }, {
-        status: StatusCodes.OK
-      });
+      return NextResponse.json(
+        { message: "Already entered" },
+        { status: StatusCodes.OK }
+      );
     }
   } catch (e) {
     console.error("Error keys:", Object.keys(e));
