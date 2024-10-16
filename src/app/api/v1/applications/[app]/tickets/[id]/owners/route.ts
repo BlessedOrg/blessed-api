@@ -21,7 +21,6 @@ async function getHandler(req: NextRequestWithApiKeyOrDevAccessToken & NextReque
           "getTicketHolders",
           [start, pageSize]
         );
-
         allHolders = allHolders.concat(holders);
         start += holders.length;
 
@@ -33,11 +32,10 @@ async function getHandler(req: NextRequestWithApiKeyOrDevAccessToken & NextReque
         break;
       }
     }
-
     const owners = await userModel.findMany({
       where: {
         walletAddress: {
-          in: allHolders
+          in: allHolders.map(a => a.toLowerCase())
         }
       },
       select: {
