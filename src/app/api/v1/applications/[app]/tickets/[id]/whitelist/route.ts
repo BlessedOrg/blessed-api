@@ -23,7 +23,7 @@ async function postHandler(req: NextRequestWithApiKeyOrDevAccessToken & NextRequ
       );
     }
     const allEmails = [...validBody.data.addEmails, ...(validBody.data.removeEmails || [])];
-    const { users } = await createMissingAccounts(allEmails, appId, req.nextUrl.hostname === "localhost");
+    const { users } = await createMissingAccounts(allEmails, appId);
     const emailToWalletMap = new Map(users.map(account => [account.email, account.walletAddress]));
 
     const whitelistUpdates = [

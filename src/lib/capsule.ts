@@ -8,9 +8,9 @@ import { createCapsuleAccount as createCapsuleViemAccount, createCapsuleViemClie
 import { activeChain, rpcUrl } from "@/lib/viem";
 import { http } from "viem";
 
-export const createCapsuleAccount = async (accountId: string, email: string, type: AccountType, isBetaEnv: boolean) => {
+export const createCapsuleAccount = async (accountId: string, email: string, type: AccountType) => {
   const capsule = new Capsule(Environment.BETA, process.env.CAPSULE_API_KEY!);
-
+  const isBetaEnv = process.env.NODE_ENV !== "production";
   const formattedEmail = formatEmailToAvoidCapsuleConflict(email, accountId);
   const hasWallet = await capsule.hasPregenWallet(accountId);
   const walletType = "EVM" as WalletType;
@@ -22,7 +22,7 @@ export const createCapsuleAccount = async (accountId: string, email: string, typ
         return { error: "Could not create a wallet, service temporarily not available.", status: StatusCodes.INTERNAL_SERVER_ERROR };
       }
       const userShare = capsule.getUserShare() as string;
-      const vaultItem = await createVaultCapsuleKeyItem(userShare, address, email, type, isBetaEnv);
+      const vaultItem = await createVaultCapsuleKeyItem(userShare, address, email, type);
       const data = {
         capsuleTokenVaultKey: vaultItem.id,
         walletAddress: address?.toLowerCase()

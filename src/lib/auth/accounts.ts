@@ -3,14 +3,14 @@ import { createOrUpdateSession } from "@/lib/auth/session";
 import { StatusCodes } from "http-status-codes";
 import { createCapsuleAccount } from "@/lib/capsule";
 
-export const createDeveloperAccount = async (email: string, isBetaEnv: boolean) => {
+export const createDeveloperAccount = async (email: string) => {
   try {
     const createdDeveloperAccount: any = await developerAccountModel.create({
       data: {
         email
       }
     });
-    const { data, error, status } = await createCapsuleAccount(createdDeveloperAccount.id, email, "developer", isBetaEnv);
+    const { data, error, status } = await createCapsuleAccount(createdDeveloperAccount.id, email, "developer");
     if (!!error) {
       await developerAccountModel.delete({ where: { id: createdDeveloperAccount.id } });
       return { error, status };
@@ -51,7 +51,7 @@ export const createDeveloperAccount = async (email: string, isBetaEnv: boolean) 
   }
 };
 
-export const createMissingAccounts = async (emails: string[], appId: string, isBetaEnv: boolean) => {
+export const createMissingAccounts = async (emails: string[], appId: string) => {
   try {
     const existingAccounts = await userModel.findMany({
       where: {
@@ -115,7 +115,7 @@ export const createMissingAccounts = async (emails: string[], appId: string, isB
     let capsuleAccounts = [];
     const accounts = result.newAccounts.map(acc => ({ accountId: acc.id, email: acc.email }));
     for (const account of accounts) {
-      const { data, error } = await createCapsuleAccount(account.accountId, account.email, "user", isBetaEnv);
+      const { data, error } = await createCapsuleAccount(account.accountId, account.email, "user");
       if (error) {
         console.log("‼️Error occurred while creating capsule account:", error);
         return;
@@ -170,14 +170,14 @@ export const createMissingAccounts = async (emails: string[], appId: string, isB
   }
 };
 
-export const createUserAccount = async (email: string, appId: string, isBetaEnv: boolean) => {
+export const createUserAccount = async (email: string, appId: string) => {
   try {
     const createdUserAccount: any = await userModel.create({
       data: {
         email
       }
     });
-    const { data, error, status } = await createCapsuleAccount(createdUserAccount.id, email, "user", isBetaEnv);
+    const { data, error, status } = await createCapsuleAccount(createdUserAccount.id, email, "user");
 
     if (!!error) {
       return { error, status };

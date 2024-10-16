@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
   const developerExists = await developerAccountModel.findUnique({ where: { email } });
   const isBetaEnv = req.nextUrl.hostname === "localhost";
   if (!developerExists) {
-    const { data, status, error } = await createDeveloperAccount(email, isBetaEnv);
+    const { data, status, error } = await createDeveloperAccount(email);
     if (!!error) {
       return NextResponse.json({ error }, { status });
     }

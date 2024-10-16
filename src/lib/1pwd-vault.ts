@@ -23,9 +23,9 @@ export async function createVaultCapsuleKeyItem(
   value: string,
   address: string,
   email: string,
-  type: AccountType,
-  isBetaEnv: boolean = false
+  type: AccountType
 ) {
+  const isBetaEnv = process.env.NODE_ENV !== "production";
   const vaultId = vaultCapsuleTokensId;
   try {
     const createdItem = await fetch(
