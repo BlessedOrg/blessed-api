@@ -8,8 +8,8 @@ export const rpcUrl = process.env.NEXT_PUBLIC_JSON_RPC_URL || "define RPC URL en
 export const chainId = Number(process.env.NEXT_PUBLIC_CHAIN_ID) || 84532;
 export const ethNativeCurrency = {
   decimals: 18,
-  name: "TIA",
-  symbol: "TIA"
+  name: "ETH",
+  symbol: "ETH"
 };
 export const baseSepolia = {
   id: chainId,

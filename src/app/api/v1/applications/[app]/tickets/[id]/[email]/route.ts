@@ -1,45 +1,24 @@
 import { NextResponse } from "next/server";
 import { StatusCodes } from "http-status-codes";
 import { contractArtifacts, readContract } from "@/lib/viem";
-import { smartContractModel, userModel } from "@/models";
-import { getAppIdBySlug } from "@/lib/queries";
+import { userModel } from "@/models";
 import z from "zod";
 import { withApiKeyOrDevAccessToken } from "@/app/middleware/withApiKeyOrDevAccessToken";
 import { isEmpty } from "lodash-es";
+import { withAppValidate } from "@/app/middleware/withAppValidate";
+import { withTicketValidate } from "@/app/middleware/withTicketValidate";
 
 const EmailOwnerSchema = z.object({
   email: z.string().email()
 });
 
-async function postHandler(req: NextRequestWithApiKeyOrDevAccessToken, { params: { appSlug, id, email } }) {
+async function postHandler(req: NextRequestWithApiKeyOrDevAccessToken & NextRequestWithTicketValidate & NextRequestWithAppValidate, { params: { email } }) {
+  const { ticketContractAddress } = req;
   try {
     const validParam = EmailOwnerSchema.safeParse({ email });
     if (!validParam.success) {
       return NextResponse.json(
         { error: "Validation failed", reason: validParam.error.issues },
-        { status: StatusCodes.BAD_REQUEST }
-      );
-    }
-
-    const app = await getAppIdBySlug(appSlug);
-    if (!app) {
-      return NextResponse.json(
-        { error: `App not found` },
-        { status: StatusCodes.NOT_FOUND }
-      );
-    }
-
-    const smartContract = await smartContractModel.findUnique({
-      where: {
-        id,
-        developerId: req.developerId,
-        name: "tickets",
-        appId: app.id
-      }
-    });
-    if (!smartContract) {
-      return NextResponse.json(
-        { error: `Wrong parameters. Smart contract tickets from Developer ${req.developerId} not found.` },
         { status: StatusCodes.BAD_REQUEST }
       );
     }
@@ -51,7 +30,7 @@ async function postHandler(req: NextRequestWithApiKeyOrDevAccessToken, { params:
     });
 
     const result = await readContract(
-      smartContract.address,
+      ticketContractAddress,
       contractArtifacts["tickets"].abi,
       "getTokensByUser",
       [user.walletAddress]
@@ -79,4 +58,4 @@ async function postHandler(req: NextRequestWithApiKeyOrDevAccessToken, { params:
   }
 }
 export const maxDuration = 300;
-export const GET = withApiKeyOrDevAccessToken(postHandler);
+export const GET = withApiKeyOrDevAccessToken(withAppValidate(withTicketValidate(postHandler)));
