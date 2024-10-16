@@ -13,7 +13,7 @@ export const ethNativeCurrency = {
 };
 export const baseSepolia = {
   id: chainId,
-  name: "Forma Sketchpad",
+  name: "BaseSepolia",
   nativeCurrency: ethNativeCurrency,
   rpcUrls: {
     default: {
@@ -24,7 +24,7 @@ export const baseSepolia = {
   blockExplorers: {
     default: {
       name: "Explorer",
-      url: "https://explorer.sketchpad-1.forma.art"
+      url: "https://sepolia.basescan.org"
     }
   }
 };

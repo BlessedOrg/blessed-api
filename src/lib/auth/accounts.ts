@@ -1,7 +1,7 @@
 import { appUserModel, developerAccountModel, prisma, userModel } from "@/models";
 import { createOrUpdateSession } from "@/lib/auth/session";
 import { StatusCodes } from "http-status-codes";
-import { createCapsuleAccount } from "@/lib/capsule";
+import { createPrivyAccount } from "@/lib/privy";
 
 export const createDeveloperAccount = async (email: string) => {
   try {
@@ -10,17 +10,20 @@ export const createDeveloperAccount = async (email: string) => {
         email
       }
     });
-    const { data, error, status } = await createCapsuleAccount(createdDeveloperAccount.id, email, "developer");
+    // const { data, error, status } = await createCapsuleAccount(createdDeveloperAccount.id, email, "developer");
+    const { data, error, status } = await createPrivyAccount(
+      email,
+      createdDeveloperAccount.id
+    );
     if (!!error) {
       await developerAccountModel.delete({ where: { id: createdDeveloperAccount.id } });
       return { error, status };
     }
-    const { capsuleTokenVaultKey, walletAddress } = data;
-
+    // const { capsuleTokenVaultKey, walletAddress } = data;
+    const walletAddress = data.wallet.address;
     await developerAccountModel.update({
       where: { id: createdDeveloperAccount.id },
       data: {
-        capsuleTokenVaultKey,
         walletAddress
       }
     });
@@ -116,16 +119,18 @@ export const createMissingAccounts = async (emails: string[], appId: string) => 
     let capsuleAccounts = [];
     const accounts = result.newAccounts.map(acc => ({ accountId: acc.id, email: acc.email }));
     for (const account of accounts) {
-      const capsuleUser = await createCapsuleAccount(account.accountId, account.email, "user");
-      if (capsuleUser.error) {
-        console.log("‼️Error occurred while creating capsule account:", capsuleUser.error);
+      // const capsuleUser = await createCapsuleAccount(account.accountId, account.email, "user");
+      const { data, error } = await createPrivyAccount(account.email, account.accountId);
+      if (error) {
+        console.log("‼️Error occurred while creating capsule account:", error);
         return;
       }
-      if (capsuleUser) {
+      if (data) {
+        const walletAddress = data.wallet.address;
         capsuleAccounts.push({
           email: account.email,
-          walletAddress: capsuleUser.data.walletAddress,
-          capsuleTokenVaultKey: capsuleUser.data.capsuleTokenVaultKey
+          walletAddress
+          // capsuleTokenVaultKey:data.capsuleTokenVaultKey
         });
       }
     }
@@ -177,17 +182,20 @@ export const createUserAccount = async (email: string, appId: string) => {
         email
       }
     });
-    const { data, error, status } = await createCapsuleAccount(createdUserAccount.id, email, "user");
+    // const { data, error, status } = await createCapsuleAccount(createdUserAccount.id, email, "user");
+    const { data, error, status } = await createPrivyAccount(
+      email,
+      createdUserAccount.id
+    );
     if (!!error) {
       return { error, status };
     }
-    const { capsuleTokenVaultKey, walletAddress } = data;
-
+    // const { capsuleTokenVaultKey, walletAddress } = data;
+    const walletAddress = data.wallet.address;
     await userModel.update({
       where: { id: createdUserAccount.id },
       data: {
-        walletAddress,
-        capsuleTokenVaultKey
+        walletAddress
       }
     });
     await appUserModel.create({
