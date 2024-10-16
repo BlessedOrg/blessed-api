@@ -25,7 +25,7 @@ export const createCapsuleAccount = async (accountId: string, email: string, typ
       const vaultItem = await createVaultCapsuleKeyItem(userShare, address, email, type, isBetaEnv);
       const data = {
         capsuleTokenVaultKey: vaultItem.id,
-        walletAddress: address
+        walletAddress: address?.toLowerCase()
       };
       return { data, status: StatusCodes.CREATED };
     } catch (e) {
