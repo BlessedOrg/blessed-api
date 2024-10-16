@@ -12,7 +12,7 @@ const EmailOwnerSchema = z.object({
   email: z.string().email()
 });
 
-async function postHandler(req: NextRequestWithApiKeyOrDevAccessToken & NextRequestWithTicketValidate & NextRequestWithAppValidate, { params: { email } }) {
+async function getHandler(req: NextRequestWithApiKeyOrDevAccessToken & NextRequestWithTicketValidate & NextRequestWithAppValidate, { params: { email } }) {
   const { ticketContractAddress } = req;
   try {
     const validParam = EmailOwnerSchema.safeParse({ email });
@@ -58,4 +58,4 @@ async function postHandler(req: NextRequestWithApiKeyOrDevAccessToken & NextRequ
   }
 }
 export const maxDuration = 300;
-export const POST = withApiKeyOrDevAccessToken(withAppValidate(withTicketValidate(postHandler)));
+export const GET = withApiKeyOrDevAccessToken(withAppValidate(withTicketValidate(getHandler)));
