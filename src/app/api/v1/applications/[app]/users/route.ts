@@ -37,7 +37,7 @@ async function postHandler(req: NextRequestWithApiKeyOrDevAccessToken & NextRequ
   }
   const { users } = validBody.data;
 
-  const createdUsers = await createMissingAccounts(users.map(i => i.email), appId);
+  const createdUsers = await createMissingAccounts(users.map(i => i.email), appId, req.nextUrl.hostname === "localhost");
   return NextResponse.json(createdUsers, { status: StatusCodes.OK });
 }
 

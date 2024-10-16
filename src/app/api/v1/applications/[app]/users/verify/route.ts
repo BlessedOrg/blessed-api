@@ -31,7 +31,7 @@ async function postHandler(req: NextRequestWithAppValidate) {
   }
   const userExists = await userModel.findUnique({ where: { email } });
   if (!userExists) {
-    const { data, status, error } = await createUserAccount(email, appId);
+    const { data, status, error } = await createUserAccount(email, appId, req.nextUrl.hostname === "localhost");
     if (!!error) {
       return NextResponse.json({ error }, { status });
     }

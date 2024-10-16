@@ -1,30 +1,26 @@
 import { appUserModel, developerAccountModel, prisma, userModel } from "@/models";
 import { createOrUpdateSession } from "@/lib/auth/session";
 import { StatusCodes } from "http-status-codes";
-import { createPrivyAccount } from "@/lib/privy";
+import { createCapsuleAccount } from "@/lib/capsule";
 
-export const createDeveloperAccount = async (email: string) => {
+export const createDeveloperAccount = async (email: string, isBetaEnv: boolean) => {
   try {
     const createdDeveloperAccount: any = await developerAccountModel.create({
       data: {
         email
       }
     });
-    // const { data, error, status } = await createCapsuleAccount(createdDeveloperAccount.id, email, "developer");
-    const { data, error, status } = await createPrivyAccount(
-      email,
-      createdDeveloperAccount.id
-    );
+    const { data, error, status } = await createCapsuleAccount(createdDeveloperAccount.id, email, "developer", isBetaEnv);
     if (!!error) {
       await developerAccountModel.delete({ where: { id: createdDeveloperAccount.id } });
       return { error, status };
     }
-    // const { capsuleTokenVaultKey, walletAddress } = data;
-    const walletAddress = data.wallet.address;
+    const { capsuleTokenVaultKey, walletAddress } = data;
     await developerAccountModel.update({
       where: { id: createdDeveloperAccount.id },
       data: {
-        walletAddress
+        walletAddress,
+        capsuleTokenVaultKey
       }
     });
     if (createdDeveloperAccount) {
@@ -55,7 +51,7 @@ export const createDeveloperAccount = async (email: string) => {
   }
 };
 
-export const createMissingAccounts = async (emails: string[], appId: string) => {
+export const createMissingAccounts = async (emails: string[], appId: string, isBetaEnv: boolean) => {
   try {
     const existingAccounts = await userModel.findMany({
       where: {
@@ -119,18 +115,17 @@ export const createMissingAccounts = async (emails: string[], appId: string) => 
     let capsuleAccounts = [];
     const accounts = result.newAccounts.map(acc => ({ accountId: acc.id, email: acc.email }));
     for (const account of accounts) {
-      // const capsuleUser = await createCapsuleAccount(account.accountId, account.email, "user");
-      const { data, error } = await createPrivyAccount(account.email, account.accountId);
+      const { data, error } = await createCapsuleAccount(account.accountId, account.email, "user", isBetaEnv);
       if (error) {
         console.log("‼️Error occurred while creating capsule account:", error);
         return;
       }
       if (data) {
-        const walletAddress = data.wallet.address;
+        const walletAddress = data.walletAddress;
         capsuleAccounts.push({
           email: account.email,
-          walletAddress
-          // capsuleTokenVaultKey:data.capsuleTokenVaultKey
+          walletAddress,
+          capsuleTokenVaultKey: data.capsuleTokenVaultKey
         });
       }
     }
@@ -175,27 +170,24 @@ export const createMissingAccounts = async (emails: string[], appId: string) => 
   }
 };
 
-export const createUserAccount = async (email: string, appId: string) => {
+export const createUserAccount = async (email: string, appId: string, isBetaEnv: boolean) => {
   try {
     const createdUserAccount: any = await userModel.create({
       data: {
         email
       }
     });
-    // const { data, error, status } = await createCapsuleAccount(createdUserAccount.id, email, "user");
-    const { data, error, status } = await createPrivyAccount(
-      email,
-      createdUserAccount.id
-    );
+    const { data, error, status } = await createCapsuleAccount(createdUserAccount.id, email, "user", isBetaEnv);
+
     if (!!error) {
       return { error, status };
     }
-    // const { capsuleTokenVaultKey, walletAddress } = data;
-    const walletAddress = data.wallet.address;
+    const { capsuleTokenVaultKey, walletAddress } = data;
     await userModel.update({
       where: { id: createdUserAccount.id },
       data: {
-        walletAddress
+        walletAddress,
+        capsuleTokenVaultKey
       }
     });
     await appUserModel.create({

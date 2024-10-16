@@ -23,7 +23,8 @@ export async function createVaultCapsuleKeyItem(
   value: string,
   address: string,
   email: string,
-  type: AccountType
+  type: AccountType,
+  isBetaEnv: boolean = false
 ) {
   const vaultId = vaultCapsuleTokensId;
   try {
@@ -38,7 +39,7 @@ export async function createVaultCapsuleKeyItem(
           },
           title: `Capsule Token for ${type}: ${shortenWalletAddress(address)}`,
           category: "LOGIN",
-          tags: [type, "capsuleWallet"],
+          tags: [type, "capsuleWallet", isBetaEnv ? "BETA" : "Production"],
           fields: [
             {
               id: "email",

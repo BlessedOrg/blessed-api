@@ -1,11 +1,11 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { StatusCodes } from "http-status-codes";
 import { developerAccountModel } from "@/models";
 import { createDeveloperAccount, refreshAccountSession } from "@/lib/auth/accounts";
 import { verifyEmailVerificationCode } from "@/lib/auth/emailVerificationCode";
 import { OtpCodeSchema } from "@/lib/zodSchema";
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   const validBody = OtpCodeSchema.safeParse(await req.json());
   if (!validBody.success) {
     return NextResponse.json(
@@ -25,8 +25,9 @@ export async function POST(req: Request) {
     );
   }
   const developerExists = await developerAccountModel.findUnique({ where: { email } });
+  const isBetaEnv = req.nextUrl.hostname === "localhost";
   if (!developerExists) {
-    const { data, status, error } = await createDeveloperAccount(email);
+    const { data, status, error } = await createDeveloperAccount(email, isBetaEnv);
     if (!!error) {
       return NextResponse.json({ error }, { status });
     }
@@ -45,5 +46,4 @@ export async function POST(req: Request) {
       );
     }
   }
-
 }

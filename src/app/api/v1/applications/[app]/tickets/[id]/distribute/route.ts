@@ -30,7 +30,7 @@ async function postHandler(req: NextRequestWithApiKeyOrDevAccessToken & NextRequ
       );
     }
 
-    const { users } = await createMissingAccounts(validBody.data.distributions.map(distribution => distribution.email), appId);
+    const { users } = await createMissingAccounts(validBody.data.distributions.map(distribution => distribution.email), appId, req.nextUrl.hostname === "localhost");
     const emailToWalletMap = new Map(users.map(account => [account.email, { walletAddress: account.walletAddress, id: account.id }]));
     const distribution = validBody.data.distributions.map(distribution => {
       const mappedUser = emailToWalletMap.get(distribution.email);
