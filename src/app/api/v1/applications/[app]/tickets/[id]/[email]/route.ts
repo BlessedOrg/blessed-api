@@ -58,4 +58,4 @@ async function postHandler(req: NextRequestWithApiKeyOrDevAccessToken & NextRequ
   }
 }
 export const maxDuration = 300;
-export const GET = withApiKeyOrDevAccessToken(withAppValidate(withTicketValidate(postHandler)));
+export const POST = withApiKeyOrDevAccessToken(withAppValidate(withTicketValidate(postHandler)));
