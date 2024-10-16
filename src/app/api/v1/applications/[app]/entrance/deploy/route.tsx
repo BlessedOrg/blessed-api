@@ -32,7 +32,8 @@ async function postHandler(req: NextRequestWithApiKeyOrDevAccessToken & NextRequ
     const contractName = "entrance";
     const args = {
       ticketAddress: validBody.data.ticketAddress,
-      owner: appOwnerWalletAddress
+      owner: appOwnerWalletAddress,
+      trustedForwarder: "0xd8253782c45a12053594b9deB72d8e8aB2Fca54c"
     };
 
     const contract = await deployContract(contractName, Object.values(args));
