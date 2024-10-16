@@ -78,7 +78,7 @@ async function postHandler(req: NextRequestWithApiKeyOrDevAccessToken & NextRequ
       { status: StatusCodes.OK }
     );
   } catch (error) {
-    console.log("🚨 error on tickets/deploy: ", error.message);
+    console.log("🚨 error on entrance/deploy: ", error.message);
     return NextResponse.json(
       { error },
       { status: StatusCodes.BAD_REQUEST }
