@@ -35,7 +35,7 @@ async function getHandler(req: NextRequestWithApiKeyOrDevAccessToken & NextReque
     const owners = await userModel.findMany({
       where: {
         walletAddress: {
-          in: allHolders
+          in: allHolders.map((a: string) => a.toLowerCase())
         }
       },
       select: {
