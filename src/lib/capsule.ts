@@ -41,6 +41,7 @@ export const createCapsuleAccount = async (accountId: string, email: string, typ
 export async function getCapsuleSigner(capsuleTokenVaultKey: string) {
   const capsuleOneTimeClient = new Capsule(Environment.BETA, process.env.CAPSULE_API_KEY!);
   const vaultItem = await getVaultItem(capsuleTokenVaultKey, "capsuleKey");
+  console.log("📝 Vault item: ", vaultItem);
   const userShare = vaultItem.fields.find(i => i.id === "capsuleKey")?.value;
   await capsuleOneTimeClient.setUserShare(userShare);
   const account = createCapsuleViemAccount(capsuleOneTimeClient);
