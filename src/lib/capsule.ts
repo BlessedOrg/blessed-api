@@ -45,7 +45,7 @@ export async function getCapsuleSigner(capsuleTokenVaultKey: string) {
   const account = createCapsuleViemAccount(capsuleOneTimeClient);
   const capsuleViemClient = createCapsuleViemClient(capsuleOneTimeClient, {
     chain: activeChain,
-    transport: http(rpcUrl),
+    transport: http(rpcUrl) as any,
     account
   });
 
