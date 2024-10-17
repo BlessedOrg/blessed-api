@@ -8,8 +8,14 @@ import { createCapsuleAccount as createCapsuleViemAccount, createCapsuleViemClie
 import { activeChain, rpcUrl } from "@/lib/viem";
 import { http } from "viem";
 
+const capsuleInstance = new Capsule(Environment.BETA, process.env.CAPSULE_API_KEY, {
+  supportedWalletTypes: {
+    EVM: true,
+  },
+})
+
 export const createCapsuleAccount = async (accountId: string, email: string, type: AccountType) => {
-  const capsule = new Capsule(Environment.BETA, process.env.CAPSULE_API_KEY!);
+  const capsule = capsuleInstance;
   const formattedEmail = formatEmailToAvoidCapsuleConflict(email, accountId);
   const hasWallet = await capsule.hasPregenWallet(accountId);
   const walletType = "EVM" as WalletType;
@@ -38,7 +44,7 @@ export const createCapsuleAccount = async (accountId: string, email: string, typ
 };
 
 export async function getCapsuleSigner(capsuleTokenVaultKey: string) {
-  const capsuleOneTimeClient = new Capsule(Environment.BETA, process.env.CAPSULE_API_KEY!);
+  const capsuleOneTimeClient = capsuleInstance;
   const vaultItem = await getVaultItem(capsuleTokenVaultKey, "capsuleKey");
   const userShare = vaultItem.fields.find(i => i.id === "capsuleKey")?.value;
   await capsuleOneTimeClient.setUserShare(userShare);
