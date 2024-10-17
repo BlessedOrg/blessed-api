@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { StatusCodes } from "http-status-codes";
-import { contractArtifacts, getExplorerUrl, writeContract } from "@/lib/viem";
+import { contractArtifacts, getExplorerUrl } from "@/lib/viem";
 import z from "zod";
 import { createMissingAccounts } from "@/lib/auth/accounts";
 import renderTicketReceiverEmail from "@/lib/emails/templates/TicketReceiverEmail";
@@ -9,6 +9,8 @@ import { parseEventLogs } from "viem";
 import { withApiKeyOrDevAccessToken } from "@/app/middleware/withApiKeyOrDevAccessToken";
 import { withAppValidate } from "@/app/middleware/withAppValidate";
 import { withTicketValidate } from "@/app/middleware/withTicketValidate";
+import { metaTx } from "@/lib/gelato";
+import { PrefixedHexString } from "ethereumjs-util";
 
 const DistributeSchema = z.object({
   distributions: z.array(
@@ -46,16 +48,25 @@ async function postHandler(req: NextRequestWithApiKeyOrDevAccessToken & NextRequ
       return null;
     }).filter((item) => item !== null);
 
-    const result = await writeContract(
-      ticketContractAddress,
-      "distribute",
-      [distribution.map(dist => [dist.walletAddr, dist.amount])],
-      contractArtifacts["tickets"].abi
-    );
+    const metaTxResult = await metaTx({
+      contractAddress: ticketContractAddress as PrefixedHexString,
+      contractName: "tickets",
+      functionName: "distribute",
+      args: [distribution.map(dist => [dist.walletAddr, dist.amount])],
+      capsuleTokenVaultKey: req.capsuleTokenVaultKey,
+      userWalletAddress: req.appOwnerWalletAddress
+    });
+
+    if (metaTxResult.error) {
+      return NextResponse.json(
+        { success: false, error: metaTxResult.error },
+        { status: StatusCodes.BAD_REQUEST }
+      );
+    }
 
     const logs = parseEventLogs({
       abi: contractArtifacts["tickets"].abi,
-      logs: result.logs
+      logs: metaTxResult.data.transactionReceipt.logs
     });
 
     const transferSingleEventArgs = logs
@@ -92,11 +103,14 @@ async function postHandler(req: NextRequestWithApiKeyOrDevAccessToken & NextRequ
     return NextResponse.json(
       {
         success: true,
-        distributionBlockHash: result.blockHash,
-        distribution,
+        transactionReceipt: {
+          ...metaTxResult.data.metaTransactionStatus,
+          blockNumber: metaTxResult.data.transactionReceipt.blockNumber.toString()
+        },
         explorerUrls: {
-          distributionTx: getExplorerUrl(result.transactionHash)
-        }
+          distributionTx: getExplorerUrl(metaTxResult.data.transactionReceipt.transactionHash)
+        },
+        distribution
       },
       { status: StatusCodes.OK }
     );

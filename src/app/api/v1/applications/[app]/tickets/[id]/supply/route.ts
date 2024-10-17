@@ -1,10 +1,12 @@
 import { NextResponse } from "next/server";
 import { StatusCodes } from "http-status-codes";
-import { contractArtifacts, getExplorerUrl, writeContract } from "@/lib/viem";
+import { getExplorerUrl } from "@/lib/viem";
 import z from "zod";
 import { withApiKeyOrDevAccessToken } from "@/app/middleware/withApiKeyOrDevAccessToken";
 import { withAppValidate } from "@/app/middleware/withAppValidate";
 import { withTicketValidate } from "@/app/middleware/withTicketValidate";
+import { metaTx } from "@/lib/gelato";
+import { PrefixedHexString } from "ethereumjs-util";
 
 const DistributeSchema = z.object({
   additionalSupply: z.number().int().positive()
@@ -21,19 +23,31 @@ async function postHandler(req: NextRequestWithApiKeyOrDevAccessToken & NextRequ
       );
     }
 
-    const result = await writeContract(
-      ticketContractAddress,
-      "updateSupply",
-      [validBody.data.additionalSupply],
-      contractArtifacts["tickets"].abi
-    );
+    const metaTxResult = await metaTx({
+      contractAddress: ticketContractAddress as PrefixedHexString,
+      contractName: "tickets",
+      functionName: "updateSupply",
+      args: [validBody.data.additionalSupply],
+      capsuleTokenVaultKey: req.capsuleTokenVaultKey,
+      userWalletAddress: req.appOwnerWalletAddress
+    });
+
+    if (metaTxResult.error) {
+      return NextResponse.json(
+        { success: false, error: metaTxResult.error },
+        { status: StatusCodes.BAD_REQUEST }
+      );
+    }
 
     return NextResponse.json(
       {
         success: true,
-        updateSupplyBlockHash: result.blockHash,
+        transactionReceipt: {
+          ...metaTxResult.data.metaTransactionStatus,
+          blockNumber: metaTxResult.data.transactionReceipt.blockNumber.toString(),
+        },
         explorerUrls: {
-          updateSupplyTx: getExplorerUrl(result.transactionHash)
+          updateSupplyTx: getExplorerUrl(metaTxResult.data.transactionReceipt.transactionHash)
         }
       },
       { status: StatusCodes.OK }

@@ -3,7 +3,7 @@ import { StatusCodes } from "http-status-codes";
 import { smartContractModel } from "@/models";
 import z from "zod";
 import { uploadMetadata } from "@/lib/irys";
-import { account, deployContract, getExplorerUrl } from "@/lib/viem";
+import { deployContract, getExplorerUrl } from "@/lib/viem";
 import { withApiKeyOrDevAccessToken } from "@/app/middleware/withApiKeyOrDevAccessToken";
 import { withAppValidate } from "@/app/middleware/withAppValidate";
 
@@ -21,7 +21,7 @@ const TicketSchema = z.object({
 });
 
 async function postHandler(req: NextRequestWithApiKeyOrDevAccessToken & NextRequestWithAppValidate) {
-  const { appId } = req;
+  const { appId, appOwnerWalletAddress, developerId } = req;
   try {
     const validBody = TicketSchema.safeParse(await req.json());
     if (!validBody.success) {
@@ -39,8 +39,7 @@ async function postHandler(req: NextRequestWithApiKeyOrDevAccessToken & NextRequ
 
     const contractName = "tickets";
     const args = {
-      // 🏗️ TODO: replace with developer's client
-      owner: account.address,
+      owner: appOwnerWalletAddress,
       baseURI: metadataUrl,
       name: validBody.data.name,
       symbol: validBody.data.symbol,
@@ -56,7 +55,7 @@ async function postHandler(req: NextRequestWithApiKeyOrDevAccessToken & NextRequ
     const maxId = await smartContractModel.aggregate({
       where: {
         appId,
-        developerId: req.developerId,
+        developerId,
         name: contractName
       },
       _max: {
@@ -70,7 +69,7 @@ async function postHandler(req: NextRequestWithApiKeyOrDevAccessToken & NextRequ
       data: {
         address: contract.contractAddr,
         name: contractName,
-        developerId: req.developerId,
+        developerId,
         version: nextId,
         metadataUrl,
         metadataPayload: {

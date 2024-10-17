@@ -23,7 +23,8 @@ export function withApiKey(handler: (req: NextRequest, context: { params: any })
             include: {
               DeveloperAccount: {
                 select: {
-                  id: true
+                  id: true,
+                  capsuleTokenVaultKey: true,
                 }
               }
             }
@@ -41,7 +42,8 @@ export function withApiKey(handler: (req: NextRequest, context: { params: any })
 
       Object.assign(request, {
         developerId: apiToken.App.DeveloperAccount.id,
-        appSlug: decoded?.appSlug
+        appSlug: decoded?.appSlug,
+        capsuleTokenVaultKey: apiToken.App.DeveloperAccount.capsuleTokenVaultKey
       });
 
       if (globalMiddlewareResponse) {
