@@ -32,7 +32,8 @@ async function postHandler(req: NextRequestWithApiKeyOrDevAccessToken & NextRequ
     const contractName = "entrance";
     const args = {
       ticketAddress: validBody.data.ticketAddress,
-      owner: appOwnerWalletAddress
+      owner: appOwnerWalletAddress,
+      trustedForwarder: "0xd8253782c45a12053594b9deB72d8e8aB2Fca54c"
     };
 
     const contract = await deployContract(contractName, Object.values(args));
@@ -78,7 +79,7 @@ async function postHandler(req: NextRequestWithApiKeyOrDevAccessToken & NextRequ
       { status: StatusCodes.OK }
     );
   } catch (error) {
-    console.log("🚨 error on tickets/deploy: ", error.message);
+    console.log("🚨 error on entrance/deploy: ", error.message);
     return NextResponse.json(
       { error },
       { status: StatusCodes.BAD_REQUEST }

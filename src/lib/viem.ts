@@ -81,7 +81,7 @@ export const deployContract = async (contractName, args) => {
   const contractArtifacts = importAllJsonContractsArtifacts();
   const hash = await client.deployContract({
     abi: contractArtifacts[contractName].abi,
-    bytecode: contractArtifacts[contractName].bytecode.object,
+    bytecode: contractArtifacts[contractName].bytecode?.object || contractArtifacts[contractName].bytecode,
     args,
     chain: undefined
   });

@@ -3,10 +3,11 @@ import { CallWithERC2771Request, ERC2771Type, GelatoRelay } from "@gelatonetwork
 import { getCapsuleSigner } from "@/lib/capsule";
 import { StatusCodes } from "http-status-codes";
 
-export const gaslessTransaction = async (request: CallWithERC2771Request, capsuleTokenVaultKey: string) => {
+export const gaslessTransaction = async (request: CallWithERC2771Request, capsuleTokenVaultKey: string): Promise<{ data?: { taskId?: string }, error?: any, status?: number }> => {
   try {
     const relay = new GelatoRelay();
     const capsuleSigner = await getCapsuleSigner(capsuleTokenVaultKey);
+
     const { struct, signature } = await relay.getSignatureDataERC2771(
       request,
       capsuleSigner as any,
@@ -21,6 +22,7 @@ export const gaslessTransaction = async (request: CallWithERC2771Request, capsul
 
     return { data: relayResponse };
   } catch (e) {
-    return { error: e, status: StatusCodes.INTERNAL_SERVER_ERROR };
+    console.log(e);
+    return { error: JSON.stringify(e), status: StatusCodes.INTERNAL_SERVER_ERROR };
   }
 };

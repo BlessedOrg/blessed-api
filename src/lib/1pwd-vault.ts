@@ -150,7 +150,6 @@ export async function createVaultApiKeyItem(apiKey: string, appSlug: string) {
 
 export async function getVaultItem(id: string, type?: VaultItemType) {
   const vaultId = idPerType[type];
-
   const createdItem = await fetch(
     `${vaultApiUrl}/v1/vaults/${vaultId}/items/${id}`,
     {
