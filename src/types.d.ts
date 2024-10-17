@@ -10,13 +10,16 @@ declare global {
     appSlug: string;
     apiTokenId: string;
     developerId: string;
+    capsuleTokenVaultKey: string,
   }
+
   type UserAccessTokenJWT = {
     userId: string;
     capsuleTokenVaultKey: string,
     walletAddress: `0x${string}`,
     email: string
   }
+
   type DeveloperAccessTokenJWT = {
     developerId: string;
     walletAddress: string;
