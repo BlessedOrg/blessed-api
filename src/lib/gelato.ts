@@ -21,6 +21,6 @@ export const gaslessTransaction = async (request: CallWithERC2771Request, capsul
 
     return { data: relayResponse };
   } catch (e) {
-    return { error: e, status: StatusCodes.INTERNAL_SERVER_ERROR };
+    return { error: JSON.stringify(e), status: StatusCodes.INTERNAL_SERVER_ERROR };
   }
 };
