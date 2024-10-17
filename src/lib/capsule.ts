@@ -43,14 +43,19 @@ export async function getCapsuleSigner(capsuleTokenVaultKey: string) {
   const vaultItem = await getVaultItem(capsuleTokenVaultKey, "capsuleKey");
   console.log("📝 Vault item: ", vaultItem);
   const userShare = vaultItem.fields.find(i => i.id === "capsuleKey")?.value;
+  console.log("📝 User share: ", userShare);
   await capsuleOneTimeClient.setUserShare(userShare);
-  const account = createCapsuleViemAccount(capsuleOneTimeClient);
 
+  console.log("📝 User share: ", capsuleOneTimeClient.getUserShare());
+  const account = createCapsuleViemAccount(capsuleOneTimeClient);
+  console.log("📝 Account: ", account);
   const capsuleViemClient = createCapsuleViemClient(capsuleOneTimeClient, {
     chain: activeChain,
     transport: http(rpcUrl),
     account
   });
+
+  console.log("📝 Capsule client: ", capsuleViemClient);
 
   console.log(`📝 Capsule signer: ${account.address}`);
   const accountInstance = {
