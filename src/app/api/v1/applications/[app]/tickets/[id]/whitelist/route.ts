@@ -1,11 +1,13 @@
 import { NextResponse } from "next/server";
 import { StatusCodes } from "http-status-codes";
-import { contractArtifacts, getExplorerUrl, writeContract } from "@/lib/viem";
+import { getExplorerUrl } from "@/lib/viem";
 import z from "zod";
 import { createMissingAccounts } from "@/lib/auth/accounts";
 import { withApiKeyOrDevAccessToken } from "@/app/middleware/withApiKeyOrDevAccessToken";
 import { withAppValidate } from "@/app/middleware/withAppValidate";
 import { withTicketValidate } from "@/app/middleware/withTicketValidate";
+import { metaTx } from "@/lib/gelato";
+import { PrefixedHexString } from "ethereumjs-util";
 
 const WhitelistSchema = z.object({
   addEmails: z.array(z.string().email()).min(1),
@@ -37,21 +39,33 @@ async function postHandler(req: NextRequestWithApiKeyOrDevAccessToken & NextRequ
       })
     ].filter((item): item is [string, boolean] => item !== null);
 
-    const result = await writeContract(
-      ticketContractAddress,
-      "updateWhitelist",
-      [whitelistUpdates],
-      contractArtifacts["tickets"].abi
-    );
+    const metaTxResult = await metaTx({
+      contractAddress: ticketContractAddress as PrefixedHexString,
+      contractName: "tickets",
+      functionName: "updateWhitelist",
+      args: [whitelistUpdates],
+      capsuleTokenVaultKey: req.capsuleTokenVaultKey,
+      userWalletAddress: req.appOwnerWalletAddress
+    });
+
+    if (metaTxResult.error) {
+      return NextResponse.json(
+        { success: false, error: metaTxResult.error },
+        { status: StatusCodes.BAD_REQUEST }
+      );
+    }
 
     return NextResponse.json(
       {
         success: true,
-        whitelistUpdatesMap: whitelistUpdates,
-        updateWhitelistBlockHash: result.blockHash,
+        transactionReceipt: {
+          ...metaTxResult.data.metaTransactionStatus,
+          blockNumber: metaTxResult.data.transactionReceipt.blockNumber.toString(),
+        },
         explorerUrls: {
-          updateWhitelistTx: getExplorerUrl(result.transactionHash)
-        }
+          updateWhitelistTx: getExplorerUrl(metaTxResult.data.transactionReceipt.transactionHash)
+        },
+        whitelistUpdatesMap: whitelistUpdates
       },
       { status: StatusCodes.OK }
     );

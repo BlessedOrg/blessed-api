@@ -29,6 +29,13 @@ async function getHandler(req: NextRequestWithApiKeyOrDevAccessToken & NextReque
       }
     });
 
+    if (!user) {
+      return NextResponse.json(
+        { error: "User does not exist" },
+        { status: StatusCodes.BAD_REQUEST }
+      );
+    }
+
     const result = await readContract(
       ticketContractAddress,
       contractArtifacts["tickets"].abi,
@@ -50,7 +57,7 @@ async function getHandler(req: NextRequestWithApiKeyOrDevAccessToken & NextReque
       { status: StatusCodes.OK }
     );
   } catch (error) {
-    console.log("🚨 error on tickets/{id}/distribute: ", error.message);
+    console.log("🚨 error on tickets/{id}/[email]: ", error.message);
     return NextResponse.json(
       { success: false, error: error.message },
       { status: StatusCodes.BAD_REQUEST }

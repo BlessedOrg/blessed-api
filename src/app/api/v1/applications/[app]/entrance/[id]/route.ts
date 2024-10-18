@@ -3,13 +3,12 @@ import { StatusCodes } from "http-status-codes";
 import { withApiKeyAndUserAccessToken } from "@/app/middleware/withApiKeyAndUserAccessToken";
 import z from "zod";
 import { smartContractModel } from "@/models";
-import { activeChain, contractArtifacts, readContract } from "@/lib/viem";
-import { encodeFunctionData } from "viem";
-import { CallWithERC2771Request } from "@gelatonetwork/relay-sdk-viem";
-import { gaslessTransaction } from "@/lib/gelato";
+import { contractArtifacts, getExplorerUrl, readContract } from "@/lib/viem";
+import { metaTx } from "@/lib/gelato";
+import { PrefixedHexString } from "ethereumjs-util";
 
 const EntrySchema = z.object({
-  ticketId: z.number().int().positive("Ticket id must be a positive integer")
+  ticketId: z.number().int().positive()
 });
 
 async function postRequest(req: NextRequestWithApiKeyAndUserAccessToken, { params: { id } }) {
@@ -28,38 +27,41 @@ async function postRequest(req: NextRequestWithApiKeyAndUserAccessToken, { param
         { status: StatusCodes.BAD_REQUEST }
       );
     }
-    const entranceContract = entranceRecord.address as `0x${string}`;
+    const contractAddress = entranceRecord.address as PrefixedHexString;
     const isAlreadyEntered = await readContract(
-      entranceContract,
+      contractAddress,
       contractArtifacts["entrance"].abi,
       "hasEntry",
       [req.walletAddress]
     );
     if (!isAlreadyEntered) {
-      const data = encodeFunctionData({
-        abi: contractArtifacts["entrance"].abi,
+      const { data: metaTxResult, error, status } = await metaTx({
+        contractAddress: contractAddress,
+        contractName: "entrance",
         functionName: "entry",
-        args: [validBody.data.ticketId]
-      }) as `0x${string}`;
-      const request: CallWithERC2771Request = {
-        chainId: BigInt(activeChain.id),
-        target: entranceContract,
-        data: data,
-        user: req.walletAddress
-      };
-      const { data: gaslessTxData, error, status } = await gaslessTransaction(request, req.capsuleTokenVaultKey);
-      if (gaslessTxData?.taskId) {
-        await new Promise((resolve) => setTimeout(resolve, 4000));
-        const url = `https://relay.gelato.digital/tasks/status/${gaslessTxData?.taskId}`;
-        const response = await fetch(url);
-        const responseJson = await response.json();
+        args: [validBody.data.ticketId],
+        userWalletAddress: req.walletAddress as PrefixedHexString,
+        capsuleTokenVaultKey: req.capsuleTokenVaultKey,
+      });
+
+      if (error) {
         return NextResponse.json(
-          { message: "Success", taskId: gaslessTxData?.taskId, taskStatus: responseJson },
-          { status }
+          { success: false, error },
+          { status: StatusCodes.BAD_REQUEST }
         );
       }
+
       return NextResponse.json(
-        { error },
+        {
+          success: true,
+          transactionReceipt: {
+            ...metaTxResult.metaTransactionStatus,
+            blockNumber: metaTxResult.transactionReceipt.blockNumber.toString(),
+          },
+          explorerUrls: {
+            distributionTx: getExplorerUrl(metaTxResult.transactionReceipt.transactionHash)
+          }
+        },
         { status }
       );
     } else {
