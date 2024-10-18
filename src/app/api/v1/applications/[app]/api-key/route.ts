@@ -8,7 +8,7 @@ import { withAppValidate } from "@/app/middleware/withAppValidate";
 
 export const dynamic = "force-dynamic";
 
-async function postHandler(req: NextRequestWithDevAccessToken & NextRequestWithAppValidate) {
+async function getHandler(req: NextRequestWithDevAccessToken & NextRequestWithAppValidate) {
   const { appId, appSlug } = req;
   try {
     const apiTokenRecord = await apiTokenModel.create({
@@ -33,10 +33,22 @@ async function postHandler(req: NextRequestWithDevAccessToken & NextRequestWithA
       }
     });
 
+    await apiTokenModel.updateMany({
+      where: {
+        appId,
+        id: {
+          not: apiTokenRecord?.id
+        }
+      },
+      data: {
+        revoked: true
+      }
+    });
     return NextResponse.json(
       {
         apiKey: vaultItem?.fields?.find(f => f.id === "apiKey")?.value,
-        apiTokenVaultKey: vaultItem?.id
+        apiTokenVaultKey: vaultItem?.id,
+        id: apiTokenRecord?.id
       },
       { status: StatusCodes.OK }
     );
@@ -45,4 +57,4 @@ async function postHandler(req: NextRequestWithDevAccessToken & NextRequestWithA
   }
 }
 
-export const POST = withDevAccessToken(withAppValidate(postHandler));
+export const GET = withDevAccessToken(withAppValidate(getHandler));
