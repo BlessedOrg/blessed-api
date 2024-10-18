@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
 
 const allowedOrigins = [
-  "http://localhost:3002",
-  "http://localhost:3001",
-  "https://blessed.fan",
-  "https://dashboard.blessed.fan"
+  // "http://localhost:3002",
+  // "http://localhost:3001",
+  // "https://blessed.fan",
+  // "https://dashboard.blessed.fan",
 ];
 
 const corsOptions = {
@@ -17,9 +17,9 @@ const corsOptions = {
 
 export const withCors: MiddlewareFactory = (next) => {
   return async (request, event) => {
-    const origin = request.headers.get("origin") ?? "";
-    const isAllowedOrigin = allowedOrigins.includes(origin);
-
+    const origin = request.headers.get("origin") ?? "*";
+    // const isAllowedOrigin = allowedOrigins.includes(origin);
+    const isAllowedOrigin = true;
     if (request.method === "OPTIONS") {
       const preflightHeaders = {
         ...(isAllowedOrigin && { "Access-Control-Allow-Origin": origin }),

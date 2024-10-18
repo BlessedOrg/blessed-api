@@ -10,6 +10,13 @@ async function getHandler(req: NextRequestWithApiKeyOrDevAccessToken & NextReque
       id: req.appId
     },
     include: {
+      ApiTokens: {
+        select: {
+          id: true,
+          revoked: true,
+          createdAt: true
+        }
+      },
       _count: {
         select: {
           SmartContracts: true,
