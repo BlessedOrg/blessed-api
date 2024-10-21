@@ -6,6 +6,7 @@ import { deployContract, getExplorerUrl } from "@/lib/viem";
 import { withApiKeyOrDevAccessToken } from "@/app/middleware/withApiKeyOrDevAccessToken";
 import { uploadMetadata } from "@/lib/irys";
 import { withAppValidate } from "@/app/middleware/withAppValidate";
+import { getSmartWalletForCapsuleWallet } from "@/lib/capsule";
 
 const EntranceSchema = z.object({
   ticketAddress: z.string().min(1, "Ticket address is required")
@@ -30,10 +31,14 @@ async function postHandler(req: NextRequestWithApiKeyOrDevAccessToken & NextRequ
     };
     const { metadataUrl, metadataImageUrl } = await uploadMetadata(metadataPayload);
     const contractName = "entrance";
+
+    const smartWallet = await getSmartWalletForCapsuleWallet(req.capsuleTokenVaultKey);
+    const ownerSmartWallet = await smartWallet.getAccountAddress();
+
     const args = {
-      ticketAddress: validBody.data.ticketAddress,
       owner: appOwnerWalletAddress,
-      trustedForwarder: "0xd8253782c45a12053594b9deB72d8e8aB2Fca54c"
+      ownerSmartWallet,
+      ticketAddress: validBody.data.ticketAddress,
     };
 
     const contract = await deployContract(contractName, Object.values(args));

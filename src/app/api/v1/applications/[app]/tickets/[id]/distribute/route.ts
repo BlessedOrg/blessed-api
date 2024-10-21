@@ -9,8 +9,8 @@ import { parseEventLogs } from "viem";
 import { withApiKeyOrDevAccessToken } from "@/app/middleware/withApiKeyOrDevAccessToken";
 import { withAppValidate } from "@/app/middleware/withAppValidate";
 import { withTicketValidate } from "@/app/middleware/withTicketValidate";
-import { metaTx } from "@/lib/gelato";
 import { PrefixedHexString } from "ethereumjs-util";
+import { biconomyMetaTx } from "@/lib/biconomy";
 
 const DistributeSchema = z.object({
   distributions: z.array(
@@ -22,6 +22,7 @@ const DistributeSchema = z.object({
 });
 
 async function postHandler(req: NextRequestWithApiKeyOrDevAccessToken & NextRequestWithAppValidate & NextRequestWithTicketValidate) {
+  console.time("distribute");
   const { appId, appSlug, appName, appImageUrl, ticketId, ticketContractAddress } = req;
   try {
     const validBody = DistributeSchema.safeParse(await req.json());
@@ -33,7 +34,12 @@ async function postHandler(req: NextRequestWithApiKeyOrDevAccessToken & NextRequ
     }
 
     const { users } = await createMissingAccounts(validBody.data.distributions.map(distribution => distribution.email), appId);
-    const emailToWalletMap = new Map(users.map(account => [account.email, { walletAddress: account.walletAddress, id: account.id }]));
+    console.log("🌳 users: ", users)
+    const emailToWalletMap = new Map(users.map(account => [account.email, {
+      smartWalletAddress: account.smartWalletAddress,
+      walletAddress: account.walletAddress,
+      id: account.id }
+    ]));
     const distribution = validBody.data.distributions.map(distribution => {
       const mappedUser = emailToWalletMap.get(distribution.email);
       if (mappedUser) {
@@ -41,21 +47,37 @@ async function postHandler(req: NextRequestWithApiKeyOrDevAccessToken & NextRequ
           userId: mappedUser.id,
           email: distribution.email,
           walletAddr: mappedUser.walletAddress,
+          smartWalletAddr: mappedUser.smartWalletAddress,
           amount: distribution.amount,
           tokenIds: []
         };
       }
       return null;
     }).filter((item) => item !== null);
+    
+    
+    console.log("🔥 distribution: ", distribution)
 
-    const metaTxResult = await metaTx({
+    // const metaTxResult = await metaTx({
+    //   contractAddress: ticketContractAddress as PrefixedHexString,
+    //   contractName: "tickets",
+    //   functionName: "distribute",
+    //   args: [distribution.map(dist => [dist.walletAddr, dist.amount])],
+    //   capsuleTokenVaultKey: req.capsuleTokenVaultKey,
+    //   userWalletAddress: req.appOwnerWalletAddress
+    // });
+
+    const metaTxResult = await biconomyMetaTx({
       contractAddress: ticketContractAddress as PrefixedHexString,
       contractName: "tickets",
       functionName: "distribute",
-      args: [distribution.map(dist => [dist.walletAddr, dist.amount])],
+      args: [distribution.map(dist => [dist.smartWalletAddr, dist.amount])],
       capsuleTokenVaultKey: req.capsuleTokenVaultKey,
       userWalletAddress: req.appOwnerWalletAddress
     });
+    
+    console.log("🔮 metaTxResult: ", metaTxResult)
+
 
     if (metaTxResult.error) {
       return NextResponse.json(
@@ -100,17 +122,15 @@ async function postHandler(req: NextRequestWithApiKeyOrDevAccessToken & NextRequ
     );
     await sendBatchEmails(emailsToSend, req.nextUrl.hostname === "localhost");
 
+    console.timeEnd("distribute");
     return NextResponse.json(
       {
         success: true,
-        transactionReceipt: {
-          ...metaTxResult.data.metaTransactionStatus,
-          blockNumber: metaTxResult.data.transactionReceipt.blockNumber.toString()
-        },
         explorerUrls: {
-          distributionTx: getExplorerUrl(metaTxResult.data.transactionReceipt.transactionHash)
+          tx: getExplorerUrl(metaTxResult.data.transactionReceipt.transactionHash)
         },
-        distribution
+        distribution,
+        transactionReceipt: metaTxResult.data.transactionReceipt
       },
       { status: StatusCodes.OK }
     );

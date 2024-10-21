@@ -10,6 +10,10 @@
     "vercel-build": "prisma generate && prisma migrate deploy && next build"
   },
   "dependencies": {
+    "@biconomy/account": "^4.5.7",
+    "@biconomy/bundler": "^3.1.4",
+    "@biconomy/modules": "^3.1.4",
+    "@biconomy/paymaster": "^3.1.4",
     "@ethersproject/experimental": "5.7.0",
     "@gelatonetwork/relay-sdk-viem": "^1.2.0",
     "@irys/upload": "^0.0.1",
@@ -19,8 +23,10 @@
     "@react-email/components": "^0.0.25",
     "@react-email/tailwind": "0.1.0",
     "@types/qrcode": "^1.5.5",
+    "@usecapsule/ethers-v5-integration": "^2.3.2",
     "@usecapsule/server-sdk": "^2.1.0",
     "@usecapsule/viem-v2-integration": "^2.1.0",
+    "@usecapsule/web-sdk": "^2.3.2",
     "bcryptjs": "^2.4.3",
     "ethers": "5.7.2",
     "jsonwebtoken": "^9.0.2",

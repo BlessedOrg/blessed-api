@@ -4,8 +4,9 @@ import { withApiKeyAndUserAccessToken } from "@/app/middleware/withApiKeyAndUser
 import z from "zod";
 import { smartContractModel } from "@/models";
 import { contractArtifacts, getExplorerUrl, readContract } from "@/lib/viem";
-import { metaTx } from "@/lib/gelato";
 import { PrefixedHexString } from "ethereumjs-util";
+import { biconomyMetaTx } from "@/lib/biconomy";
+import { getSmartWalletForCapsuleWallet } from "@/lib/capsule";
 
 const EntrySchema = z.object({
   ticketId: z.number().int().positive()
@@ -28,14 +29,21 @@ async function postRequest(req: NextRequestWithApiKeyAndUserAccessToken, { param
       );
     }
     const contractAddress = entranceRecord.address as PrefixedHexString;
+    const smartWallet = await getSmartWalletForCapsuleWallet(req.capsuleTokenVaultKey);
+    const ownerSmartWallet = await smartWallet.getAccountAddress();
     const isAlreadyEntered = await readContract(
       contractAddress,
       contractArtifacts["entrance"].abi,
       "hasEntry",
-      [req.walletAddress]
+      [ownerSmartWallet]
     );
+
+    // 🏗️ TODO: remove
+    console.log("🔮 ownerSmartWallet: ", ownerSmartWallet)
+    console.log("🔮 req.walletAddress: ", req.walletAddress)
+    console.log("🔮 isAlreadyEntered: ", isAlreadyEntered)
     if (!isAlreadyEntered) {
-      const { data: metaTxResult, error, status } = await metaTx({
+      const metaTxResult = await biconomyMetaTx({
         contractAddress: contractAddress,
         contractName: "entrance",
         functionName: "entry",
@@ -44,9 +52,9 @@ async function postRequest(req: NextRequestWithApiKeyAndUserAccessToken, { param
         capsuleTokenVaultKey: req.capsuleTokenVaultKey,
       });
 
-      if (error) {
+      if (metaTxResult.error) {
         return NextResponse.json(
-          { success: false, error },
+          { success: false, error: metaTxResult.error },
           { status: StatusCodes.BAD_REQUEST }
         );
       }
@@ -54,15 +62,12 @@ async function postRequest(req: NextRequestWithApiKeyAndUserAccessToken, { param
       return NextResponse.json(
         {
           success: true,
-          transactionReceipt: {
-            ...metaTxResult.metaTransactionStatus,
-            blockNumber: metaTxResult.transactionReceipt.blockNumber.toString(),
-          },
           explorerUrls: {
-            distributionTx: getExplorerUrl(metaTxResult.transactionReceipt.transactionHash)
-          }
+            tx: getExplorerUrl(metaTxResult.data.transactionReceipt.transactionHash)
+          },
+          transactionReceipt: metaTxResult.data.transactionReceipt
         },
-        { status }
+        { status: metaTxResult.status }
       );
     } else {
       return NextResponse.json(

@@ -5,8 +5,10 @@ import { createVaultCapsuleKeyItem, getVaultItem } from "@/lib/1pwd-vault";
 import { StatusCodes } from "http-status-codes";
 import { formatEmailToAvoidCapsuleConflict } from "@/utils/formatEmailToAvoidCapsuleConflict";
 import { createCapsuleAccount as createCapsuleViemAccount, createCapsuleViemClient } from "@usecapsule/viem-v2-integration";
-import { activeChain, rpcUrl } from "@/lib/viem";
+import { activeChain, provider, rpcUrl } from "@/lib/viem";
 import { http } from "viem";
+import { CapsuleEthersV5Signer } from "@usecapsule/ethers-v5-integration";
+import { createSmartWallet } from "@/lib/biconomy";
 
 const getCapsuleInstance = () =>
   new Capsule(Environment.BETA, process.env.CAPSULE_API_KEY, {
@@ -28,10 +30,14 @@ export const createCapsuleAccount = async (accountId: string, email: string, typ
         return { error: "Could not create a wallet, service temporarily not available.", status: StatusCodes.INTERNAL_SERVER_ERROR };
       }
       const userShare = capsule.getUserShare() as string;
+      const ethersSigner = new CapsuleEthersV5Signer(capsule as any, provider);
+      const smartWallet = await createSmartWallet(ethersSigner);
+      const smartWalletAddress = await smartWallet.getAddress();
       const vaultItem = await createVaultCapsuleKeyItem(userShare, address, email, type);
       const data = {
         capsuleTokenVaultKey: vaultItem.id,
-        walletAddress: address?.toLowerCase()
+        walletAddress: address?.toLowerCase(),
+        smartWalletAddress: smartWalletAddress?.toLowerCase()
       };
       return { data, status: StatusCodes.CREATED };
     } catch (e) {
@@ -68,3 +74,13 @@ export async function getCapsuleSigner(capsuleTokenVaultKey: string) {
     ...accountInstance
   };
 };
+
+export async function getSmartWalletForCapsuleWallet(capsuleTokenVaultKey: string) {
+  const capsule = new Capsule(Environment.BETA, process.env.CAPSULE_API_KEY);
+  const vaultItem = await getVaultItem(capsuleTokenVaultKey, "capsuleKey");
+  const userShare = vaultItem.fields.find((i) => i.id === "capsuleKey")?.value;
+  await capsule.setUserShare(userShare);
+
+  const ethersSigner = new CapsuleEthersV5Signer(capsule as any, provider);
+  return createSmartWallet(ethersSigner);
+}
