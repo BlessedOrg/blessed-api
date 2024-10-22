@@ -54,18 +54,6 @@ async function postHandler(req: NextRequestWithApiKeyOrDevAccessToken & NextRequ
       }
       return null;
     }).filter((item) => item !== null);
-    
-    
-    console.log("🔥 distribution: ", distribution)
-
-    // const metaTxResult = await metaTx({
-    //   contractAddress: ticketContractAddress as PrefixedHexString,
-    //   contractName: "tickets",
-    //   functionName: "distribute",
-    //   args: [distribution.map(dist => [dist.walletAddr, dist.amount])],
-    //   capsuleTokenVaultKey: req.capsuleTokenVaultKey,
-    //   userWalletAddress: req.appOwnerWalletAddress
-    // });
 
     const metaTxResult = await biconomyMetaTx({
       contractAddress: ticketContractAddress as PrefixedHexString,
@@ -75,9 +63,8 @@ async function postHandler(req: NextRequestWithApiKeyOrDevAccessToken & NextRequ
       capsuleTokenVaultKey: req.capsuleTokenVaultKey,
       userWalletAddress: req.appOwnerWalletAddress
     });
-    
-    console.log("🔮 metaTxResult: ", metaTxResult)
 
+    console.log("🔮 metaTxResult: ", metaTxResult)
 
     if (metaTxResult.error) {
       return NextResponse.json(
@@ -97,7 +84,7 @@ async function postHandler(req: NextRequestWithApiKeyOrDevAccessToken & NextRequ
 
     transferSingleEventArgs.forEach((args) => {
       const matchingRecipient = distribution
-        .find(d => d.walletAddr.toLowerCase() == args.to.toLowerCase());
+        .find(d => d.smartWalletAddr.toLowerCase() == args.to.toLowerCase());
       if (matchingRecipient) {
         matchingRecipient.tokenIds.push(args.id.toString());
       }

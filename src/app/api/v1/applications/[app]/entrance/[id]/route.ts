@@ -38,10 +38,6 @@ async function postRequest(req: NextRequestWithApiKeyAndUserAccessToken, { param
       [ownerSmartWallet]
     );
 
-    // 🏗️ TODO: remove
-    console.log("🔮 ownerSmartWallet: ", ownerSmartWallet)
-    console.log("🔮 req.walletAddress: ", req.walletAddress)
-    console.log("🔮 isAlreadyEntered: ", isAlreadyEntered)
     if (!isAlreadyEntered) {
       const metaTxResult = await biconomyMetaTx({
         contractAddress: contractAddress,

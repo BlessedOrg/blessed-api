@@ -1,7 +1,7 @@
 import { encodeFunctionData } from "viem";
-import { createSmartAccountClient, LightSigner, PaymasterMode } from "@biconomy/account";
+import { Bundler, createSmartAccountClient, LightSigner, PaymasterMode } from "@biconomy/account";
 import { getVaultItem } from "@/lib/1pwd-vault";
-import { contractArtifacts, getExplorerUrl, provider, waitForTransactionReceipt } from "@/lib/viem";
+import { contractArtifacts, getExplorerUrl, provider } from "@/lib/viem";
 import { Capsule } from "@usecapsule/server-sdk";
 import { Environment } from "@usecapsule/core-sdk";
 import { CapsuleEthersV5Signer } from "@usecapsule/ethers-v5-integration";
@@ -38,8 +38,6 @@ export const biconomyMetaTx = async ({
   const ethersSigner = new CapsuleEthersV5Signer(capsule as any, provider);
   const smartWallet = await createSmartWallet(ethersSigner);
   
-  console.log("🔮 smartWallet: ", !!smartWallet)
-
   const tx = {
     to: contractAddress,
     data: encodeFunctionData({
@@ -48,24 +46,30 @@ export const biconomyMetaTx = async ({
       args: args
     }),
   };
-
   const userOpResponse = await smartWallet.sendTransaction(tx, {
     paymasterServiceData: { mode: PaymasterMode.SPONSORED },
+    simulationType: "validation_and_execution"
   });
-  console.log("🔮 userOpResponse: ", userOpResponse)
+
+  console.log("🫡 userOpResponse: ", userOpResponse)
   const { transactionHash } = await userOpResponse.waitForTxHash();
 
-  console.log(getExplorerUrl(transactionHash));
+  console.log("💨 transactionHash", getExplorerUrl(transactionHash));
 
-  const result = await waitForTransactionReceipt(transactionHash);
+  let userOpReceipt;
+  try {
+    userOpReceipt = await userOpResponse.wait();
+  } catch (error) {
+    console.log("🚨 error while waiting for userOpResponse",error.message)
+    const bundlerResponse = await bundler.getUserOpByHash(userOpResponse.userOpHash);
+    if (!!bundlerResponse) {
+      userOpReceipt = await userOpResponse.wait();
+    }
+  }
 
-  console.log("🫀 result: ", result)
+  console.log("🧾 userOpReceipt: ", userOpReceipt)
 
-  console.log("🥇 transactionHash", getExplorerUrl(transactionHash));
-  const userOpReceipt = await userOpResponse.wait();
-  console.log("🔥 userOpReceipt: ", userOpReceipt)
-
-  if (userOpReceipt.success == "true") {
+  if (userOpReceipt && userOpReceipt?.success == "true") {
     return {
       data: {
         type: "paymaster-tx",
@@ -82,12 +86,6 @@ export const biconomyMetaTx = async ({
   }
 };
 
-
-
-
-
-
-
-
-
-
+export const bundler = new Bundler({
+  bundlerUrl: `https://bundler.biconomy.io/api/v2/${process.env.NEXT_PUBLIC_CHAIN_ID}/nJPK7B3ru.dd7f7861-190d-41bd-af80-6877f74b8f44`, // Replace with Base Sepolia chain ID
+});
