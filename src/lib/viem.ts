@@ -32,6 +32,14 @@ export const activeChain = baseSepolia;
 
 export const account = privateKeyToAccount(`0x${process.env.OPERATOR_PRIVATE_KEY}`);
 
+export const provider = new ethers.providers.JsonRpcProvider({
+  skipFetchSetup: true,
+  fetchOptions: {
+    referrer: process.env.NEXT_PUBLIC_BASE_URL!
+  },
+  url: rpcUrl!
+});
+
 const client = createWalletClient({
   chain: activeChain,
   account,
@@ -54,14 +62,6 @@ const incrementNonce = () => {
 };
 
 export const fetchNonce = async (address: string | null = null) => {
-  const provider = new ethers.providers.JsonRpcProvider({
-    skipFetchSetup: true,
-    fetchOptions: {
-      referrer: process.env.NEXT_PUBLIC_BASE_URL!
-    },
-    url: rpcUrl!
-  });
-
   const signer = provider.getSigner(account?.address);
   const nonceManager = new NonceManager(signer);
   return nonceManager.getTransactionCount("latest");
