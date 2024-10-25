@@ -72,9 +72,12 @@ async function postRequest(req: NextRequestWithApiKeyAndUserAccessToken, { param
       );
     }
   } catch (e) {
-    console.error("Error keys:", Object.keys(e));
-    console.log("Cause keys:", Object.keys(e?.cause));
-    return NextResponse.json({ error: e?.cause?.reason || e?.shortMessage || e?.message || e }, { status: StatusCodes.BAD_REQUEST });
+    console.log("🚨 error on tickets/{id}/whitelist: ", e.message);
+    console.error("🚨 error keys:", Object.keys(e));
+    return NextResponse.json(
+      { success: false, error: e?.reason ||e?.cause || e?.shortMessage || e?.message || e },
+      { status: StatusCodes.BAD_REQUEST }
+    );
   }
 }
 

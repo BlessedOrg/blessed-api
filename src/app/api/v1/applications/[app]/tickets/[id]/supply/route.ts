@@ -49,10 +49,11 @@ async function postHandler(req: NextRequestWithApiKeyOrDevAccessToken & NextRequ
       },
       { status: StatusCodes.OK }
     );
-  } catch (error) {
-    console.log("🚨 error on tickets/{id}/supply: ", error.message);
+  } catch (e) {
+    console.log("🚨 error on tickets/{id}/supply: ", e.message);
+    console.error("🚨 error keys:", Object.keys(e));
     return NextResponse.json(
-      { success: false, error: error.message },
+      { success: false, error: e?.reason ||e?.cause || e?.shortMessage || e?.message || e },
       { status: StatusCodes.BAD_REQUEST }
     );
   }

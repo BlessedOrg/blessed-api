@@ -22,7 +22,7 @@ export const createSmartWallet = async (signer: LightSigner) =>
     bundlerUrl: `https://bundler.biconomy.io/api/v2/${process.env.NEXT_PUBLIC_CHAIN_ID}/nJPK7B3ru.dd7f7861-190d-41bd-af80-6877f74b8f44`, // <-- Read about this at https://docs.biconomy.io/dashboard#bundler-url
     biconomyPaymasterApiKey: process.env.BICONOMY_API_KEY, // <-- Read about at https://docs.biconomy.io/dashboard/paymaster
     rpcUrl: process.env.NEXT_PUBLIC_JSON_RPC_URL // <-- read about this at https://docs.biconomy.io/account/methods#createsmartaccountclient
-  })
+  });
 
 export const biconomyMetaTx = async ({
   contractAddress,
@@ -37,21 +37,24 @@ export const biconomyMetaTx = async ({
   await capsule.setUserShare(userShare);
   const ethersSigner = new CapsuleEthersV5Signer(capsule as any, provider);
   const smartWallet = await createSmartWallet(ethersSigner);
-  
+
   const tx = {
     to: contractAddress,
     data: encodeFunctionData({
       abi: contractArtifacts[contractName].abi,
       functionName: functionName,
       args: args
-    }),
+    })
   };
+
+  const smartWalletAddress = await smartWallet.getAddress();
+  await provider.estimateGas({ from: smartWalletAddress, ...tx });
+
   const userOpResponse = await smartWallet.sendTransaction(tx, {
-    paymasterServiceData: { mode: PaymasterMode.SPONSORED },
-    simulationType: "validation_and_execution"
+    paymasterServiceData: { mode: PaymasterMode.SPONSORED }
   });
 
-  console.log("🫡 userOpResponse: ", userOpResponse)
+  console.log("🫡 userOpResponse: ", userOpResponse);
   const { transactionHash } = await userOpResponse.waitForTxHash();
 
   console.log("💨 transactionHash", getExplorerUrl(transactionHash));
@@ -60,14 +63,14 @@ export const biconomyMetaTx = async ({
   try {
     userOpReceipt = await userOpResponse.wait();
   } catch (error) {
-    console.log("🚨 error while waiting for userOpResponse",error.message)
+    console.log("🚨 error while waiting for userOpResponse", error.message);
     const bundlerResponse = await bundler.getUserOpByHash(userOpResponse.userOpHash);
     if (!!bundlerResponse) {
       userOpReceipt = await userOpResponse.wait();
     }
   }
 
-  console.log("🧾 userOpReceipt: ", userOpReceipt)
+  console.log("🧾 userOpReceipt: ", userOpReceipt);
 
   if (userOpReceipt && userOpReceipt?.success == "true") {
     return {
@@ -82,10 +85,10 @@ export const biconomyMetaTx = async ({
       data: null,
       error: userOpResponse ?? userOpReceipt,
       status: StatusCodes.BAD_REQUEST
-    }
+    };
   }
 };
 
 export const bundler = new Bundler({
-  bundlerUrl: `https://bundler.biconomy.io/api/v2/${process.env.NEXT_PUBLIC_CHAIN_ID}/nJPK7B3ru.dd7f7861-190d-41bd-af80-6877f74b8f44`, // Replace with Base Sepolia chain ID
+  bundlerUrl: `https://bundler.biconomy.io/api/v2/${process.env.NEXT_PUBLIC_CHAIN_ID}/nJPK7B3ru.dd7f7861-190d-41bd-af80-6877f74b8f44` // Replace with Base Sepolia chain ID
 });
