@@ -78,7 +78,7 @@ async function postHandler(req: NextRequestWithApiKeyOrDevAccessToken & NextRequ
 
     const nextId = (maxId._max.version || 0) + 1;
 
-    const smartContractRecord = await smartContractModel.create({
+    const ticketRecord = await smartContractModel.create({
       data: {
         address: contract.contractAddr,
         name: contractName,
@@ -98,8 +98,9 @@ async function postHandler(req: NextRequestWithApiKeyOrDevAccessToken & NextRequ
     return NextResponse.json(
       {
         success: true,
+        ticketId: ticketRecord.id,
         contract,
-        smartContractRecord,
+        ticketRecord,
         explorerUrls: {
           contract: getExplorerUrl(contract.contractAddr)
         }
