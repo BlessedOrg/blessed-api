@@ -1,5 +1,4 @@
 "use server";
-import { Environment } from "@usecapsule/core-sdk";
 import { Capsule, PregenIdentifierType, WalletType } from "@usecapsule/server-sdk";
 import { createVaultCapsuleKeyItem, getVaultItem } from "@/lib/1pwd-vault";
 import { StatusCodes } from "http-status-codes";
@@ -10,8 +9,9 @@ import { http } from "viem";
 import { CapsuleEthersV5Signer } from "@usecapsule/ethers-v5-integration";
 import { createSmartWallet } from "@/lib/biconomy";
 
+const capsuleEnv = process.env.CAPSULE_ENV as any;
 const getCapsuleInstance = () =>
-  new Capsule(Environment.BETA, process.env.CAPSULE_API_KEY, {
+  new Capsule(capsuleEnv, process.env.CAPSULE_API_KEY, {
     supportedWalletTypes: {
       EVM: true
     }
@@ -76,7 +76,8 @@ export async function getCapsuleSigner(capsuleTokenVaultKey: string) {
 };
 
 export async function getSmartWalletForCapsuleWallet(capsuleTokenVaultKey: string) {
-  const capsule = new Capsule(Environment.BETA, process.env.CAPSULE_API_KEY);
+  const capsuleEnv = process.env.CAPSULE_ENV as any;
+  const capsule = new Capsule(capsuleEnv, process.env.CAPSULE_API_KEY);
   const vaultItem = await getVaultItem(capsuleTokenVaultKey, "capsuleKey");
   const userShare = vaultItem.fields.find((i) => i.id === "capsuleKey")?.value;
   await capsule.setUserShare(userShare);

@@ -3,7 +3,6 @@ import { Bundler, createSmartAccountClient, LightSigner, PaymasterMode } from "@
 import { getVaultItem } from "@/lib/1pwd-vault";
 import { contractArtifacts, getExplorerUrl, provider } from "@/lib/viem";
 import { Capsule } from "@usecapsule/server-sdk";
-import { Environment } from "@usecapsule/core-sdk";
 import { CapsuleEthersV5Signer } from "@usecapsule/ethers-v5-integration";
 import { StatusCodes } from "http-status-codes";
 
@@ -31,7 +30,8 @@ export const biconomyMetaTx = async ({
   args,
   capsuleTokenVaultKey
 }: MetaTxParams) => {
-  const capsule = new Capsule(Environment.BETA, process.env.CAPSULE_API_KEY);
+  const capsuleEnv = process.env.CAPSULE_ENV as any;
+  const capsule = new Capsule(capsuleEnv, process.env.CAPSULE_API_KEY);
   const vaultItem = await getVaultItem(capsuleTokenVaultKey, "capsuleKey");
   const userShare = vaultItem.fields.find((i) => i.id === "capsuleKey")?.value;
   await capsule.setUserShare(userShare);
