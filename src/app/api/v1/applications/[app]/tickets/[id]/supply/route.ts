@@ -5,8 +5,8 @@ import z from "zod";
 import { withApiKeyOrDevAccessToken } from "@/app/middleware/withApiKeyOrDevAccessToken";
 import { withAppValidate } from "@/app/middleware/withAppValidate";
 import { withTicketValidate } from "@/app/middleware/withTicketValidate";
-import { metaTx } from "@/lib/gelato";
 import { PrefixedHexString } from "ethereumjs-util";
+import { biconomyMetaTx } from "@/lib/biconomy";
 
 const DistributeSchema = z.object({
   additionalSupply: z.number().int().positive()
@@ -23,7 +23,7 @@ async function postHandler(req: NextRequestWithApiKeyOrDevAccessToken & NextRequ
       );
     }
 
-    const metaTxResult = await metaTx({
+    const metaTxResult = await biconomyMetaTx({
       contractAddress: ticketContractAddress as PrefixedHexString,
       contractName: "tickets",
       functionName: "updateSupply",
@@ -42,20 +42,18 @@ async function postHandler(req: NextRequestWithApiKeyOrDevAccessToken & NextRequ
     return NextResponse.json(
       {
         success: true,
-        transactionReceipt: {
-          ...metaTxResult.data.metaTransactionStatus,
-          blockNumber: metaTxResult.data.transactionReceipt.blockNumber.toString(),
-        },
         explorerUrls: {
-          updateSupplyTx: getExplorerUrl(metaTxResult.data.transactionReceipt.transactionHash)
-        }
+          tx: getExplorerUrl(metaTxResult.data.transactionReceipt.transactionHash)
+        },
+        transactionReceipt: metaTxResult.data.transactionReceipt
       },
       { status: StatusCodes.OK }
     );
-  } catch (error) {
-    console.log("🚨 error on tickets/{id}/supply: ", error.message);
+  } catch (e) {
+    console.log("🚨 error on tickets/{id}/supply: ", e.message);
+    console.error("🚨 error keys:", Object.keys(e));
     return NextResponse.json(
-      { success: false, error: error.message },
+      { success: false, error: e?.reason ||e?.cause || e?.shortMessage || e?.message || e },
       { status: StatusCodes.BAD_REQUEST }
     );
   }

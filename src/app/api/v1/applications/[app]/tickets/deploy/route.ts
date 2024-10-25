@@ -6,6 +6,7 @@ import { uploadMetadata } from "@/lib/irys";
 import { deployContract, getExplorerUrl } from "@/lib/viem";
 import { withApiKeyOrDevAccessToken } from "@/app/middleware/withApiKeyOrDevAccessToken";
 import { withAppValidate } from "@/app/middleware/withAppValidate";
+import { getSmartWalletForCapsuleWallet } from "@/lib/capsule";
 
 const TicketSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -37,9 +38,14 @@ async function postHandler(req: NextRequestWithApiKeyOrDevAccessToken & NextRequ
       image: ""
     });
 
+    const smartWallet = await getSmartWalletForCapsuleWallet(req.capsuleTokenVaultKey);
+    const ownerSmartWallet = await smartWallet.getAccountAddress();
+
     const contractName = "tickets";
     const args = {
+      // owner: account.address,
       owner: appOwnerWalletAddress,
+      ownerSmartWallet,
       baseURI: metadataUrl,
       name: validBody.data.name,
       symbol: validBody.data.symbol,
@@ -51,6 +57,13 @@ async function postHandler(req: NextRequestWithApiKeyOrDevAccessToken & NextRequ
 
     const contract = await deployContract(contractName, Object.values(args));
     console.log("⛓️ Contract Explorer URL: ", getExplorerUrl(contract.contractAddr));
+
+    // const result = await writeContract(
+    //   contract.contractAddr as PrefixedHexString,
+    //   "updateSupply",
+    //   ["10"],
+    //   contractArtifacts["tickets"].abi
+    // );
 
     const maxId = await smartContractModel.aggregate({
       where: {
@@ -96,7 +109,7 @@ async function postHandler(req: NextRequestWithApiKeyOrDevAccessToken & NextRequ
   } catch (error) {
     console.log("🚨 error on tickets/deploy: ", error.message);
     return NextResponse.json(
-      { error },
+      { error: error.message },
       { status: StatusCodes.BAD_REQUEST }
     );
   }

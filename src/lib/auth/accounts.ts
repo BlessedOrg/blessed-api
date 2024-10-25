@@ -121,10 +121,10 @@ export const createMissingAccounts = async (emails: string[], appId: string) => 
         return;
       }
       if (data) {
-        const walletAddress = data.walletAddress;
         capsuleAccounts.push({
           email: account.email,
-          walletAddress,
+          walletAddress: data.walletAddress,
+          smartWalletAddress: data.smartWalletAddress,
           capsuleTokenVaultKey: data.capsuleTokenVaultKey
         });
       }
@@ -136,6 +136,7 @@ export const createMissingAccounts = async (emails: string[], appId: string) => 
           where: { email: account.email },
           data: {
             walletAddress: account.walletAddress,
+            smartWalletAddress: account.smartWalletAddress,
             capsuleTokenVaultKey: account.capsuleTokenVaultKey
           }
         })
@@ -151,7 +152,8 @@ export const createMissingAccounts = async (emails: string[], appId: string) => 
       select: {
         id: true,
         email: true,
-        walletAddress: true
+        walletAddress: true,
+        smartWalletAddress: true
       }
     });
 
@@ -178,16 +180,16 @@ export const createUserAccount = async (email: string, appId: string) => {
       }
     });
     const { data, error, status } = await createCapsuleAccount(createdUserAccount.id, email, "user");
-
     if (!!error) {
       return { error, status };
     }
-    const { capsuleTokenVaultKey, walletAddress } = data;
+    const { capsuleTokenVaultKey, walletAddress, smartWalletAddress } = data;
     await userModel.update({
       where: { id: createdUserAccount.id },
       data: {
         walletAddress,
-        capsuleTokenVaultKey
+        smartWalletAddress,
+        capsuleTokenVaultKey,
       }
     });
     await appUserModel.create({

@@ -6,8 +6,8 @@ import { createMissingAccounts } from "@/lib/auth/accounts";
 import { withApiKeyOrDevAccessToken } from "@/app/middleware/withApiKeyOrDevAccessToken";
 import { withAppValidate } from "@/app/middleware/withAppValidate";
 import { withTicketValidate } from "@/app/middleware/withTicketValidate";
-import { metaTx } from "@/lib/gelato";
 import { PrefixedHexString } from "ethereumjs-util";
+import { biconomyMetaTx } from "@/lib/biconomy";
 
 const WhitelistSchema = z.object({
   addEmails: z.array(z.string().email()).min(1),
@@ -26,7 +26,9 @@ async function postHandler(req: NextRequestWithApiKeyOrDevAccessToken & NextRequ
     }
     const allEmails = [...validBody.data.addEmails, ...(validBody.data.removeEmails || [])];
     const { users } = await createMissingAccounts(allEmails, appId);
-    const emailToWalletMap = new Map(users.map(account => [account.email, account.walletAddress]));
+
+    console.log("🔮 users: ", users)
+    const emailToWalletMap = new Map(users.map(account => [account.email, account.smartWalletAddress]));
 
     const whitelistUpdates = [
       ...validBody.data.addEmails.map(email => {
@@ -38,8 +40,10 @@ async function postHandler(req: NextRequestWithApiKeyOrDevAccessToken & NextRequ
         return walletAddress ? [walletAddress, false] : null;
       })
     ].filter((item): item is [string, boolean] => item !== null);
+    
+    console.log("🔥 whitelistUpdates: ", whitelistUpdates)
 
-    const metaTxResult = await metaTx({
+    const metaTxResult = await biconomyMetaTx({
       contractAddress: ticketContractAddress as PrefixedHexString,
       contractName: "tickets",
       functionName: "updateWhitelist",
@@ -58,21 +62,19 @@ async function postHandler(req: NextRequestWithApiKeyOrDevAccessToken & NextRequ
     return NextResponse.json(
       {
         success: true,
-        transactionReceipt: {
-          ...metaTxResult.data.metaTransactionStatus,
-          blockNumber: metaTxResult.data.transactionReceipt.blockNumber.toString(),
-        },
         explorerUrls: {
-          updateWhitelistTx: getExplorerUrl(metaTxResult.data.transactionReceipt.transactionHash)
+          tx: getExplorerUrl(metaTxResult.data.transactionReceipt.transactionHash)
         },
-        whitelistUpdatesMap: whitelistUpdates
+        whitelistUpdatesMap: whitelistUpdates,
+        transactionReceipt: metaTxResult.data.transactionReceipt
       },
       { status: StatusCodes.OK }
     );
-  } catch (error) {
-    console.log("🚨 error on tickets/{id}/supply: ", error.message);
+  } catch (e) {
+    console.log("🚨 error on tickets/{id}/whitelist: ", e.message);
+    console.error("🚨 error keys:", Object.keys(e));
     return NextResponse.json(
-      { success: false, error: error.message },
+      { success: false, error: e?.reason ||e?.cause || e?.shortMessage || e?.message || e },
       { status: StatusCodes.BAD_REQUEST }
     );
   }

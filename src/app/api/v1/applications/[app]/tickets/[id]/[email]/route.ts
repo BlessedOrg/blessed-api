@@ -26,6 +26,11 @@ async function getHandler(req: NextRequestWithApiKeyOrDevAccessToken & NextReque
     const user = await userModel.findUnique({
       where: {
         email
+      },
+      select: {
+        email: true,
+        walletAddress: true,
+        smartWalletAddress: true
       }
     });
 
@@ -51,7 +56,8 @@ async function getHandler(req: NextRequestWithApiKeyOrDevAccessToken & NextReque
             ownedIds: [result].map(id => id.toString())
           },
           email: user.email,
-          walletAddress: user.walletAddress
+          walletAddress: user.walletAddress,
+          smartWalletAddress: user.smartWalletAddress
         }
       },
       { status: StatusCodes.OK }
