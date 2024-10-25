@@ -20,7 +20,8 @@ export const createDeveloperAccount = async (email: string) => {
       where: { id: createdDeveloperAccount.id },
       data: {
         walletAddress,
-        capsuleTokenVaultKey
+        capsuleTokenVaultKey,
+        smartWalletAddress: data?.smartWalletAddress
       }
     });
     if (createdDeveloperAccount) {
@@ -189,7 +190,7 @@ export const createUserAccount = async (email: string, appId: string) => {
       data: {
         walletAddress,
         smartWalletAddress,
-        capsuleTokenVaultKey,
+        capsuleTokenVaultKey
       }
     });
     await appUserModel.create({
